@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.streamlit/secrets.toml
+data/state/*.json
+data/state/submissions/*.json
+data/state/uploads/*
+.DS_Store
+bolao_cabine_gloria_public_ocr/

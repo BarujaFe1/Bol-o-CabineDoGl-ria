@@ -1,0 +1,48 @@
+Simulador Copa do Mundo 2026
+
+Décima-sextas
+Alemanha x Paraguai
+França x Suécia
+Rep. Tcheca x Canadá
+Holanda x Marrocos
+Colômbia x Croácia
+Espanha x Áustria
+EUA x Bósnia
+Bélgica x Coreia do Sul
+Brasil x Japão
+Equador x Noruega
+México x Escócia
+Inglaterra x Senegal
+Argentina x Uruguai
+Turquia x Egito
+Suíça x Argélia
+Portugal x Costa do Marfim
+
+Oitavas
+Alemanha x França
+Canadá x Holanda
+Colômbia x Espanha
+EUA x Bélgica
+Brasil x Noruega
+México x Inglaterra
+Argentina x Turquia
+Suíça x Portugal
+
+Quartas
+França x Holanda
+Espanha x Bélgica
+Brasil x Inglaterra
+Argentina x Portugal
+
+Semi
+França x Espanha
+Inglaterra x Portugal
+
+Final
+Espanha x Inglaterra
+
+Campeã
+Espanha
+
+#ge.globoNaCopa
+ge.globo/simulador
