@@ -1,149 +1,396 @@
-# 🏆 Bolão da Cabine do Glória
+<div align="center">
+  <img src="./assets/icon.png" alt="Bolão da Cabine do Glória Logo" width="120" height="120" />
+  <h1>Bolão da Cabine do Glória</h1>
+  <p><strong>Copa do Mundo 2026 • Bolão inteligente com OCR, conferência e ranking automático</strong></p>
 
-[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-yellowgreen?style=for-the-badge)](LICENSE)
+  <p>
+    <a href="#-português">Português</a> •
+    <a href="#-english">English</a> •
+    <a href="#-tecnologias--technologies">Tecnologias</a> •
+    <a href="#-como-executar--how-to-run">Como executar</a> •
+    <a href="#-deploy">Deploy</a> •
+    <a href="#-licença--license">Licença</a>
+  </p>
 
-**Copa do Mundo 2026** — Um bolão completo e fácil de usar, sem necessidade de lidar com JSON ou planilhas.
+  <p>
+    <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version 1.0.0" />
+    <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License MIT" />
+    <img src="https://img.shields.io/badge/Streamlit-FF4B4B.svg?style=flat-square&logo=streamlit&logoColor=white" alt="Streamlit" />
+    <img src="https://img.shields.io/badge/Python-3.11-3776AB.svg?style=flat-square&logo=python&logoColor=white" alt="Python 3.11" />
+    <img src="https://img.shields.io/badge/Supabase-ready-3ECF8E.svg?style=flat-square&logo=supabase&logoColor=white" alt="Supabase Ready" />
+    <img src="https://img.shields.io/badge/OCR-Tesseract-5A5A5A.svg?style=flat-square" alt="OCR Tesseract" />
+  </p>
+</div>
 
 ---
 
-## 📋 Visão Geral
+# 🇧🇷 Português
 
-O **Bolão da Cabine do Glória** é uma aplicação web para organizar bolões da Copa do Mundo 2026. O diferencial é a **experiência simples para o participante**: ele só precisa enviar dois prints dos grupos e colar o texto do mata-mata exportado pelo simulador do ge.globo.
+## 📋 Visão geral
 
-O sistema faz o resto: detecta os grupos automaticamente via OCR visual, interpreta o mata-mata, mostra uma tela de conferência obrigatória e salva o palpite.
+**Bolão da Cabine do Glória** é uma aplicação web feita para organizar bolões da **Copa do Mundo 2026** com uma experiência simples, visual e automatizada.
 
-### Fluxo do Participante
+A ideia central é eliminar o trabalho manual com planilhas, JSONs e conferência complicada. O participante preenche o simulador do ge.globo, envia dois prints dos grupos, cola o texto do mata-mata e revisa tudo em uma tela de conferência antes de confirmar o palpite.
 
-```
-1. Acesse o simulador do ge
+O sistema processa os dados automaticamente, interpreta os grupos por OCR visual, lê o mata-mata, salva o palpite e calcula o ranking com critérios configuráveis.
+
+> Um bolão feito para ser fácil para quem participa e poderoso para quem administra.
+
+---
+
+## 🧭 Fluxo do participante
+
+```text
+1. Acesse o simulador do ge.globo
       ↓
-2. Preencha os grupos e mata-mata
+2. Preencha grupos e mata-mata
       ↓
-3. Tire 2 prints (A-F e G-L)
+3. Tire 2 prints dos grupos: A–F e G–L
       ↓
 4. Copie o texto do mata-mata
       ↓
-5. Envie no site
+5. Envie tudo no site
       ↓
-6. Revise e confirme ✓
+6. Revise a conferência obrigatória
+      ↓
+7. Confirme o palpite
 ```
 
 ---
 
 ## ✨ Funcionalidades
 
-### Área Pública
-- **Home** — Instruções claras com passo a passo e link direto para o simulador do ge
-- **Enviar Palpite** — Upload de 2 imagens + texto do mata-mata + conferência obrigatória
-- **Ranking** — Pódio visual, tabela geral e detalhamento por participante
+### 🌐 Área pública
 
-### Área Administrativa (protegida por senha)
-- **Dashboard** — KPI, carregar dados demo, limpar estado
-- **Participantes** — Ver, editar e excluir palpites
-- **Resultados Oficiais** — Colar texto, sincronizar API-Football, revisar e aprovar
-- **Ranking** — Ver pódio, tabela e detalhamento completo
-- **Exportações** — CSV, JSON, backup completo, texto para Discord, HTML do pódio
-- **Configurações** — Modo de pontuação, pesos, status público
-- **Ajuda** — Fluxo resumido
+- **Home:** instruções claras, passo a passo e link direto para o simulador.
+- **Enviar palpite:** upload de 2 imagens dos grupos + texto do mata-mata.
+- **Conferência obrigatória:** o participante revisa o que foi detectado antes de confirmar.
+- **Ranking:** pódio visual, tabela geral e detalhamento por participante.
 
-### Sistema Inteligente
-- **OCR visual por cor** — Detecta 1º, 2º, 3º e 4º lugares pela cor das linhas no print do ge
-- **Parser do mata-mata** — Interpretador robusto com suporte a variações de acentuação
-- **Conferência obrigatória** — O participante revisa antes de confirmar
-- **Pontuação configurável** — Modo ponderado ou uniforme, com desempate automático
-- **Persistência dual** — Local JSON (dev) ou Supabase (produção)
+### 🔐 Área administrativa
+
+- **Dashboard:** KPIs, carregamento de dados demo e limpeza de estado.
+- **Participantes:** visualizar, editar e excluir palpites.
+- **Resultados oficiais:** colar texto, sincronizar API-Football, revisar e aprovar.
+- **Ranking administrativo:** pódio, tabela completa e detalhes de pontuação.
+- **Exportações:** CSV, JSON, backup completo, texto para Discord e HTML do pódio.
+- **Configurações:** modo de pontuação, pesos, bônus e status público.
+- **Ajuda:** fluxo resumido para operação do sistema.
+
+### 🧠 Sistema inteligente
+
+- **OCR visual por cor:** detecta 1º, 2º, 3º e 4º lugares com base nas cores das linhas do print do ge.globo.
+- **Parser do mata-mata:** interpreta fases eliminatórias com suporte a variações de acentuação e formato.
+- **Pontuação configurável:** modo ponderado ou uniforme, com critérios de desempate.
+- **Persistência dual:** JSON local para desenvolvimento ou Supabase para produção.
+- **Revisão manual controlada:** resultados oficiais e dados importados passam por conferência antes da aprovação.
 
 ---
 
-## 🚀 Como Rodar Localmente
+## 🧮 Pontuação
 
-### Pré-requisitos
+### Modo ponderado
+
+| Item | Pontos |
+|---|---:|
+| 1º lugar no grupo | 5 |
+| 2º lugar no grupo | 3 |
+| 3º lugar classificado | 2 |
+| Melhor terceiro | 2 |
+| Cada acerto no mata-mata | 5 |
+| Campeã | configurável |
+
+### Modo uniforme
+
+Cada decisão correta vale uma pontuação única configurável, com possibilidade de bônus para a campeã.
+
+### Critérios de desempate
+
+1. Maior pontuação no mata-mata.
+2. Acerto da campeã.
+3. Maior pontuação em grupos.
+4. Ordem alfabética.
+
+---
+
+## 🛡️ Segurança e boas práticas
+
+- Nunca commite secrets, senhas ou chaves de API.
+- Use `.env.example` como referência e configure variáveis reais no ambiente de produção.
+- Proteja a área administrativa com `ADMIN_PASSWORD`.
+- Em produção, prefira Supabase em vez de persistência local.
+- Revise resultados oficiais antes de aprovar pontuação pública.
+
+---
+
+## 🔍 Limitações conhecidas
+
+1. **OCR visual:** calibrado para prints do simulador do ge.globo. Prints cortados, borrados ou com zoom irregular podem exigir correção manual.
+2. **Terceiros classificados:** quando não aparecem explicitamente, o sistema infere a partir da fase de 32.
+3. **API-Football:** a resposta da API pode exigir revisão manual antes da aprovação.
+4. **Persistência local:** ideal para desenvolvimento; em produção, use Supabase.
+
+---
+
+## 🚧 Roadmap
+
+- [ ] Login por Discord via OAuth.
+- [ ] Múltiplos bolões por servidor.
+- [ ] Cards compartilháveis do pódio em PNG.
+- [ ] Integração automática com fonte oficial de resultados.
+- [ ] Dashboard avançado de estatísticas.
+- [ ] Histórico de edições e auditoria administrativa.
+- [ ] Página pública com status do bolão e próximos jogos.
+
+---
+
+# 🇺🇸 English
+
+## 📋 Overview
+
+**Bolão da Cabine do Glória** is a web application designed to manage a **2026 FIFA World Cup prediction pool** with a simple, visual and automated experience.
+
+The core goal is to remove the manual work of spreadsheets, JSON files and complicated validation. Participants fill out the ge.globo simulator, upload two screenshots of the group stage, paste the knockout-stage text and review everything on a required confirmation screen before submitting.
+
+The system automatically processes the data, reads group standings through visual OCR, parses the knockout bracket, stores the prediction and calculates the ranking with configurable scoring rules.
+
+> A prediction pool built to be easy for participants and powerful for administrators.
+
+---
+
+## 🧭 Participant flow
+
+```text
+1. Open the ge.globo simulator
+      ↓
+2. Fill in the groups and knockout stage
+      ↓
+3. Take 2 screenshots of the groups: A–F and G–L
+      ↓
+4. Copy the knockout-stage text
+      ↓
+5. Submit everything on the website
+      ↓
+6. Review the required confirmation screen
+      ↓
+7. Confirm the prediction
+```
+
+---
+
+## ✨ Features
+
+### 🌐 Public area
+
+- **Home:** clear instructions, step-by-step guide and direct simulator link.
+- **Submit prediction:** upload 2 group-stage images + knockout-stage text.
+- **Required confirmation:** participants review detected data before confirming.
+- **Ranking:** visual podium, general table and participant-level details.
+
+### 🔐 Admin area
+
+- **Dashboard:** KPIs, demo data loader and state cleanup.
+- **Participants:** view, edit and delete predictions.
+- **Official results:** paste text, sync API-Football, review and approve.
+- **Admin ranking:** podium, complete table and full score breakdown.
+- **Exports:** CSV, JSON, full backup, Discord-ready text and podium HTML.
+- **Settings:** scoring mode, weights, bonuses and public status.
+- **Help:** compact operational guide.
+
+### 🧠 Intelligent system
+
+- **Color-based visual OCR:** detects 1st, 2nd, 3rd and 4th places based on row colors from ge.globo screenshots.
+- **Knockout parser:** robustly interprets elimination rounds with support for accent and formatting variations.
+- **Configurable scoring:** weighted or uniform scoring, with automatic tie-breakers.
+- **Dual persistence:** local JSON for development or Supabase for production.
+- **Controlled manual review:** official results and imported data can be reviewed before approval.
+
+---
+
+## 🧮 Scoring
+
+### Weighted mode
+
+| Item | Points |
+|---|---:|
+| 1st place in group | 5 |
+| 2nd place in group | 3 |
+| Qualified 3rd place | 2 |
+| Best third-place team | 2 |
+| Each knockout-stage hit | 5 |
+| Champion | configurable |
+
+### Uniform mode
+
+Each correct decision receives a configurable fixed score, with optional champion bonus.
+
+### Tie-breakers
+
+1. Higher knockout-stage score.
+2. Correct champion.
+3. Higher group-stage score.
+4. Alphabetical order.
+
+---
+
+## 🛡️ Security and best practices
+
+- Never commit secrets, passwords or API keys.
+- Use `.env.example` as a reference and configure real variables in production.
+- Protect the admin area with `ADMIN_PASSWORD`.
+- In production, prefer Supabase instead of local persistence.
+- Review official results before approving public scoring.
+
+---
+
+## 🔍 Known limitations
+
+1. **Visual OCR:** calibrated for ge.globo simulator screenshots. Cropped, blurry or irregularly zoomed screenshots may require manual correction.
+2. **Qualified third-place teams:** when not explicitly shown, the system infers them from the round of 32.
+3. **API-Football:** API responses may require manual review before approval.
+4. **Local persistence:** suitable for development; use Supabase in production.
+
+---
+
+## 🚧 Roadmap
+
+- [ ] Discord OAuth login.
+- [ ] Multiple pools per server.
+- [ ] Shareable podium cards as PNG.
+- [ ] Automatic integration with an official results source.
+- [ ] Advanced statistics dashboard.
+- [ ] Edit history and admin audit trail.
+- [ ] Public pool status page with upcoming matches.
+
+---
+
+# 🧰 Tecnologias / Technologies
+
+- [Streamlit](https://streamlit.io/) — interface web rápida e interativa.
+- [Python 3.11+](https://python.org/) — linguagem principal da aplicação.
+- [Supabase](https://supabase.com/) — persistência em produção.
+- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) — leitura visual dos grupos.
+- [API-Football](https://www.api-football.com/) — sincronização opcional de resultados.
+- CSV / JSON — exportação, backup e interoperabilidade.
+
+---
+
+# 📁 Estrutura do projeto / Project structure
+
+```text
+bolao_cabine_gloria_public_ocr/
+├── app.py                       # Aplicação principal / Main application
+├── requirements.txt             # Dependências Python / Python dependencies
+├── packages.txt                 # Pacotes de sistema, como Tesseract / System packages
+├── runtime.txt                  # Versão do Python / Python version
+├── .streamlit/
+│   └── config.toml              # Configuração do Streamlit / Streamlit config
+├── .env.example                 # Exemplo de variáveis / Environment example
+├── .gitignore                   # Arquivos ignorados pelo Git / Ignored files
+├── src/bolao/
+│   ├── api_service.py           # Integração API-Football / API-Football integration
+│   ├── constants.py             # Constantes e configurações / Constants and settings
+│   ├── exporters.py             # Exportações / Exports
+│   ├── models.py                # Modelos de dados / Data models
+│   ├── ocr_groups.py            # Leitura visual dos grupos / Visual group OCR
+│   ├── parser_ge.py             # Parser do texto do ge / ge.globo text parser
+│   ├── scoring.py               # Sistema de pontuação / Scoring system
+│   ├── storage.py               # Persistência local + Supabase / Storage layer
+│   ├── ui_components.py         # Componentes de UI / UI components
+│   ├── utils.py                 # Utilitários / Utilities
+│   └── validation.py            # Validação de palpites / Prediction validation
+├── data/
+│   ├── examples/                # Exemplos / Examples
+│   ├── demo_state/              # Dados demo / Demo state
+│   └── state/                   # Dados locais não versionados / Local runtime data
+└── tests/
+    └── test_parser_scoring.py   # Testes / Tests
+```
+
+---
+
+# ⚙️ Como executar / How to run
+
+## Pré-requisitos / Requirements
+
 - Python 3.11+
-- Windows PowerShell ou Terminal
+- Windows PowerShell, Terminal, Bash or compatible shell
+- Tesseract OCR installed locally when using OCR features
 
-### Passos
+## Instalação local / Local setup
 
-```powershell
-# Clone ou extraia o projeto
-cd bolao_cabine_gloria_public_ocr
+```bash
+# Clone the repository
+git clone https://github.com/SEU_USUARIO/bolao-cabine-gloria.git
 
-# Crie o ambiente virtual
+# Enter the project folder
+cd bolao-cabine-gloria
+
+# Create a virtual environment
 python -m venv .venv
 
-# Ative o ambiente (Windows)
+# Activate the environment on Windows
 .venv\Scripts\activate
 
-# Ou no Linux/Mac
+# Or activate it on Linux/macOS
 source .venv/bin/activate
 
-# Instale as dependências
+# Install dependencies
 pip install -r requirements.txt
 
-# Execute o Streamlit
+# Run Streamlit
 streamlit run app.py
 ```
 
-Acesse: **http://localhost:8501**
+Acesse / Open:
 
-### Dados de Demonstração
-
-Na área Admin, clique em **Carregar dados de demonstração** para ver o sistema completo com ranking, pódio e exemplo de resultado oficial.
+```text
+http://localhost:8501
+```
 
 ---
 
-## ☁️ Como Publicar no Streamlit Cloud
+# ☁️ Deploy
 
-### 1. Prepare o repositório GitHub
+## Streamlit Community Cloud
 
-```bash
-git init
-git add .
-git commit -m "feat: Bolão da Cabine do Glória - Copa 2026"
-git branch -M main
-git remote add origin https://github.com/SEU_USUARIO/SEU_REPO.git
-git push -u origin main
-```
+1. Acesse [Streamlit Community Cloud](https://share.streamlit.io).
+2. Conecte sua conta GitHub.
+3. Selecione o repositório do projeto.
+4. Configure o arquivo principal como `app.py`.
+5. Clique em **Deploy**.
 
-### 2. Configure o Deploy
+## Streamlit secrets
 
-1. Acesse [Streamlit Community Cloud](https://share.streamlit.io)
-2. Conecte sua conta GitHub
-3. Selecione o repositório
-4. Selecione o arquivo principal: `app.py`
-5. Clique em **Deploy**
-
-### 3. Configure os Secrets
-
-No Streamlit Cloud, vá em **App Settings > Secrets** e adicione:
+No painel do Streamlit Cloud, acesse **App Settings > Secrets** e adicione:
 
 ```toml
-# Obrigatório para produção
+# Required for production
 SUPABASE_URL = "https://your-project.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+SUPABASE_SERVICE_ROLE_KEY = "your-service-role-key"
 
-# Obrigatório para proteger admin
-ADMIN_PASSWORD = "sua-senha-segura"
+# Required to protect admin area
+ADMIN_PASSWORD = "your-secure-password"
 
-# Opcional
-APIFOOTBALL_KEY = "sua-chave-api-aqui"
+# Optional
+APIFOOTBALL_KEY = "your-api-key"
 ```
 
 ---
 
-## 🔧 Configuração do Supabase
+# 🔧 Supabase setup
 
-### Criar projeto Supabase
+## Criar projeto / Create project
 
-1. Acesse [supabase.com](https://supabase.com)
-2. Crie um novo projeto
-3. Vá em **Settings > API**
-4. Copie a **Project URL** e **service_role key**
+1. Acesse [supabase.com](https://supabase.com).
+2. Crie um novo projeto.
+3. Vá em **Settings > API**.
+4. Copie a **Project URL** e a **service_role key**.
+5. Configure os valores nos secrets do Streamlit.
 
-### Criar tabelas (automático)
+## Tabelas / Tables
 
-O app cria as tabelas automaticamente na primeira execução. Para criar manualmente:
+O app pode criar as tabelas automaticamente na primeira execução. Para criar manualmente, use:
 
 ```sql
 CREATE TABLE IF NOT EXISTS bolao_config (
@@ -183,104 +430,62 @@ CREATE TABLE IF NOT EXISTS bolao_official (
 
 ---
 
-## 📊 Pontuação
+# 📦 Demonstração / Demo data
 
-### Modo Ponderado (padrão)
+Na área administrativa, use **Carregar dados de demonstração** para visualizar o sistema completo com:
 
-| Item | Pontos |
-|------|--------|
-| 1º lugar no grupo | 5 |
-| 2º lugar no grupo | 3 |
-| 3º lugar (classificado) | 2 |
-| Melhor terceiro | 2 |
-| Cada acerto no mata-mata | 5 |
-| Campeã | configurável (padrão 0) |
+- Participantes simulados.
+- Ranking geral.
+- Pódio.
+- Resultado oficial de exemplo.
+- Pontuação calculada.
 
-### Modo Uniforme
-
-Cada decisão correta vale 1 ponto (configurável), mais bônus da campeã.
-
-### Critérios de Desempate
-
-1. Maior pontuação no mata-mata
-2. Acerto da campeã
-3. Maior pontuação em grupos
-4. Ordem alfabética
+In the admin area, use **Load demo data** to preview the full system with simulated participants, ranking, podium, example official result and calculated scores.
 
 ---
 
-## 🛡️ Segurança
+# 🤝 Contribuição / Contributing
 
-- **Nunca commite secrets** — Use `.gitignore` e `.env.example`
-- **Admin protegido** — Senha configurável nos secrets
-- **Dados dos participantes** — Armazenados com ID único, sem dados pessoais sensíveis
+Contribuições são bem-vindas.
 
----
+Contributions are welcome.
 
-## 📁 Estrutura do Projeto
+```bash
+# Create a feature branch
+git checkout -b feature/minha-feature
 
-```
-bolao_cabine_gloria_public_ocr/
-├── app.py                      # Aplicação principal
-├── requirements.txt            # Dependências Python
-├── packages.txt                # Pacotes de sistema (Tesseract)
-├── runtime.txt                # Versão do Python
-├── .streamlit/
-│   └── config.toml            # Configuração do Streamlit
-├── .env.example               # Exemplo de variáveis de ambiente
-├── .gitignore                 # Arquivos ignorados pelo Git
-├── src/bolao/
-│   ├── api_service.py        # Integração API-Football
-│   ├── constants.py           # Constantes e configurações
-│   ├── exporters.py          # Exportações (CSV, JSON, Discord)
-│   ├── models.py             # Modelos de dados
-│   ├── ocr_groups.py         # Leitura visual dos grupos
-│   ├── parser_ge.py          # Parser do texto do ge
-│   ├── scoring.py            # Sistema de pontuação
-│   ├── storage.py            # Persistência (local + Supabase)
-│   ├── ui_components.py     # Componentes de UI
-│   ├── utils.py             # Funções utilitárias
-│   └── validation.py        # Validação de palpites
-├── data/
-│   ├── examples/            # Exemplos de imagens e textos
-│   ├── demo_state/          # Estado de demonstração
-│   └── state/               # Dados运行时 (não versionado)
-└── tests/
-    └── test_parser_scoring.py # Testes
+# Commit your changes
+git commit -m "feat: adiciona nova funcionalidade"
+
+# Push to GitHub
+git push origin feature/minha-feature
 ```
 
----
+Depois, abra um Pull Request descrevendo claramente a melhoria proposta.
 
-## 🔍 Limitações Conhecidas
-
-1. **OCR visual** — Calibrado para prints do simulador do ge. Prints cortados ou borrados podem exigir correção manual.
-2. **Terceiros classificados** — O ge não mostra explicitamente; o sistema infere a partir da fase de 32.
-3. **API-Football** — Pode não entregar formato ideal; revisão manual obrigatória.
-4. **Persistência local** — Em dev, os dados ficam em `data/state`. Em produção, use Supabase.
+Then open a Pull Request clearly describing the proposed improvement.
 
 ---
 
-## 🚧 Roadmap
+# 📄 Licença / License
 
-- [ ] Login por Discord (OAuth)
-- [ ] Múltiplos bolões por servidor
-- [ ] Cards compartilháveis do pódio (PNG)
-- [ ] Integração automática com API oficial
-- [ ] Dashboard de estatísticas
-- [ ] Histórico de edições
+Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-## 📄 Licença
+# 👨‍💻 Autor / Author
 
-MIT License —贡献 bem-vindo!
+Desenvolvido por **BarujaFe**.
 
----
+Developed by **BarujaFe**.
 
-## 💬 Contato
-
-Dúvidas ou sugestões? Abra uma issue no GitHub ou entre em contato pelo Discord.
+[![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat-square&logo=github)](https://github.com/BarujaFe1)
 
 ---
 
-*Feito com ❤️ para a Copa do Mundo 2026*
+<p align="center">
+  <strong>Feito com ❤️ para a Copa do Mundo 2026.</strong><br/>
+  <strong>Made with ❤️ for the 2026 FIFA World Cup.</strong>
+</p>
