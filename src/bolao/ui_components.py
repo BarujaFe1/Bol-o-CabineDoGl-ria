@@ -256,7 +256,7 @@ a.button-link {
 
 
 def hero(title: str = APP_NAME, subtitle: str = APP_SUBTITLE, description: str | None = None) -> None:
-    desc = description or "Envie seu palpite com dois prints dos grupos e o texto do mata-mata exportado pelo ge. O sistema lê, organiza, pede conferência e salva tudo para o ranking."
+    desc = description or "Faça seu palpite completo da Copa do Mundo 2026 diretamente pelo nosso simulador interativo. Preencha os placares dos grupos, acompanhe a classificação em tempo real e decida o mata-mata."
     st.markdown(
         f"""
 <div class="copa-hero">
@@ -276,16 +276,15 @@ def kpi_grid(items: list[tuple[str, str]]) -> None:
 
 def step_cards() -> None:
     steps = [
-        ("Acesse o simulador do ge", "Abra o link oficial e faça sua simulação completa da Copa 2026."),
-        ("Tire 2 prints dos grupos", "Um print com grupos A-F e outro com grupos G-L. Deixe os nomes legíveis."),
-        ("Copie o texto do mata-mata", "Use a exportação textual do simulador, com Décima-sextas, Oitavas, Quartas, Semi, Final e Campeã."),
-        ("Envie e confira", "O sistema faz OCR, interpreta o texto e mostra uma tela de conferência antes de salvar."),
+        ("Informe seu nome", "Comece identificando seu palpite para participar do ranking."),
+        ("Simule a fase de grupos", "Preencha os placares de todos os jogos. A classificação é calculada automaticamente."),
+        ("Escolha o mata-mata", "Selecione os vencedores de cada confronto até definir o campeão."),
+        ("Revise e envie", "Confira seu palpite completo antes de confirmar. Depois de enviado, ele entra no ranking."),
     ]
     inner = ""
     for idx, (title, text) in enumerate(steps, start=1):
         inner += f'<div class="step"><div class="num">{idx}</div><h4>{html.escape(title)}</h4><p>{html.escape(text)}</p></div>'
     st.markdown(f'<div class="step-grid">{inner}</div>', unsafe_allow_html=True)
-    st.markdown(f'<a class="button-link" href="{GE_SIMULATOR_URL}" target="_blank">Abrir simulador do ge</a>', unsafe_allow_html=True)
 
 
 def card_start(title: str | None = None) -> None:

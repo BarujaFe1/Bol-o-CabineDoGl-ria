@@ -16,6 +16,7 @@ from src.bolao.constants import (
     APP_SUBTITLE,
     DEFAULT_UNIFORM_RULES,
     DEFAULT_WEIGHTED_RULES,
+    DEFAULT_V2_RULES,
     GE_SIMULATOR_URL,
     GROUPS,
     PHASE_LABELS,
@@ -51,6 +52,7 @@ from src.bolao.ui_components import (
 )
 from src.bolao.utils import decode_uploaded_file, norm_team, now_iso, stable_id
 from src.bolao.validation import validate_prediction
+from src.bolao.ui_simulator import render_simulator, init_simulator_state
 
 
 st.set_page_config(
@@ -65,9 +67,10 @@ inject_css()
 def get_score_config() -> ScoreConfig:
     config = load_config()
     return ScoreConfig(
-        mode=config.get("scoring_mode", "ponderado"),
+        mode=config.get("scoring_mode", "v2"),
         weighted_rules=config.get("weighted_rules", dict(DEFAULT_WEIGHTED_RULES)),
         uniform_rules=config.get("uniform_rules", dict(DEFAULT_UNIFORM_RULES)),
+        v2_rules=config.get("v2_rules", dict(DEFAULT_V2_RULES)),
     )
 
 
@@ -187,135 +190,220 @@ def build_prediction_from_public_inputs(name: str, af_file, gl_file, knockout_te
 
 
 def public_home() -> None:
-    hero(description="Um bolão simples para quem participa e completo para quem organiza. Você envia dois prints dos grupos e cola o texto do mata-mata; o site detecta tudo e mostra uma conferência antes de salvar.")
+    hero(
+        title="Bolão da Cabine do Glória",
+        subtitle="Copa do Mundo 2026",
+        description="Faça seu palpite completo da Copa do Mundo 2026 diretamente pelo nosso simulador interativo.\n\nPreencha os placares da fase de grupos, acompanhe a classificação em tempo real, escolha os vencedores do mata-mata e envie seu palpite completo em poucos passos. Tudo acontece dentro do próprio sistema, sem prints, sem arquivos e sem complicação."
+    )
+    
+    st.markdown("### Como funciona")
     step_cards()
-    st.markdown("### O que você precisa enviar")
-    col1, col2, col3 = st.columns(3)
+    
+    st.markdown("---")
+    st.markdown("### Como a pontuação funciona")
+    st.markdown(
+        """
+        Na fase de grupos, a pontuação considera os placares dos jogos. No mata-mata, a pontuação considera os classificados escolhidos em cada fase e o campeão. O ranking é atualizado conforme os resultados oficiais forem cadastrados e aprovados pela organização.
+        """
+    )
+    
+    col1, col2 = st.columns(2)
     with col1:
-        st.markdown('<div class="card"><h4>Imagem 1</h4><p class="small-muted">Print dos grupos A até F. Deixe o zoom confortável e todos os nomes visíveis.</p></div>', unsafe_allow_html=True)
+        if st.button("🚀 Fazer meu palpite", type="primary", use_container_width=True):
+            st.session_state["nav_page"] = "Fazer palpite"
+            st.rerun()
     with col2:
-        st.markdown('<div class="card"><h4>Imagem 2</h4><p class="small-muted">Print dos grupos G até L. Evite cortes, modo escuro excessivo ou imagem borrada.</p></div>', unsafe_allow_html=True)
-    with col3:
-        st.markdown('<div class="card"><h4>Texto do mata-mata</h4><p class="small-muted">Cole o texto exportado pelo ge com Décima-sextas, Oitavas, Quartas, Semi, Final e Campeã.</p></div>', unsafe_allow_html=True)
-
-    st.markdown("### Dicas para o OCR acertar mais")
-    badges([
-        "Use print sem corte",
-        "Aumente o zoom antes de tirar o print",
-        "Evite imagem tremida",
-        "Confira antes de salvar",
-        "Não precisa mexer com JSON",
-    ])
+        if st.button("📊 Ver ranking", use_container_width=True):
+            st.session_state["nav_page"] = "Ranking"
+            st.rerun()
 
 
 def public_submission() -> None:
-    hero("Enviar palpite", "Fluxo do participante", "Preencha os campos, envie as duas imagens dos grupos e cole o texto do mata-mata. Depois revise tudo antes de confirmar.")
-
-    with st.expander("Ver instruções rápidas", expanded=True):
-        step_cards()
+    hero("Fazer palpite", "Fluxo do participante", "Monte seu palpite completo da Copa do Mundo 2026 pelo simulador interativo.")
 
     st.markdown("### 1. Identificação")
-    name = st.text_input("Seu nome no bolão", placeholder="Ex.: Cesar", key="public_name")
-
-    st.markdown("### 2. Upload dos grupos")
-    col_a, col_b = st.columns(2)
-    with col_a:
-        af_file = st.file_uploader("Imagem dos grupos A-F", type=["png", "jpg", "jpeg", "webp"], key="af_file")
-        if af_file:
-            st.image(af_file, caption="Prévia A-F", width=320)
-    with col_b:
-        gl_file = st.file_uploader("Imagem dos grupos G-L", type=["png", "jpg", "jpeg", "webp"], key="gl_file")
-        if gl_file:
-            st.image(gl_file, caption="Prévia G-L", width=320)
-
-    st.markdown("### 3. Texto do mata-mata exportado pelo ge")
-    knockout_text = st.text_area(
-        "Cole aqui o texto do ge",
-        height=260,
-        placeholder="Simulador Copa do Mundo 2026\n\nDécima-sextas\nAlemanha x Paraguai\nFrança x Suécia\n...\n\nCampeã\nBrasil",
-        key="knockout_text",
-    )
-
-    missing = []
+    name = st.text_input("Seu nome no bolão", placeholder="Ex.: César", key="public_sim_name")
+    
     if not name.strip():
-        missing.append("nome")
-    if not af_file:
-        missing.append("imagem A-F")
-    if not gl_file:
-        missing.append("imagem G-L")
-    if not knockout_text.strip():
-        missing.append("texto do mata-mata")
+        st.info("Informe seu nome para começar a simulação.")
+        st.session_state.pop("sim_prediction", None)
+        st.session_state.pop("simulator", None)
+        st.session_state.pop("edit_mode", None)
+        st.session_state.pop("show_delete_confirm", None)
+        return
 
-    if missing:
-        st.info("Preencha para continuar: " + ", ".join(missing))
+    name_clean = name.strip()
+    config = load_config()
+    is_locked = config.get("is_bolao_locked", False)
+    
+    # Load submissions to find match
+    submissions = load_submissions()
+    existing = [p for p in submissions if p.participant.strip().lower() == name_clean.lower()]
+    
+    # If the user hasn't selected an action yet, show the options screen
+    if existing and "edit_mode" not in st.session_state:
+        existing_pred = existing[0]
+        
+        if is_locked:
+            st.warning(f"🔒 Os palpites estão bloqueados. Existe um palpite cadastrado para **{existing_pred.participant}**, mas novas submissões ou edições estão desabilitadas.")
+            if st.button(f"🔍 Visualizar o palpite de {existing_pred.participant}", use_container_width=True):
+                st.session_state["sim_prediction"] = existing_pred
+                init_simulator_state(existing_pred, force_reset=True)
+                st.session_state["edit_mode"] = "view"
+                st.rerun()
+        else:
+            st.info(f"💡 Encontramos um palpite já enviado para **{existing_pred.participant}**.")
+            col_btn1, col_btn2, col_btn3 = st.columns(3)
+            with col_btn1:
+                if st.button("✏️ Editar palpite existente", type="primary", use_container_width=True):
+                    st.session_state["sim_prediction"] = existing_pred
+                    init_simulator_state(existing_pred, force_reset=True)
+                    st.session_state["edit_mode"] = "edit"
+                    st.rerun()
+            with col_btn2:
+                if st.button("❌ Excluir meu palpite", use_container_width=True):
+                    st.session_state["show_delete_confirm"] = True
+                    st.rerun()
+            with col_btn3:
+                if st.button("🆕 Iniciar novo do zero", use_container_width=True):
+                    new_pred = Prediction(
+                        participant=existing_pred.participant,
+                        submission_id=existing_pred.submission_id,
+                        submitted_at=existing_pred.submitted_at,
+                        status="rascunho"
+                    )
+                    st.session_state["sim_prediction"] = new_pred
+                    init_simulator_state(new_pred, force_reset=True)
+                    st.session_state["edit_mode"] = "edit"
+                    st.rerun()
+                    
+        if st.session_state.get("show_delete_confirm", False):
+            st.markdown("---")
+            st.warning(f"⚠️ Tem certeza que deseja excluir permanentemente o palpite de **{existing_pred.participant}**? Esta ação não pode ser desfeita.")
+            c_del1, c_del2 = st.columns(2)
+            with c_del1:
+                if st.button("Sim, excluir permanentemente", type="primary", use_container_width=True):
+                    delete_submission(existing_pred.submission_id)
+                    st.success("Seu palpite foi excluído do sistema.")
+                    st.session_state.pop("sim_prediction", None)
+                    st.session_state.pop("simulator", None)
+                    st.session_state.pop("edit_mode", None)
+                    st.session_state.pop("show_delete_confirm", None)
+                    st.balloons()
+                    st.rerun()
+            with c_del2:
+                if st.button("Cancelar", use_container_width=True):
+                    st.session_state.pop("show_delete_confirm", None)
+                    st.rerun()
+        return
 
-    if st.button("Ler imagens e preparar conferência", type="primary", disabled=bool(missing), width="stretch"):
-        with st.spinner("Fazendo OCR das imagens e interpretando o texto do mata-mata..."):
-            st.session_state["draft_prediction"] = build_prediction_from_public_inputs(name, af_file, gl_file, knockout_text)
-            st.session_state["show_review"] = True
-        st.rerun()
+    if not existing and is_locked:
+        st.error("🔒 Os palpites estão encerrados pelo administrador. Não é possível enviar novos palpites.")
+        return
 
-    if st.session_state.get("show_review") and st.session_state.get("draft_prediction"):
-        st.markdown("---")
-        st.markdown("## 4. Conferência obrigatória")
-        pred: Prediction = deepcopy(st.session_state["draft_prediction"])
+    # If new user and not initialized yet
+    if "sim_prediction" not in st.session_state or st.session_state["sim_prediction"].participant.lower() != name_clean.lower():
+        new_pred = Prediction(
+            participant=name_clean,
+            submission_id=stable_id(name_clean, now_iso()),
+            submitted_at=now_iso(),
+            status="rascunho"
+        )
+        st.session_state["sim_prediction"] = new_pred
+        init_simulator_state(new_pred, force_reset=True)
+        st.session_state["edit_mode"] = "new"
 
-        ocr_warnings = pred.meta.get("warnings", [])
-        ko_issues = pred.meta.get("knockout_issues", [])
-        if ocr_warnings:
-            st.warning("OCR com avisos: revise os grupos antes de salvar.")
-            for w in ocr_warnings[:8]:
-                st.caption(f"• {w}")
-        if ko_issues:
-            issues_box([type("Issue", (), i) for i in ko_issues[:12]])
+    pred = st.session_state["sim_prediction"]
+    edit_mode = st.session_state.get("edit_mode", "new")
 
-        with st.expander("Ver texto bruto detectado pelo OCR", expanded=False):
-            st.text(pred.meta.get("ocr", {}).get("raw_ocr_text", "") or "Sem texto bruto de OCR.")
-
-        pred = apply_review_form("public_review", pred)
-        issues = validate_prediction(pred, strict=False)
-        if issues:
-            st.markdown("#### Avisos da conferência")
-            issues_box(issues)
-
-        st.markdown("### 5. Confirmação final")
-        st.caption("Ao confirmar, o palpite será salvo no sistema. Se você fizer novo envio com o mesmo nome, o admin verá os dois registros.")
-        if st.button("Confirmar e salvar meu palpite", type="primary", width="stretch"):
-            pred.status = "confirmado"
-            pred.submitted_at = now_iso()
-            save_submission(pred)
-            st.session_state.pop("draft_prediction", None)
-            st.session_state.pop("show_review", None)
-            st.markdown(
-                f"""
+    if edit_mode == "view":
+        st.info("👁️ Você está visualizando o palpite enviado. Alterações não serão salvas.")
+        render_simulator(pred)
+        if st.button("Voltar", use_container_width=True):
+            st.session_state.pop("sim_prediction", None)
+            st.session_state.pop("simulator", None)
+            st.session_state.pop("edit_mode", None)
+            st.rerun()
+    else:
+        if edit_mode == "edit":
+            st.info(f"✏️ Você está editando o palpite de **{pred.participant}**.")
+            
+        updated_pred = render_simulator(pred)
+        
+        if updated_pred:
+            st.markdown("### 5. Enviar palpite")
+            if edit_mode == "edit":
+                st.caption("Ao confirmar, o palpite existente será atualizado com os novos resultados.")
+                save_btn_text = "Salvar alterações no meu palpite"
+            else:
+                st.caption("Ao confirmar, o palpite será salvo no sistema.")
+                save_btn_text = "Confirmar e salvar meu palpite"
+                
+            col_save1, col_save2 = st.columns(2)
+            with col_save1:
+                if st.button(save_btn_text, type="primary", key="btn_save_sim_prediction", use_container_width=True):
+                    # Final check for locking status
+                    config = load_config()
+                    if config.get("is_bolao_locked", False):
+                        st.error("🔒 O bolão foi bloqueado recentemente. Não é mais possível salvar ou editar palpites.")
+                        return
+                        
+                    updated_pred.status = "confirmado"
+                    updated_pred.submitted_at = now_iso()
+                    save_submission(updated_pred)
+                    
+                    st.session_state.pop("sim_prediction", None)
+                    st.session_state.pop("simulator", None)
+                    st.session_state.pop("edit_mode", None)
+                    
+                    st.markdown(
+                        f"""
 <div class="success-card">
   <h3>Palpite enviado com sucesso</h3>
   <p>Guarde este código de envio:</p>
-  <h2>{pred.submission_id}</h2>
+  <h2>{updated_pred.submission_id}</h2>
   <p class="small-muted">Seu palpite já está registrado. O ranking será atualizado quando o resultado oficial estiver aprovado pelo admin.</p>
 </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    st.balloons()
+            with col_save2:
+                if st.button("Descartar e voltar", use_container_width=True):
+                    st.session_state.pop("sim_prediction", None)
+                    st.session_state.pop("simulator", None)
+                    st.session_state.pop("edit_mode", None)
+                    st.rerun()
 
 
 def public_ranking() -> None:
-    hero("Ranking público", "Consulta dos participantes", "Veja o pódio, a classificação geral e o detalhamento quando o resultado oficial estiver aprovado.")
+    hero("Ranking público", "Consulta dos participantes", "Acompanhe os participantes, a classificação geral e o detalhamento da pontuação após a aprovação dos resultados oficiais.")
     submissions = load_submissions()
     official = load_official()
     config = load_config()
+
+    scoring_mode_label = config.get("scoring_mode", "v2")
+    if scoring_mode_label == "v2":
+        scoring_mode_text = "V2 (Placares + Classificados)"
+    else:
+        scoring_mode_text = scoring_mode_label.capitalize()
 
     kpi_grid([
         ("Status", config.get("status_label", "Recebendo palpites")),
         ("Participantes", str(len(submissions))),
         ("Resultado oficial", "Aprovado" if official else "Pendente"),
-        ("Modo", config.get("scoring_mode", "ponderado").capitalize()),
+        ("Modo de pontuação", scoring_mode_text),
     ])
 
+    if scoring_mode_label == "v2":
+        st.caption("ℹ️ **Modo V2**: A fase de grupos pontua por placar exato, resultado ou gols; o mata-mata pontua pelos times classificados em cada fase e pelo campeão.")
+
     if not official:
-        st.info("O resultado oficial ainda não foi aprovado. Por enquanto, os palpites enviados aparecem abaixo.")
+        st.info("O resultado oficial ainda não foi aprovado pela organização. O ranking será consolidado após a aprovação. Por enquanto, os palpites enviados aparecem abaixo.")
         if submissions:
             st.dataframe(pd.DataFrame([{"Participante": p.participant, "Enviado em": p.submitted_at, "Código": p.submission_id} for p in submissions]), width="stretch", hide_index=True)
+        else:
+            st.info("Nenhum palpite enviado ainda. Seja o primeiro a participar.")
         return
 
     scores = rank_predictions(submissions, official, get_score_config())
@@ -328,7 +416,7 @@ def public_ranking() -> None:
         if score:
             st.dataframe(details_dataframe(score), width="stretch", hide_index=True)
     else:
-        st.info("Ainda não há participantes para ranquear.")
+        st.info("Nenhum palpite enviado ainda. Seja o primeiro a participar.")
 
 
 def admin_dashboard() -> None:
@@ -391,11 +479,29 @@ def make_prediction_from_text(name: str, text: str) -> Prediction:
 
 def admin_official_results() -> None:
     st.markdown("## Central de Resultados Oficiais")
-    st.caption("Fluxo recomendado: sincronizar API ou colar texto → revisar manualmente → aprovar resultado oficial → recalcular ranking.")
+    st.caption("Fluxo recomendado: preencher pelo simulador oficial ou sincronizar API → aprovar resultado oficial → recalcular ranking.")
 
-    tabs = st.tabs(["Texto/manual", "API", "Resultado aprovado"])
+    tabs = st.tabs(["Simulador Oficial (Recomendado)", "Texto/manual", "API", "Resultado aprovado"])
 
     with tabs[0]:
+        st.markdown("### Preencher via Simulador Nativo")
+        st.caption("Preencha os placares da fase de grupos e selecione os vencedores do mata-mata para o resultado oficial.")
+        
+        official_draft = load_official() or Prediction(participant="Resultado oficial")
+        updated_official = render_simulator(official_draft, is_admin=True)
+        
+        if updated_official:
+            st.markdown("### Aprovar Resultado")
+            if st.button("Aprovar e salvar resultado oficial (Simulador)", type="primary", key="btn_save_official_sim", width="stretch"):
+                updated_official.status = "aprovado"
+                updated_official.submitted_at = now_iso()
+                save_official(updated_official)
+                
+                st.session_state.pop("simulator", None)
+                st.success("Resultado oficial aprovado e salvo a partir do simulador!")
+                st.rerun()
+
+    with tabs[1]:
         name = "Resultado oficial"
         official_text = st.text_area("Cole o texto oficial do mata-mata ou do simulador final", height=220, key="official_text")
         if st.button("Interpretar texto oficial", width="stretch", disabled=not official_text.strip()):
@@ -410,7 +516,7 @@ def admin_official_results() -> None:
             st.success("Resultado oficial aprovado e salvo.")
             st.rerun()
 
-    with tabs[1]:
+    with tabs[2]:
         service = APIFootballService()
         if not service.enabled():
             st.warning("APIFOOTBALL_KEY não configurada. Configure em variável de ambiente ou nos secrets do Streamlit Cloud.")
@@ -425,7 +531,7 @@ def admin_official_results() -> None:
             if response.raw:
                 st.json(response.raw, expanded=False)
 
-    with tabs[2]:
+    with tabs[3]:
         official = load_official()
         if not official:
             st.info("Nenhum resultado oficial aprovado.")
@@ -478,10 +584,134 @@ def admin_exports() -> None:
 def admin_settings() -> None:
     st.markdown("## Configurações")
     config = load_config()
+    
+    st.markdown("### Status & Acesso")
+    config["is_bolao_locked"] = st.checkbox(
+        "🔒 Bloquear envios e alterações de palpites",
+        value=config.get("is_bolao_locked", False),
+        help="Se marcado, novos palpites não poderão ser enviados, e palpites existentes não poderão ser editados ou excluídos."
+    )
     config["status_label"] = st.text_input("Status público do bolão", value=config.get("status_label", "Recebendo palpites"))
-    config["scoring_mode"] = st.radio("Modo de pontuação", ["ponderado", "uniforme"], index=0 if config.get("scoring_mode") == "ponderado" else 1, horizontal=True)
+    
+    mode_options = ["v2", "ponderado", "uniforme"]
+    current_mode = config.get("scoring_mode", "v2")
+    if current_mode not in mode_options:
+        current_mode = "v2"
+    mode_idx = mode_options.index(current_mode)
+    config["scoring_mode"] = st.radio("Modo de pontuação", mode_options, index=mode_idx, horizontal=True)
 
-    st.markdown("### Pontuação ponderada")
+    st.markdown("### Pontuação V2 (Fase de Grupos & Mata-mata)")
+    v2_rules = config.get("v2_rules", dict(DEFAULT_V2_RULES))
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        v2_rules["group_exact"] = st.number_input(
+            "Grupo: Placar Exato",
+            min_value=0,
+            max_value=50,
+            value=int(v2_rules.get("group_exact", DEFAULT_V2_RULES["group_exact"])),
+            step=1,
+            help="Pontos para previsão exata de placar de grupo (ex. palpite 2x1, oficial 2x1)."
+        )
+        v2_rules["group_result_gd"] = st.number_input(
+            "Grupo: Resultado + Saldo",
+            min_value=0,
+            max_value=50,
+            value=int(v2_rules.get("group_result_gd", DEFAULT_V2_RULES["group_result_gd"])),
+            step=1,
+            help="Pontos para acertar vencedor/empate e saldo de gols, mas não o placar exato (ex. palpite 2x0, oficial 3x1)."
+        )
+        v2_rules["group_result"] = st.number_input(
+            "Grupo: Apenas Resultado",
+            min_value=0,
+            max_value=50,
+            value=int(v2_rules.get("group_result", DEFAULT_V2_RULES["group_result"])),
+            step=1,
+            help="Pontos para acertar apenas o vencedor ou empate (ex. palpite 1x0, oficial 3x0)."
+        )
+    with col2:
+        v2_rules["group_team_goals"] = st.number_input(
+            "Grupo: Gols de um Time",
+            min_value=0,
+            max_value=50,
+            value=int(v2_rules.get("group_team_goals", DEFAULT_V2_RULES["group_team_goals"])),
+            step=1,
+            help="Pontos para acertar a quantidade de gols de pelo menos uma das equipes (ex. palpite 1x2, oficial 1x0)."
+        )
+        v2_rules["ko_oitavas"] = st.number_input(
+            "Mata-mata: Classificar Oitavas",
+            min_value=0,
+            max_value=50,
+            value=int(v2_rules.get("ko_oitavas", DEFAULT_V2_RULES["ko_oitavas"])),
+            step=1,
+            help="Pontos por time classificado para as Oitavas de final."
+        )
+        v2_rules["ko_quartas"] = st.number_input(
+            "Mata-mata: Classificar Quartas",
+            min_value=0,
+            max_value=50,
+            value=int(v2_rules.get("ko_quartas", DEFAULT_V2_RULES["ko_quartas"])),
+            step=1,
+            help="Pontos por time classificado para as Quartas de final."
+        )
+    with col3:
+        v2_rules["ko_semifinais"] = st.number_input(
+            "Mata-mata: Classificar Semi",
+            min_value=0,
+            max_value=50,
+            value=int(v2_rules.get("ko_semifinais", DEFAULT_V2_RULES["ko_semifinais"])),
+            step=1,
+            help="Pontos por time classificado para as Semifinais."
+        )
+        v2_rules["ko_final"] = st.number_input(
+            "Mata-mata: Classificar Final",
+            min_value=0,
+            max_value=50,
+            value=int(v2_rules.get("ko_final", DEFAULT_V2_RULES["ko_final"])),
+            step=1,
+            help="Pontos por time classificado para a Final."
+        )
+        v2_rules["ko_champion"] = st.number_input(
+            "Mata-mata: Campeão",
+            min_value=0,
+            max_value=50,
+            value=int(v2_rules.get("ko_champion", DEFAULT_V2_RULES["ko_champion"])),
+            step=1,
+            help="Pontos por acertar o Campeão."
+        )
+
+    st.markdown("#### Regras Criativas (Bônus Cumulativos)")
+    col_cr1, col_cr2, col_cr3 = st.columns(3)
+    with col_cr1:
+        v2_rules["group_sum_goals"] = st.number_input(
+            "Grupo: Soma Total de Gols",
+            min_value=0,
+            max_value=20,
+            value=int(v2_rules.get("group_sum_goals", 0)),
+            step=1,
+            help="Bônus por prever a soma total exata de gols na partida (ex. palpite 2x2 e oficial 3x1; ambos somam 4)."
+        )
+    with col_cr2:
+        v2_rules["group_both_scored"] = st.number_input(
+            "Grupo: Ambas Equipes Marcam",
+            min_value=0,
+            max_value=20,
+            value=int(v2_rules.get("group_both_scored", 0)),
+            step=1,
+            help="Bônus por acertar se ambas as equipes marcaram gol (ambas > 0) ou não."
+        )
+    with col_cr3:
+        v2_rules["group_over_2_5"] = st.number_input(
+            "Grupo: Mais de 2.5 Gols",
+            min_value=0,
+            max_value=20,
+            value=int(v2_rules.get("group_over_2_5", 0)),
+            step=1,
+            help="Bônus por acertar se a partida teve mais de 2.5 gols (soma > 2) ou não."
+        )
+        
+    config["v2_rules"] = v2_rules
+
+    st.markdown("### Pontuação ponderada (Legado)")
     weighted = config.get("weighted_rules", dict(DEFAULT_WEIGHTED_RULES))
     cols = st.columns(3)
     for idx, key in enumerate(DEFAULT_WEIGHTED_RULES.keys()):
@@ -489,7 +719,7 @@ def admin_settings() -> None:
             weighted[key] = st.number_input(key, min_value=0, max_value=50, value=int(weighted.get(key, DEFAULT_WEIGHTED_RULES[key])), step=1)
     config["weighted_rules"] = weighted
 
-    st.markdown("### Pontuação uniforme")
+    st.markdown("### Pontuação uniforme (Legado)")
     uniform = config.get("uniform_rules", dict(DEFAULT_UNIFORM_RULES))
     uniform["decision_points"] = st.number_input("Pontos por decisão", min_value=1, max_value=50, value=int(uniform.get("decision_points", 1)), step=1)
     uniform["champion_bonus"] = st.number_input("Bônus da campeã", min_value=0, max_value=100, value=int(uniform.get("champion_bonus", 0)), step=1)
@@ -503,32 +733,32 @@ def admin_settings() -> None:
 def admin_help() -> None:
     st.markdown("## Ajuda rápida")
     st.markdown(
-        f"""
+        """
 **Fluxo do participante**
 
-1. Acessa o simulador do ge: {GE_SIMULATOR_URL}
-2. Preenche a simulação.
-3. Envia dois prints dos grupos.
-4. Cola o texto exportado do mata-mata.
-5. Confere o que o OCR e o parser detectaram.
-6. Confirma o palpite.
+1. Acessa o sistema e informa seu nome.
+2. Preenche os placares da fase de grupos diretamente no simulador interativo.
+3. Confere a classificação em tempo real e a definição dos classificados.
+4. Clica nas seleções no chaveamento do mata-mata para avançá-las até o campeão.
+5. Revisa e envia o palpite de forma totalmente digital, sem prints, arquivos ou OCR.
 
 **Fluxo do admin**
 
-1. Recebe os palpites.
-2. Aprova o resultado oficial na Central de Resultados.
-3. Confere ranking.
-4. Exporta texto para Discord ou CSV/JSON.
-
-**OCR**
-
-A leitura dos grupos usa primeiro o layout/cor dos cards do ge. O Tesseract fica como fallback auxiliar. Se algo falhar, a revisão manual continua disponível.
+1. Recebe e gerencia os palpites dos participantes.
+2. Define o resultado oficial na Central de Resultados Oficial através do mesmo simulador ou importando via API.
+3. Acompanha o cálculo automático do ranking público (Modo V2 como padrão).
+4. Exporta backups ou texto formatado para o Discord.
         """
     )
 
 
 def check_admin_auth() -> bool:
-    if "ADMIN_PASSWORD" not in st.secrets:
+    try:
+        has_secret = "ADMIN_PASSWORD" in st.secrets
+    except Exception:
+        has_secret = False
+
+    if not has_secret:
         return True
     if st.session_state.get("admin_authenticated", False):
         return True
@@ -537,7 +767,11 @@ def check_admin_auth() -> bool:
     st.caption("Esta área é protegida. Informe a senha configurada nos secrets.")
     password = st.text_input("Senha do admin", type="password", key="admin_password_input")
     if password:
-        if password == st.secrets.get("ADMIN_PASSWORD"):
+        try:
+            admin_pwd = st.secrets.get("ADMIN_PASSWORD")
+        except Exception:
+            admin_pwd = None
+        if password == admin_pwd:
             st.session_state["admin_authenticated"] = True
             st.rerun()
         else:
@@ -550,11 +784,23 @@ def main() -> None:
         st.markdown(f"## 🏆 {APP_NAME}")
         st.caption(APP_SUBTITLE)
 
-        has_admin_password = "ADMIN_PASSWORD" in st.secrets
+        try:
+            has_admin_password = "ADMIN_PASSWORD" in st.secrets
+        except Exception:
+            has_admin_password = False
         mode = st.radio("Área", ["Público", "Admin"], horizontal=True, disabled=has_admin_password and not st.session_state.get("admin_authenticated"))
 
+        if "nav_page" not in st.session_state:
+            st.session_state["nav_page"] = "Início"
+
         if mode == "Público":
-            page = st.radio("Navegação", ["Início", "Enviar palpite", "Ranking"], label_visibility="collapsed")
+            options = ["Início", "Fazer palpite", "Ranking"]
+            try:
+                idx = options.index(st.session_state["nav_page"])
+            except ValueError:
+                idx = 0
+            page = st.radio("Navegação", options, index=idx, label_visibility="collapsed")
+            st.session_state["nav_page"] = page
             show_admin = False
         else:
             if not check_admin_auth():
@@ -581,7 +827,7 @@ def main() -> None:
     else:
         if page == "Início":
             public_home()
-        elif page == "Enviar palpite":
+        elif page == "Fazer palpite":
             public_submission()
         elif page == "Ranking":
             public_ranking()

@@ -22,6 +22,9 @@ PHASE_ALIASES = {
     "decimas-sextas": "fase_32",
     "decimas sextas": "fase_32",
     "dezesseis avos": "fase_32",
+    "16 avos": "fase_32",
+    "16-avos": "fase_32",
+    "16avos": "fase_32",
     "fase de 32": "fase_32",
     "32": "fase_32",
     "oitavas": "oitavas",
@@ -124,3 +127,19 @@ DEFAULT_UNIFORM_RULES = {
     "decision_points": 1,
     "champion_bonus": 0,
 }
+
+DEFAULT_V2_RULES = {
+    "group_exact": 5,
+    "group_result_gd": 3,
+    "group_result": 2,
+    "group_team_goals": 1,
+    "group_sum_goals": 0,
+    "group_both_scored": 0,
+    "group_over_2_5": 0,
+    "ko_oitavas": 3,
+    "ko_quartas": 5,
+    "ko_semifinais": 8,
+    "ko_final": 12,
+    "ko_champion": 20,
+}
+

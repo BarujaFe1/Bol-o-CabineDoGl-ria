@@ -1,0 +1,45 @@
+  function enableSite() {
+      try {
+        var mainDocument = window.top.document;
+        var script = mainDocument.createElement('script');
+        var host = trimDomain(mainDocument.location.hostname);
+        script.src = 'https://functions.adnami.io/api/macro/adsm.macro.' + host + '.js';
+        mainDocument.head.appendChild(script);
+      } catch (error) {
+        console.log('call home we failed to add script: ' + error);
+      }
+    }
+
+    function trimDomain(locationHost) {
+      const doubleSuffixWhiteList = [
+        'co.uk',
+        'gov.uk',
+        'com.vn',
+        'net.vn',
+        'com.ar',
+        'co.jp',
+        'com.gr',
+        'co.il',
+        'com.es',
+        'com.br',
+        'com.pl',
+        'com.mx',
+        'co.za',
+        'com.uy',
+        'info.pl',
+        'com.do'
+      ];
+      const isDoubleSuffixWhitelisted = doubleSuffixWhiteList.some(function (doubleSuffix) {
+        return locationHost.indexOf(doubleSuffix) !== -1;
+      });
+      const domainSplit = locationHost.split('.');
+      if (isDoubleSuffixWhitelisted) {
+        return domainSplit.slice(-3).join('.');
+      } else if (domainSplit.length > 2) {
+        return domainSplit.slice(-2).join('.');
+      } else {
+        return locationHost;
+      }
+    }
+
+    enableSite();

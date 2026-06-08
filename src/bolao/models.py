@@ -84,6 +84,8 @@ class ScoreBreakdown:
     group_hits: int = 0
     best_third_hits: int = 0
     knockout_hits: int = 0
+    exact_scores: int = 0
+    submitted_at: str = ""
     details: list[dict[str, Any]] = field(default_factory=list)
     tie_breaker: str = ""
 

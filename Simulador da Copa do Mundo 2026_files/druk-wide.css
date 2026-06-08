@@ -1,0 +1,71 @@
+/**
+* 69b9957c5e04d4a5ffa802f1
+* Druk Wide @ Primeira versão
+* Codex Foundation
+* 2026-03-24 09:44:27.601228
+*/
+
+@font-face {
+    font-family: "Druk Wide";
+    src: url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/4074ecb12409ad7ee13db53a1bd12aa2.woff) format("woff"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/250a8e2d954f8cd146b1965348c998a8.woff2) format("woff2"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/4866f2a359850921e5c76d738b42790e.ttf) format("ttf"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/c7bd3d38a80588559c521e1a7b8b36e5.otf) format("otf");
+    font-style: italic;
+    font-weight: 500;
+    font-stretch: normal;
+    font-display: swap
+    }
+@font-face {
+    font-family: "Druk Wide";
+    src: url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/23dc7ab5fdd0fd78ddb018dc06b68a40.woff) format("woff"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/402b058a482ba3f1b0c69aa9a15dd81b.woff2) format("woff2"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/14066e1feec8598fdeb288a62989e50b.ttf) format("ttf"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/0afbafb309f127b2226ab8bbe60e9dc5.otf) format("otf");
+    font-style: roman;
+    font-weight: 500;
+    font-stretch: normal;
+    font-display: swap
+    }
+@font-face {
+    font-family: "Druk Wide";
+    src: url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/4a67fa22ee905dff0ca7d250a946a7a3.woff) format("woff"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/c33b7d84adc5f9ddcb85cd75c2a92b17.woff2) format("woff2"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/1822d520ed2f9f87d7c9843534b04538.ttf) format("ttf"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/d2efdebf27f6eaa0597cb67cc7a31047.otf) format("otf");
+    font-style: italic;
+    font-weight: 700;
+    font-stretch: normal;
+    font-display: swap
+    }
+@font-face {
+    font-family: "Druk Wide";
+    src: url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/fe5eb9394a34a5514685543982b8503a.woff) format("woff"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/da66c81528cb33edc2eff1936c87b56e.woff2) format("woff2"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/c71f06e3511b508569ea853b3644928f.ttf) format("ttf"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/39bf14b53603613d541475f3f36e3eb6.otf) format("otf");
+    font-style: roman;
+    font-weight: 700;
+    font-stretch: normal;
+    font-display: swap
+    }
+@font-face {
+    font-family: "Druk Wide";
+    src: url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/4afefec80a686ca8a17290d0307b2c34.woff) format("woff"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/3b17ec64c7654a6e78359561a1ee62cd.woff2) format("woff2"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/85a80a0c5fad8f6cfc93ee0c1f6891e6.ttf) format("ttf"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/7b213a5f29707d2436da4246b7ddecea.otf) format("otf");
+    font-style: roman;
+    font-weight: 800;
+    font-stretch: normal;
+    font-display: swap
+    }
+@font-face {
+    font-family: "Druk Wide";
+    src: url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/f67e9d27e8e1e386d4b1ab1911779301.woff) format("woff"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/278d5e995f47f203d9dcdea33e7a9eff.woff2) format("woff2"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/cbe1484dcfc89b1744def93ddb5f4553.ttf) format("ttf"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/43fd120d4e2a544fc78a77542e6010f6.otf) format("otf");
+    font-style: italic;
+    font-weight: 800;
+    font-stretch: normal;
+    font-display: swap
+    }
+@font-face {
+    font-family: "Druk Wide";
+    src: url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/7a9e57ba7d7036e86720950de46c4f94.woff) format("woff"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/41c34eed8eb11761e8bc4e9b02875fbf.woff2) format("woff2"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/3f2105d9ae319abe7d074c779f60fd87.ttf) format("ttf"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/8c8890e6445e3f2a623719377b7725b8.otf) format("otf");
+    font-style: roman;
+    font-weight: 900;
+    font-stretch: normal;
+    font-display: swap
+    }
+@font-face {
+    font-family: "Druk Wide";
+    src: url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/17e8cca32b9e8b4ca8e3b1751013b5c8.woff) format("woff"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/959553b964125f6e97c095212afc34ab.woff2) format("woff2"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/76a7f8acd7eafbdbe269ae11056088d3.ttf) format("ttf"), url(https://s3.glbimg.com/v1/AUTH_b922f1376f6c452e9bb337cc7d996a6e/codex/foundation/fonts/38993a5cdc4c41f9c766871a24c79752.otf) format("otf");
+    font-style: italic;
+    font-weight: 900;
+    font-stretch: normal;
+    font-display: swap
+    }

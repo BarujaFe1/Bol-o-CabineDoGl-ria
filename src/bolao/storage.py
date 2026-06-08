@@ -6,7 +6,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from .constants import DEFAULT_UNIFORM_RULES, DEFAULT_WEIGHTED_RULES
+from .constants import DEFAULT_UNIFORM_RULES, DEFAULT_V2_RULES, DEFAULT_WEIGHTED_RULES
 from .models import Prediction
 from .utils import now_iso, read_json, safe_filename, stable_id, write_json
 
@@ -20,8 +20,11 @@ CONFIG_PATH = STATE_DIR / "config.json"
 
 
 def get_storage_backend() -> str:
-    if "SUPABASE_URL" in st.secrets:
-        return "supabase"
+    try:
+        if "SUPABASE_URL" in st.secrets:
+            return "supabase"
+    except Exception:
+        pass
     return "local"
 
 
@@ -31,8 +34,13 @@ def _get_supabase_client():
     except ImportError:
         return None
 
-    url = st.secrets.get("SUPABASE_URL")
-    key = st.secrets.get("SUPABASE_SERVICE_ROLE_KEY")
+    try:
+        url = st.secrets.get("SUPABASE_URL")
+        key = st.secrets.get("SUPABASE_SERVICE_ROLE_KEY")
+    except Exception:
+        url = None
+        key = None
+
     if url and key:
         return create_client(url, key)
     return None
@@ -108,12 +116,14 @@ def ensure_state() -> None:
 
 def default_config() -> dict:
     return {
-        "scoring_mode": "ponderado",
+        "scoring_mode": "v2",
         "weighted_rules": dict(DEFAULT_WEIGHTED_RULES),
         "uniform_rules": dict(DEFAULT_UNIFORM_RULES),
+        "v2_rules": dict(DEFAULT_V2_RULES),
         "status_label": "Recebendo palpites",
         "admin_password_enabled": False,
         "last_api_sync": None,
+        "is_bolao_locked": False,
     }
 
 
@@ -132,6 +142,7 @@ def load_config() -> dict:
                     merged.update(data or {})
                     merged["weighted_rules"] = {**DEFAULT_WEIGHTED_RULES, **(merged.get("weighted_rules") or {})}
                     merged["uniform_rules"] = {**DEFAULT_UNIFORM_RULES, **(merged.get("uniform_rules") or {})}
+                    merged["v2_rules"] = {**DEFAULT_V2_RULES, **(merged.get("v2_rules") or {})}
                     return merged
             except Exception:
                 pass
@@ -141,6 +152,7 @@ def load_config() -> dict:
     merged.update(data or {})
     merged["weighted_rules"] = {**DEFAULT_WEIGHTED_RULES, **(merged.get("weighted_rules") or {})}
     merged["uniform_rules"] = {**DEFAULT_UNIFORM_RULES, **(merged.get("uniform_rules") or {})}
+    merged["v2_rules"] = {**DEFAULT_V2_RULES, **(merged.get("v2_rules") or {})}
     return merged
 
 
@@ -286,7 +298,7 @@ def save_official(prediction: Prediction) -> Path:
                     "participant": prediction.participant,
                     "groups": prediction.groups,
                     "best_thirds": prediction.best_thirds,
-                    "knockout": {k: [m.to_dict() if hasattr(m, 'to_dict') else m for k, v in prediction.knockout.items() for m in v]},
+                    "knockout": {k: [m.to_dict() if hasattr(m, 'to_dict') else m for m in v] for k, v in prediction.knockout.items()},
                     "champion": prediction.champion,
                     "submission_id": prediction.submission_id,
                     "submitted_at": prediction.submitted_at,

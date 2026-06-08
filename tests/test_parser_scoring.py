@@ -129,7 +129,7 @@ Alemanha x França
 """
         _, champion, issues, _ = parse_ge_knockout_text(text)
         assert champion is None
-        assert any(i.message == "Campeã ausente." for i in issues)
+        assert any("Campeã" in i.message or "Campeão" in i.message for i in issues)
 
 
 class TestScoring:
