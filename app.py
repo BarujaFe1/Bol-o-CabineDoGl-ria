@@ -687,40 +687,59 @@ def make_prediction_from_text(name: str, text: str) -> Prediction:
 
 
 def admin_official_results() -> None:
-    render_page_header("Admin", "Resultados Oficiais", "Fluxo: preencher resultado → aprovar → ranking recalculado automaticamente.", "⚽")
-    st.caption("Fluxo recomendado: preencher pelo simulador oficial ou sincronizar API → aprovar resultado oficial → recalcular ranking.")
+    render_page_header("Admin", "Resultados Oficiais", "Preencha os resultados conforme a competição avança — salve o progresso a qualquer momento.", "⚽")
+    st.caption("Fluxo recomendado: preencher jogos realizados → Salvar Progresso → voltar depois e continuar de onde parou → Aprovar quando completo.")
 
-    tabs = st.tabs(["Simulador Oficial (Recomendado)", "Texto/manual", "API", "Resultado aprovado"])
+    tabs = st.tabs(["Simulador Oficial", "Texto/manual", "API", "Resultado salvo"])
 
     with tabs[0]:
-        st.markdown("### Preencher via Simulador Nativo")
-        st.caption("Preencha os placares da fase de grupos e selecione os vencedores do mata-mata para o resultado oficial.")
-        
+        st.markdown("### Preencher via Simulador")
+        st.caption("Preencha os placares dos jogos já realizados e os vencedores do mata-mata. O simulador carrega os dados previamente salvos.")
+
+        if "official_save_msg" in st.session_state:
+            st.success(st.session_state.pop("official_save_msg"))
+
         ctx = load_app_data_cached()
         official_draft = ctx.official or Prediction(participant="Resultado oficial")
         updated_official = render_simulator(official_draft, is_admin=True)
-        
+
         if updated_official:
-            st.markdown("### Aprovar Resultado")
-            st.markdown('<div class="warn-box"><strong>⚠️ Atenção:</strong> Aprovar o resultado oficial recalculará o ranking de todos os participantes com base nos dados informados. Esta ação substitui qualquer resultado anterior.</div>', unsafe_allow_html=True)
-            confirm_word_sim = st.text_input("Digite APROVAR para confirmar a aprovação:", key="confirm_sim_word")
-            if st.button("Aprovar e salvar resultado oficial (Simulador)", type="primary", key="btn_save_official_sim", disabled=confirm_word_sim != "APROVAR", width="stretch"):
-                # Validate completeness (admin can save partial)
-                missing = validate_prediction_complete(updated_official)
-                if missing and not st.session_state.get("confirm_partial", False):
-                    st.warning("⚠️ Resultado oficial incompleto. Itens pendentes:")
-                    for item in missing:
-                        st.markdown(f"- {item}")
-                    if st.checkbox("Confirmar salvamento parcial (competição em andamento)", key="confirm_partial"):
-                        st.rerun()
-                    return
-                updated_official.status = "aprovado"
-                updated_official.submitted_at = now_iso()
-                save_official(updated_official)
-                
-                st.session_state.pop("sim_public", None)
-                st.success("Resultado oficial aprovado e salvo a partir do simulador!")
-                st.rerun()
+            st.markdown("---")
+            st.markdown("#### Salvar ou Aprovar")
+
+            missing = validate_prediction_complete(updated_official)
+            if missing:
+                st.markdown(f'<div class="warn-box">📋 <strong>Pendências ({len(missing)}):</strong><br>' + "<br>".join(f"• {m}" for m in missing) + "</div>", unsafe_allow_html=True)
+
+            col_save, col_approve = st.columns(2)
+
+            # Save draft / progress
+            with col_save:
+                if st.button("💾 Salvar Progresso (rascunho)", type="secondary", key="btn_save_official_draft", width="stretch"):
+                    updated_official.status = "rascunho"
+                    updated_official.submitted_at = now_iso()
+                    save_official(updated_official)
+                    st.session_state["official_save_msg"] = "✅ Progresso salvo! Os dados já estão salvos — volte depois para continuar de onde parou."
+                    st.session_state.pop("sim_public", None)
+                    st.rerun()
+
+            # Approve (full save with confirmation)
+            with col_approve:
+                st.markdown('<div class="warn-box" style="font-size:13px;"><strong>⚠️ Aprovar</strong> substitui o ranking anterior e vale como resultado oficial definitivo.</div>', unsafe_allow_html=True)
+                confirm_approve = st.text_input("Digite APROVAR para aprovação definitiva:", key="confirm_sim_word", placeholder="APROVAR")
+                if st.button("✅ Aprovar Resultado Oficial", type="primary", key="btn_save_official_sim", disabled=confirm_approve != "APROVAR", width="stretch"):
+                    if missing:
+                        st.warning("⚠️ Resultado incompleto. Itens pendentes:")
+                        for m in missing:
+                            st.markdown(f"- {m}")
+                        st.info("💡 Se a competição ainda está rolando, use 'Salvar Progresso' para salvar dados parciais sem aprovar.")
+                        return
+                    updated_official.status = "aprovado"
+                    updated_official.submitted_at = now_iso()
+                    save_official(updated_official)
+                    st.session_state["official_save_msg"] = "🏆 Resultado oficial aprovado! Ranking recalculado automaticamente."
+                    st.session_state.pop("sim_public", None)
+                    st.rerun()
 
     with tabs[1]:
         name = "Resultado oficial"
@@ -735,6 +754,7 @@ def admin_official_results() -> None:
         st.markdown('<div class="warn-box"><strong>⚠️ Atenção:</strong> Aprovar o resultado oficial recalculará o ranking de todos os participantes. Esta ação substitui qualquer resultado anterior.</div>', unsafe_allow_html=True)
         confirm_word_text = st.text_input("Digite APROVAR para confirmar a aprovação:", key="confirm_text_word")
         if st.button("Aprovar e salvar resultado oficial", type="primary", disabled=confirm_word_text != "APROVAR", width="stretch"):
+            draft.status = "aprovado"
             save_official(draft)
             st.success("Resultado oficial aprovado e salvo.")
             st.rerun()
@@ -758,10 +778,20 @@ def admin_official_results() -> None:
     with tabs[3]:
         official = ctx.official
         if not official:
-            st.info("Nenhum resultado oficial aprovado.")
+            st.info("Nenhum resultado oficial salvo.")
         else:
-            st.success(f"Resultado aprovado em {official.submitted_at or 'data não registrada'}.")
-            st.json(official.to_dict(), expanded=False)
+            status_tag = "🏆 Aprovado" if official.status == "aprovado" else "📝 Rascunho"
+            st.markdown(f'**Status:** <span class="badge {"success" if official.status == "aprovado" else "warning"}">{status_tag}</span>', unsafe_allow_html=True)
+            st.markdown(f"**Última atualização:** `{official.submitted_at or '—'}`")
+            if official.meta.get("group_matches"):
+                total = len(official.meta["group_matches"])
+                filled = sum(1 for v in official.meta["group_matches"].values() if v[0] is not None and v[1] is not None)
+                st.markdown(f"**Jogos preenchidos:** {filled}/{total}")
+            if official.meta.get("slots"):
+                ko_filled = sum(1 for v in official.meta["slots"].values() if v is not None)
+                st.markdown(f"**Chave do mata-mata preenchida:** {ko_filled}/63")
+            with st.expander("Ver JSON completo", expanded=False):
+                st.json(official.to_dict(), expanded=False)
 
 
 def admin_ranking() -> None:

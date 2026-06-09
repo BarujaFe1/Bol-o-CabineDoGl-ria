@@ -309,7 +309,6 @@ def save_official(prediction: Prediction) -> Path:
     append_event("official_saved", "Resultado oficial do bolão foi cadastrado/atualizado.")
     ensure_state()
     prediction.participant = "Resultado oficial"
-    prediction.status = "aprovado"
     if not prediction.submitted_at:
         prediction.submitted_at = now_iso()
 
