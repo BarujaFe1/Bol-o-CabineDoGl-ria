@@ -7,6 +7,7 @@ from .constants import DEFAULT_UNIFORM_RULES, DEFAULT_WEIGHTED_RULES, DEFAULT_V2
 from .models import Prediction, ScoreBreakdown
 from .utils import norm_team
 from .worldcup_2026_data import GROUP_MATCHES, TEAMS
+import streamlit as st
 
 
 @dataclass
@@ -277,9 +278,32 @@ def score_prediction(pred: Prediction, official: Prediction, config: ScoreConfig
 def rank_predictions(predictions: list[Prediction], official: Prediction | None, config: ScoreConfig) -> list[ScoreBreakdown]:
     if official is None:
         return []
-    scores = [score_prediction(pred, official, config) for pred in predictions]
+
+    import hashlib
+    import json
+
+    # Serialize to make a stable hash key
+    pred_data = [p.to_dict() for p in predictions]
+    # Sort by participant to ensure order changes don't affect hash
+    pred_data = sorted(pred_data, key=lambda x: x.get("participant", ""))
+    off_data = official.to_dict() if official else None
+    config_data = {
+        "mode": config.mode,
+        "weighted": config.weighted_rules,
+        "uniform": config.uniform_rules,
+        "v2": config.v2_rules
+    }
+    hash_payload = {"preds": pred_data, "off": off_data, "config": config_data}
+    hash_str = hashlib.sha256(json.dumps(hash_payload, sort_keys=True, default=str).encode()).hexdigest()
+
+    return _rank_predictions_cached(hash_str, predictions, official, config)
+
+
+@st.cache_data(show_spinner=False)
+def _rank_predictions_cached(hash_key: str, _predictions: list[Prediction], _official: Prediction | None, _config: ScoreConfig) -> list[ScoreBreakdown]:
+    scores = [score_prediction(pred, _official, _config) for pred in _predictions]
     
-    if config.mode == "v2":
+    if _config.mode == "v2":
         # Tiebreakers V2:
         # 1. Total Points (descending)
         # 2. Champion hit (descending)

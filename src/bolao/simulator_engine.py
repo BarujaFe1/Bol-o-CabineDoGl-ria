@@ -316,8 +316,10 @@ def propagate_winner(slots: dict[int, str | None], slot_id: int, winner_team_id:
     if slot_id <= 0:
         return
         
+    for i in range(63):
+        slots.setdefault(i, None)
     parent_id = (slot_id - 1) >> 1
-    old_parent_winner = slots[parent_id]
+    old_parent_winner = slots.get(parent_id)
     
     # If the winner didn't change, no propagation needed
     if old_parent_winner == winner_team_id:
@@ -333,7 +335,7 @@ def clear_ancestor_team(slots: dict[int, str | None], slot_id: int, team_id: str
     if slot_id <= 0:
         return
     parent_id = (slot_id - 1) >> 1
-    if slots[parent_id] == team_id:
+    if slots.get(parent_id) == team_id:
         slots[parent_id] = None
         clear_ancestor_team(slots, parent_id, team_id)
 
@@ -364,6 +366,25 @@ MAP_FINAL = [
 ]
 
 
+SIMULATOR_STATE_VERSION = "2026-06-08-v2"
+
+def normalize_slots(slots: dict[int, str | None] | list | None) -> dict[int, str | None]:
+    """Normaliza slots para dict com chaves int 0-62, convertendo str/int/list/None."""
+    if slots is None:
+        return {i: None for i in range(63)}
+    if isinstance(slots, list):
+        return {i: slots[i] if i < len(slots) else None for i in range(63)}
+    result: dict[int, str | None] = {}
+    for k, v in slots.items():
+        try:
+            result[int(k)] = v
+        except (ValueError, TypeError):
+            result[k] = v
+    for i in range(63):
+        result.setdefault(i, None)
+    return result
+
+
 def name_to_id(name: str | None) -> str | None:
     """Finds the team ID associated with a team name (or abbreviation) under norm_team."""
     if not name:
@@ -376,35 +397,63 @@ def name_to_id(name: str | None) -> str | None:
     return None
 
 
+def validate_prediction_complete(prediction: Prediction) -> list[str]:
+    """Returns a list of missing items that prevent saving/approval.
+    Empty list means the prediction is complete."""
+    missing: list[str] = []
+    if not prediction.participant or len(prediction.participant.strip()) < 2:
+        missing.append("Nome do participante")
+    from .constants import GROUPS, PHASES
+    for g in GROUPS:
+        values = prediction.groups.get(g, [])
+        clean = [v for v in values if v]
+        if len(clean) < 4:
+            missing.append(f"Grupo {g} incompleto ({len(clean)}/4 times)")
+    if not prediction.best_thirds:
+        missing.append("Melhores terceiros não definidos")
+    for phase in PHASES:
+        matches = prediction.knockout.get(phase, [])
+        if not matches:
+            missing.append(f"Fase '{phase}' sem jogos")
+        for m in matches:
+            if not m.winner:
+                missing.append(f"Jogo em {phase} sem vencedor")
+    if not prediction.champion:
+        missing.append("Campeã não informada")
+    return missing
+
+
 def serialize_slots_to_prediction(slots: dict[int, str | None], prediction: Prediction) -> None:
     """Serializes the bracket slots dict into the prediction's champion and knockout match fields."""
     from .models import Match
+
+    slots = normalize_slots(slots)
 
     def tname(tid: str | None) -> str | None:
         if not tid:
             return None
         return TEAMS.get(tid, {}).get("name", tid)
 
-    prediction.champion = tname(slots[0])
+    prediction.champion = tname(slots.get(0))
     
     prediction.knockout["fase_32"] = [
-        Match(a=tname(slots[h]), b=tname(slots[v]), winner=tname(slots[w]))
+        Match(a=tname(slots.get(h)), b=tname(slots.get(v)), winner=tname(slots.get(w)))
         for h, v, w in MAP_FASE_32
     ]
     prediction.knockout["oitavas"] = [
-        Match(a=tname(slots[h]), b=tname(slots[v]), winner=tname(slots[w]))
+        Match(a=tname(slots.get(h)), b=tname(slots.get(v)), winner=tname(slots.get(w)))
         for h, v, w in MAP_OITAVAS
     ]
     prediction.knockout["quartas"] = [
-        Match(a=tname(slots[h]), b=tname(slots[v]), winner=tname(slots[w]))
+        Match(a=tname(slots.get(h)), b=tname(slots.get(v)), winner=tname(slots.get(w)))
         for h, v, w in MAP_QUARTAS
     ]
     prediction.knockout["semifinais"] = [
-        Match(a=tname(slots[h]), b=tname(slots[v]), winner=tname(slots[w]))
+        Match(a=tname(slots.get(h)), b=tname(slots.get(v)), winner=tname(slots.get(w)))
         for h, v, w in MAP_SEMIFINAIS
     ]
     prediction.knockout["final"] = [
-        Match(a=tname(slots[h]), b=tname(slots[v]), winner=tname(slots[w]))
+        Match(a=tname(slots.get(h)), b=tname(slots.get(v)), winner=tname(slots.get(w)))
         for h, v, w in MAP_FINAL
     ]
 

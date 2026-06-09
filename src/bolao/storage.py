@@ -9,6 +9,7 @@ import streamlit as st
 from .constants import DEFAULT_UNIFORM_RULES, DEFAULT_V2_RULES, DEFAULT_WEIGHTED_RULES
 from .models import Prediction
 from .utils import now_iso, read_json, safe_filename, stable_id, write_json
+from dataclasses import dataclass
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
@@ -17,17 +18,20 @@ SUBMISSIONS_DIR = STATE_DIR / "submissions"
 UPLOADS_DIR = STATE_DIR / "uploads"
 OFFICIAL_PATH = STATE_DIR / "official_result.json"
 CONFIG_PATH = STATE_DIR / "config.json"
+EVENTS_PATH = STATE_DIR / "events.json"
 
 
 def get_storage_backend() -> str:
     try:
-        if "SUPABASE_URL" in st.secrets:
+        client = _get_supabase_client()
+        if client is not None:
             return "supabase"
     except Exception:
         pass
     return "local"
 
 
+@st.cache_resource
 def _get_supabase_client():
     try:
         from supabase import create_client
@@ -37,12 +41,11 @@ def _get_supabase_client():
     try:
         url = st.secrets.get("SUPABASE_URL")
         key = st.secrets.get("SUPABASE_SERVICE_ROLE_KEY")
-    except Exception:
-        url = None
-        key = None
-
-    if url and key:
+        if not url or url == "SUA_SUPABASE_URL_AQUI" or not url.startswith("https://"):
+            return None
         return create_client(url, key)
+    except Exception:
+        return None
     return None
 
 
@@ -157,6 +160,8 @@ def load_config() -> dict:
 
 
 def save_config(config: dict) -> None:
+    st.cache_data.clear()
+    append_event("config_changed", "Configurações do bolão foram atualizadas.")
     ensure_state()
     backend = get_storage_backend()
 
@@ -195,6 +200,8 @@ def load_submissions() -> list[Prediction]:
 
 
 def save_submission(prediction: Prediction, overwrite: bool = True) -> Path:
+    st.cache_data.clear()
+    append_event("submission_saved", f"Palpite de {prediction.participant} foi enviado/atualizado.")
     ensure_state()
     if not prediction.submission_id:
         prediction.submission_id = stable_id(prediction.participant, now_iso())
@@ -234,27 +241,45 @@ def save_submission(prediction: Prediction, overwrite: bool = True) -> Path:
 
 
 def delete_submission(submission_id: str) -> bool:
+    st.cache_data.clear()
     ensure_state()
+    
+    # Try to find the participant name before deleting
+    participant_name = "desconhecido"
+    try:
+        submissions = load_submissions()
+        for p in submissions:
+            if p.submission_id == submission_id:
+                participant_name = p.participant
+                break
+    except Exception:
+        pass
+
     backend = get_storage_backend()
+    deleted = False
 
     if backend == "supabase":
         client = _get_supabase_client()
         if client:
             try:
                 client.table("bolao_submissions").delete().eq("id", submission_id).execute()
-                return True
+                deleted = True
             except Exception:
                 pass
-
-    for path in SUBMISSIONS_DIR.glob("*.json"):
-        try:
-            data = read_json(path, {})
-            if data.get("submission_id") == submission_id:
-                path.unlink()
-                return True
-        except Exception:
-            pass
-    return False
+    else:
+        for path in SUBMISSIONS_DIR.glob("*.json"):
+            try:
+                data = read_json(path, {})
+                if data.get("submission_id") == submission_id:
+                    path.unlink()
+                    deleted = True
+                    break
+            except Exception:
+                pass
+                
+    if deleted:
+        append_event("submission_deleted", f"Palpite de {participant_name} foi excluído.")
+    return deleted
 
 
 def load_official() -> Prediction | None:
@@ -280,6 +305,8 @@ def load_official() -> Prediction | None:
 
 
 def save_official(prediction: Prediction) -> Path:
+    st.cache_data.clear()
+    append_event("official_saved", "Resultado oficial do bolão foi cadastrado/atualizado.")
     ensure_state()
     prediction.participant = "Resultado oficial"
     prediction.status = "aprovado"
@@ -323,6 +350,8 @@ def export_all_state() -> dict:
 
 
 def reset_state() -> None:
+    st.cache_data.clear()
+    append_event("state_reset", "Todo o estado do bolão foi reiniciado pelo administrador.")
     ensure_state()
     backend = get_storage_backend()
 
@@ -343,6 +372,8 @@ def reset_state() -> None:
 
 
 def load_demo_state() -> None:
+    st.cache_data.clear()
+    append_event("demo_loaded", "Dados de demonstração foram carregados pelo administrador.")
     ensure_state()
     backend = get_storage_backend()
 
@@ -366,3 +397,45 @@ def load_demo_state() -> None:
     official = demo / "official_result.json"
     if official.exists():
         shutil.copy2(official, OFFICIAL_PATH)
+
+
+def append_event(kind: str, message: str, metadata: dict | None = None) -> None:
+    ensure_state()
+    events = load_events(limit=200)
+    
+    from .utils import now_iso
+    new_event = {
+        "timestamp": now_iso(),
+        "kind": kind,
+        "message": message,
+        "metadata": metadata or {}
+    }
+    events.insert(0, new_event)
+    events = events[:100]
+    write_json(EVENTS_PATH, events)
+
+
+def load_events(limit: int = 20) -> list[dict]:
+    ensure_state()
+    if not EVENTS_PATH.exists():
+        return []
+    try:
+        events = read_json(EVENTS_PATH, [])
+        return events[:limit]
+    except Exception:
+        return []
+
+
+@dataclass
+class AppDataContext:
+    submissions: list[Prediction]
+    official: Prediction | None
+    config: dict
+
+
+@st.cache_data(ttl=15, show_spinner=False)
+def load_app_data_cached() -> AppDataContext:
+    submissions = load_submissions()
+    official = load_official()
+    config = load_config()
+    return AppDataContext(submissions=submissions, official=official, config=config)

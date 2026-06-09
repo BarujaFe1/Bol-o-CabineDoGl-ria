@@ -88,3 +88,14 @@ def canonical_team(value: str | None) -> str | None:
         if any(clean == norm_text(candidate) for candidate in candidates):
             return canonical
     return raw
+
+
+def is_debug_mode() -> bool:
+    import os
+    import streamlit as st
+    try:
+        if "DEBUG_MODE" in st.secrets:
+            return str(st.secrets["DEBUG_MODE"]).lower() in ("true", "1", "yes")
+    except Exception:
+        pass
+    return os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")

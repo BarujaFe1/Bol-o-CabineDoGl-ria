@@ -11,248 +11,8 @@ from .constants import APP_NAME, APP_SUBTITLE, GE_SIMULATOR_URL, GROUPS, PHASE_L
 
 
 def inject_css() -> None:
-    st.markdown(
-        """
-<style>
-:root {
-  --bg: #f7f2e9;
-  --panel: rgba(255,255,255,.82);
-  --panel-strong: #ffffff;
-  --ink: #10231d;
-  --muted: #6f766f;
-  --green: #1f5b42;
-  --green-2: #173b2d;
-  --gold: #c49a3c;
-  --line: rgba(25, 55, 44, .13);
-  --shadow: 0 22px 70px rgba(17, 42, 31, .12);
-}
-
-[data-testid="stAppViewContainer"] {
-  background:
-    radial-gradient(circle at 8% 5%, rgba(199, 158, 75, .22), transparent 28%),
-    radial-gradient(circle at 95% 20%, rgba(31, 91, 66, .18), transparent 30%),
-    linear-gradient(180deg, #fbf7ef 0%, #f3eadb 100%);
-}
-
-[data-testid="stHeader"] { background: transparent; }
-[data-testid="stSidebar"] {
-  background: linear-gradient(180deg, #10231d, #173b2d 70%, #0f211b);
-}
-[data-testid="stSidebar"] * { color: #fffaf1 !important; }
-.block-container { padding-top: 2rem; max-width: 1240px; }
-
-.copa-hero {
-  border: 1px solid var(--line);
-  background:
-    linear-gradient(135deg, rgba(255,255,255,.9), rgba(255,252,246,.74)),
-    radial-gradient(circle at 92% 18%, rgba(196,154,60,.22), transparent 30%);
-  border-radius: 34px;
-  padding: 34px 34px;
-  box-shadow: var(--shadow);
-  margin-bottom: 22px;
-  position: relative;
-  overflow: hidden;
-}
-
-.copa-hero:after {
-  content: "";
-  position: absolute;
-  right: -80px;
-  bottom: -90px;
-  width: 260px;
-  height: 260px;
-  border-radius: 999px;
-  border: 32px solid rgba(31, 91, 66, .08);
-}
-
-.eyebrow {
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding: 7px 11px;
-  border-radius: 999px;
-  background: rgba(31,91,66,.08);
-  color: var(--green);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.copa-title {
-  color: var(--ink);
-  font-size: clamp(36px, 5vw, 64px);
-  line-height: .98;
-  font-weight: 900;
-  letter-spacing: -2px;
-  margin: 18px 0 8px;
-}
-
-.copa-subtitle {
-  color: #59645d;
-  font-size: 18px;
-  max-width: 790px;
-  line-height: 1.55;
-  margin-bottom: 0;
-}
-
-.card {
-  border: 1px solid var(--line);
-  background: var(--panel);
-  border-radius: 26px;
-  padding: 22px;
-  box-shadow: 0 14px 42px rgba(15, 35, 28, .08);
-  margin-bottom: 16px;
-}
-
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin: 18px 0;
-}
-
-.kpi {
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,.85);
-  border-radius: 24px;
-  padding: 18px 18px;
-  box-shadow: 0 10px 30px rgba(17, 42, 31, .07);
-}
-
-.kpi .label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing:.08em;
-  font-weight: 800;
-  color: #748077;
-}
-
-.kpi .value {
-  font-size: 30px;
-  font-weight: 900;
-  color: var(--ink);
-  margin-top: 6px;
-}
-
-.step-grid {
-  display:grid;
-  grid-template-columns: repeat(4, minmax(0,1fr));
-  gap: 14px;
-}
-
-.step {
-  background: rgba(255,255,255,.78);
-  border:1px solid var(--line);
-  border-radius: 24px;
-  padding: 18px;
-  min-height: 155px;
-}
-
-.step .num {
-  width: 34px;
-  height: 34px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius: 50%;
-  background: var(--green);
-  color: #fff;
-  font-weight: 900;
-  margin-bottom: 12px;
-}
-
-.step h4 { margin: 0 0 8px; color: var(--ink); }
-.step p { color: var(--muted); font-size: 14px; margin: 0; line-height: 1.45; }
-
-.podium {
-  display:grid;
-  grid-template-columns: 1fr 1.18fr 1fr;
-  gap: 16px;
-  align-items:end;
-  margin: 18px 0 22px;
-}
-
-.podium-card {
-  border: 1px solid rgba(196,154,60,.28);
-  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,249,236,.82));
-  border-radius: 30px;
-  padding: 22px;
-  text-align:center;
-  box-shadow: 0 18px 46px rgba(70, 50, 16, .10);
-}
-
-.podium-card.first {
-  padding: 30px 22px;
-  transform: translateY(-16px);
-  box-shadow: 0 28px 74px rgba(196,154,60,.2);
-}
-
-.medal { font-size: 42px; margin-bottom: 6px; }
-.podium-rank { font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:#9a742a; }
-.podium-name { color: var(--ink); font-size: 25px; font-weight: 900; margin-top: 7px; }
-.podium-points { color: var(--green); font-size: 34px; font-weight: 950; margin-top: 8px; }
-.podium-note { color:#768076; font-size: 13px; margin-top: 7px; }
-
-.badge {
-  display:inline-flex;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.78);
-  padding:6px 10px;
-  color: var(--green-2);
-  font-size: 12px;
-  font-weight: 800;
-  margin-right: 6px;
-  margin-bottom: 6px;
-}
-
-.success-card {
-  border-radius: 28px;
-  padding: 26px;
-  background: linear-gradient(135deg, rgba(31,91,66,.12), rgba(196,154,60,.16));
-  border:1px solid rgba(31,91,66,.22);
-}
-
-.warn-box {
-  border: 1px solid rgba(196,154,60,.38);
-  background: rgba(255,249,236,.82);
-  border-radius: 20px;
-  padding: 14px 16px;
-  color: #75591d;
-  margin: 8px 0;
-}
-
-.error-box {
-  border: 1px solid rgba(190,55,55,.26);
-  background: rgba(255,242,242,.86);
-  border-radius: 20px;
-  padding: 14px 16px;
-  color: #842525;
-  margin: 8px 0;
-}
-
-.small-muted { color: var(--muted); font-size: 14px; line-height:1.48; }
-a.button-link {
-  display:inline-flex;
-  padding: 12px 16px;
-  border-radius: 16px;
-  background: var(--green);
-  color:white !important;
-  text-decoration:none;
-  font-weight: 800;
-  margin-top: 14px;
-}
-
-@media (max-width: 900px) {
-  .kpi-grid, .step-grid, .podium { grid-template-columns: 1fr; }
-  .podium-card.first { transform: none; }
-  .copa-hero { padding: 24px; border-radius: 26px; }
-}
-</style>
-        """,
-        unsafe_allow_html=True,
-    )
+    from .styles import inject_css as styles_inject
+    styles_inject()
 
 
 def hero(title: str = APP_NAME, subtitle: str = APP_SUBTITLE, description: str | None = None) -> None:
@@ -350,3 +110,95 @@ def dataframe_to_groups(df: pd.DataFrame) -> dict[str, list[str | None]]:
         if g:
             groups[g] = [row.get("1º") or None, row.get("2º") or None, row.get("3º") or None, row.get("4º") or None]
     return groups
+
+
+def render_page_header(kicker: str, title: str, subtitle: str = "", icon: str = "🏆") -> None:
+    st.markdown(
+        f"""
+        <div class="page-header">
+            <div class="eyebrow">{icon} {html.escape(kicker)}</div>
+            <h2 class="page-title" style="margin: 8px 0 4px 0;">{html.escape(title)}</h2>
+            {f'<div class="page-subtitle">{html.escape(subtitle)}</div>' if subtitle else ''}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def render_kpi_grid(items: list[dict[str, Any]]) -> None:
+    html_items = "".join([f'<div class="kpi"><div class="label">{html.escape(item["label"])}</div><div class="value">{html.escape(str(item["value"]))}</div></div>' for item in items])
+    st.markdown(f'<div class="kpi-grid">{html_items}</div>', unsafe_allow_html=True)
+
+
+def render_step_cards(steps: list[dict[str, Any]]) -> None:
+    inner = ""
+    for idx, step in enumerate(steps, start=1):
+        inner += f'<div class="step"><div class="num">{idx}</div><h4>{html.escape(step["title"])}</h4><p>{html.escape(step["description"])}</p></div>'
+    st.markdown(f'<div class="step-grid">{inner}</div>', unsafe_allow_html=True)
+
+
+def render_callout(message: str, kind: str = "info", title: str | None = None) -> None:
+    title_html = f"<strong>{html.escape(title)}</strong><br>" if title else ""
+    st.markdown(f'<div class="callout {kind}">{title_html}{html.escape(message)}</div>', unsafe_allow_html=True)
+
+
+def render_empty_state(title: str, body: str, cta_label: str | None = None, cta_key: str | None = None) -> bool:
+    st.markdown(
+        f"""
+        <div class="empty-state">
+            <div class="icon">🔍</div>
+            <h3>{html.escape(title)}</h3>
+            <p>{html.escape(body)}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    if cta_label and cta_key:
+        if st.button(cta_label, key=cta_key, width="stretch", type="primary"):
+            return True
+    return False
+
+
+def render_progress_status(label: str, current: int, total: int) -> None:
+    pct = (current / total) * 100 if total > 0 else 0
+    st.markdown(
+        f"""
+        <div style="margin: 10px 0;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; color: var(--ink); margin-bottom: 4px;">
+                <span>{html.escape(label)}</span>
+                <span>{current} / {total} ({pct:.0f}%)</span>
+            </div>
+            <div style="width: 100%; background-color: rgba(11, 51, 40, 0.1); height: 10px; border-radius: 99px; overflow: hidden;">
+                <div style="width: {pct}%; background-color: var(--green); height: 100%; border-radius: 99px;"></div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def render_badge(text: str, kind: str = "neutral") -> str:
+    return f'<span class="badge {kind}">{html.escape(text)}</span>'
+
+
+def render_step_indicator(steps: list[str], current_index: int) -> None:
+    inner = ""
+    for idx, step_name in enumerate(steps):
+        is_active = idx == current_index
+        is_done = idx < current_index
+        circle = "✓" if is_done else str(idx + 1)
+        cls = "step-dot active" if is_active else ("step-dot done" if is_done else "step-dot")
+        line_cls = "step-line" if idx < len(steps) - 1 else ""
+        line_state = " done" if idx < current_index else ""
+        inner += f"""
+            <div class="step-item">
+                <div class="{cls}">{circle}</div>
+                <div class="step-label">{html.escape(step_name)}</div>
+            </div>
+        """
+        if idx < len(steps) - 1:
+            inner += f'<div class="{line_cls}{line_state}"></div>'
+    st.markdown(
+        f'<div class="step-indicator">{inner}</div>',
+        unsafe_allow_html=True
+    )

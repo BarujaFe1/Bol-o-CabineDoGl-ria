@@ -13,6 +13,9 @@ from .simulator_engine import (
     propagate_winner,
     serialize_slots_to_prediction,
     deserialize_prediction_to_slots,
+    normalize_slots,
+    validate_prediction_complete,
+    SIMULATOR_STATE_VERSION,
     MAP_FASE_32,
     MAP_OITAVAS,
     MAP_QUARTAS,
@@ -20,6 +23,32 @@ from .simulator_engine import (
     MAP_FINAL
 )
 from .models import Prediction
+from .utils import is_debug_mode
+from .ui_components import render_progress_status, render_step_indicator
+
+def _sim_state_key(is_admin: bool = False) -> str:
+    return "sim_admin" if is_admin else "sim_public"
+
+def render_safe_error(summary: str, detail: str | None = None) -> None:
+    """Renders a user-friendly error without exposing tracebacks to public."""
+    st.error(summary)
+    if detail and is_debug_mode():
+        with st.expander("Detalhes técnicos (apenas admin)", expanded=False):
+            st.code(detail, language="text")
+
+def migrate_sim_state_if_needed():
+    """Migrates legacy/unversioned simulator state to current version."""
+    key = "sim_public"
+    state = st.session_state.get(key)
+    if state is None:
+        legacy = st.session_state.pop("simulator", None)
+        if legacy is not None:
+            st.session_state[key] = legacy
+            state = legacy
+    if state is not None and state.get("_version") != SIMULATOR_STATE_VERSION:
+        state["_version"] = SIMULATOR_STATE_VERSION
+        state.setdefault("group_matches", {})
+        state["slots"] = normalize_slots(state.get("slots"))
 
 def get_team_badge_path(team_id: str) -> str | None:
     tinfo = TEAMS.get(team_id)
@@ -28,7 +57,6 @@ def get_team_badge_path(team_id: str) -> str | None:
     badge_rel = tinfo.get("badge")
     if badge_rel:
         clean_path = badge_rel.replace("./", "").replace("/", os.sep)
-        # Find project root directory relative to this file (src/bolao/ui_simulator.py)
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         abs_path = os.path.join(project_root, clean_path)
         if os.path.exists(abs_path):
@@ -36,11 +64,11 @@ def get_team_badge_path(team_id: str) -> str | None:
     return None
 
 def init_simulator_state(prediction: Prediction, force_reset: bool = False):
-    if "simulator" not in st.session_state or force_reset:
-        # Load from prediction if available
+    migrate_sim_state_if_needed()
+    key = "sim_public"
+    if key not in st.session_state or force_reset:
         saved_matches = prediction.meta.get("group_matches", {})
         
-        # Initialize group matches
         group_matches = {}
         for gm in GROUP_MATCHES:
             m_id = gm["id"]
@@ -50,16 +78,15 @@ def init_simulator_state(prediction: Prediction, force_reset: bool = False):
             else:
                 group_matches[m_id] = [None, None]
                 
-        # Initialize standings and slots
-        st.session_state["simulator"] = {
+        st.session_state[key] = {
             "group_matches": group_matches,
-            "slots": {},  # Will be populated
+            "slots": {i: None for i in range(63)},
+            "_version": SIMULATOR_STATE_VERSION,
             "initialized": True
         }
         
-        state = st.session_state["simulator"]
+        state = st.session_state[key]
         
-        # Load saved slots if available
         saved_slots = prediction.meta.get("slots", {})
         if saved_slots:
             slots = {}
@@ -68,9 +95,9 @@ def init_simulator_state(prediction: Prediction, force_reset: bool = False):
                     slots[int(k)] = v
                 except ValueError:
                     slots[k] = v
+            normalize_slots(slots)
             state["slots"] = slots
         else:
-            # If group matches are complete, attempt to deserialize the prediction knockout stages
             unplayed = [m_id for m_id in group_matches if group_matches[m_id][0] is None or group_matches[m_id][1] is None]
             if not unplayed:
                 try:
@@ -83,56 +110,97 @@ def init_simulator_state(prediction: Prediction, force_reset: bool = False):
                     slots = deserialize_prediction_to_slots(prediction, standings, best_thirds_groups)
                     state["slots"] = slots
                 except Exception:
-                    pass
+                    normalize_slots(state["slots"])
 
 def render_simulator(prediction: Prediction, is_admin: bool = False) -> Prediction | None:
     init_simulator_state(prediction)
-    state = st.session_state["simulator"]
+    sim_key = _sim_state_key(is_admin)
+    state = st.session_state.get(sim_key) or st.session_state.get("sim_public")
+    
+    # Ensure all 63 slots exist
+    normalize_slots(state["slots"])
     
     # Global Controls
+    show_debug = is_admin or is_debug_mode()
+    
     st.markdown("### 🎛️ Controles do Simulador")
-    col_c1, col_c2, col_c3 = st.columns(3)
-    with col_c1:
-        if st.button("🔮 Preencher teste automaticamente", help="Use o preenchimento automático apenas para testar o simulador. Para participar de verdade, preencha seus próprios placares.", use_container_width=True):
-            # Fill group stage matches
-            for gm in GROUP_MATCHES:
-                # Random realistic football score
-                h = random.choice([0, 1, 2, 3, 4])
-                a = random.choice([0, 1, 2, 3])
-                # Weights
-                if random.random() < 0.2:
-                    h = a = random.choice([0, 1, 2])
-                state["group_matches"][gm["id"]] = [h, a]
-            
-            # Recalculate standings and slots
-            standings = recalculate_all_standings(state)
-            best_thirds = [stg.team_id for stg in get_best_third_placed_teams(standings)[:8]]
-            best_thirds_groups = []
-            for tid in best_thirds:
-                g_letter = next(g for g, t_ids in GROUPS_TEAMS.items() if tid in t_ids)
-                best_thirds_groups.append(g_letter)
+    if show_debug:
+        col_c1, col_c2, col_c3 = st.columns(3)
+        with col_c1:
+            if st.button("🔮 Preencher teste automaticamente", help="Use o preenchimento automático apenas para testar o simulador. Para participar de verdade, preencha seus próprios placares.", width="stretch"):
+                # Fill group stage matches
+                for gm in GROUP_MATCHES:
+                    # Random realistic football score
+                    h = random.choice([0, 1, 2, 3, 4])
+                    a = random.choice([0, 1, 2, 3])
+                    # Weights
+                    if random.random() < 0.2:
+                        h = a = random.choice([0, 1, 2])
+                    state["group_matches"][gm["id"]] = [h, a]
                 
-            state["slots"] = build_initial_bracket_slots(standings, best_thirds_groups)
-            
-            # Simulate knockout randomly
-            simulate_knockout_randomly(state["slots"])
-            st.toast("Simulação aleatória gerada com sucesso!")
-            st.rerun()
-            
-    with col_c2:
-        if st.button("🧹 Limpar simulador", use_container_width=True):
-            # Reset all
-            for gm in GROUP_MATCHES:
-                state["group_matches"][gm["id"]] = [None, None]
-            state["slots"] = {i: None for i in range(63)}
-            st.toast("Simulador limpo.")
-            st.rerun()
-            
-    with col_c3:
-        if st.button("🔄 Atualizar classificação", use_container_width=True):
-            recalculate_all_standings(state)
-            st.toast("Classificação atualizada!")
-            st.rerun()
+                # Recalculate standings and slots
+                standings = recalculate_all_standings(state)
+                best_thirds = [stg.team_id for stg in get_best_third_placed_teams(standings)[:8]]
+                best_thirds_groups = []
+                for tid in best_thirds:
+                    g_letter = next(g for g, t_ids in GROUPS_TEAMS.items() if tid in t_ids)
+                    best_thirds_groups.append(g_letter)
+                    
+                state["slots"] = build_initial_bracket_slots(standings, best_thirds_groups)
+                
+                # Simulate knockout randomly
+                simulate_knockout_randomly(state["slots"])
+                st.toast("Simulação aleatória gerada com sucesso!")
+                st.rerun()
+                
+        with col_c2:
+            if st.button("🧹 Limpar simulador", width="stretch"):
+                # Reset all
+                for gm in GROUP_MATCHES:
+                    state["group_matches"][gm["id"]] = [None, None]
+                state["slots"] = {i: None for i in range(63)}
+                st.toast("Simulador limpo.")
+                st.rerun()
+                
+        with col_c3:
+            if st.button("🔄 Atualizar classificação", width="stretch"):
+                recalculate_all_standings(state)
+                st.toast("Classificação atualizada!")
+                st.rerun()
+    else:
+        col_c1, col_c2 = st.columns(2)
+        with col_c1:
+            if st.button("🧹 Limpar simulador", width="stretch"):
+                # Reset all
+                for gm in GROUP_MATCHES:
+                    state["group_matches"][gm["id"]] = [None, None]
+                state["slots"] = {i: None for i in range(63)}
+                st.toast("Simulador limpo.")
+                st.rerun()
+                
+        with col_c2:
+            if st.button("🔄 Atualizar classificação", width="stretch"):
+                recalculate_all_standings(state)
+                st.toast("Classificação atualizada!")
+                st.rerun()
+
+    # Step progress indicator
+    steps_labels = ["Identificação", "Fase de grupos", "Classificados", "Mata-mata", "Revisão"]
+    unplayed = [gm["id"] for gm in GROUP_MATCHES if state["group_matches"].get(gm["id"])[0] is None or state["group_matches"].get(gm["id"])[1] is None]
+    group_done = len(unplayed) == 0
+    slots = state.get("slots", {})
+    missing_ko = [i for i in range(63) if slots.get(i) is None]
+    ko_done = len(missing_ko) == 0
+    if group_done and ko_done:
+        step_idx = 4
+    elif group_done and not ko_done and len(missing_ko) < 63:
+        step_idx = 3
+    elif group_done:
+        step_idx = 2
+    else:
+        step_idx = 1
+    if not is_admin:
+        render_step_indicator(steps_labels, step_idx)
 
     # Step navigation tabs
     step_tabs = st.tabs(["1. Fase de grupos", "2. Classificados", "3. Mata-mata", "4. Revisão e envio"])
@@ -140,104 +208,104 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
         st.markdown("### 🏟️ Simule os jogos dos grupos")
         st.caption("Preencha os placares dos jogos. A tabela do grupo é atualizada automaticamente conforme os resultados informados.")
         
-        group_selector_tabs = st.tabs([f"Grupo {g}" for g in GROUPS_TEAMS.keys()])
+        g_letters = list(GROUPS_TEAMS.keys())
+        g_letter = st.selectbox("Selecione o Grupo para Visualizar/Simular", options=g_letters, format_func=lambda x: f"Grupo {x}", key="sim_group_select")
         
-        for g_idx, g_letter in enumerate(GROUPS_TEAMS.keys()):
-            with group_selector_tabs[g_idx]:
-                st.markdown(f"#### Grupo {g_letter} - Simulação de Jogos")
+        st.markdown(f"#### Grupo {g_letter} - Simulação de Jogos")
+        
+        # Show matches for this group
+        g_matches = [gm for gm in GROUP_MATCHES if gm["group"] == g_letter]
+        
+        col_m1, col_m2 = st.columns(2)
+        for idx, gm in enumerate(g_matches):
+            # Alternate columns
+            col = col_m1 if idx % 2 == 0 else col_m2
+            with col:
+                # Match Container Box
+                if gm.get("stadium"):
+                    st.markdown(f"**Rodada {gm['round']}** · *{gm['stadium']}*")
+                else:
+                    st.markdown(f"**Rodada {gm['round']}**")
+                h_id, a_id = gm["home_id"], gm["away_id"]
+                h_name, a_name = TEAMS[h_id]["name"], TEAMS[a_id]["name"]
+                h_badge = get_team_badge_path(h_id)
+                a_badge = get_team_badge_path(a_id)
                 
-                # Show matches for this group
-                g_matches = [gm for gm in GROUP_MATCHES if gm["group"] == g_letter]
+                sub_c1, sub_c2, sub_c3, sub_c4, sub_c5 = st.columns([3, 2, 1, 2, 3])
                 
-                col_m1, col_m2 = st.columns(2)
-                for idx, gm in enumerate(g_matches):
-                    # Alternate columns
-                    col = col_m1 if idx % 2 == 0 else col_m2
-                    with col:
-                        # Match Container Box
-                        if gm.get("stadium"):
-                            st.markdown(f"**Rodada {gm['round']}** · *{gm['stadium']}*")
-                        else:
-                            st.markdown(f"**Rodada {gm['round']}**")
-                        h_id, a_id = gm["home_id"], gm["away_id"]
-                        h_name, a_name = TEAMS[h_id]["name"], TEAMS[a_id]["name"]
-                        h_badge = get_team_badge_path(h_id)
-                        a_badge = get_team_badge_path(a_id)
-                        
-                        sub_c1, sub_c2, sub_c3, sub_c4, sub_c5 = st.columns([3, 2, 1, 2, 3])
-                        
-                        with sub_c1:
-                            if h_badge:
-                                st.image(h_badge, width=32)
-                            st.markdown(f"<div style='text-align: right;'><b>{h_name}</b></div>", unsafe_allow_html=True)
-                            
-                        with sub_c2:
-                            val_h = state["group_matches"][gm["id"]][0]
-                            new_h = st.number_input(
-                                "Gols Home",
-                                min_value=0,
-                                max_value=9,
-                                value=val_h,
-                                step=1,
-                                key=f"score_h_{gm['id']}",
-                                label_visibility="collapsed"
-                            )
-                            
-                        with sub_c3:
-                            st.markdown("<div style='text-align: center; line-height: 40px;'>x</div>", unsafe_allow_html=True)
-                            
-                        with sub_c4:
-                            val_a = state["group_matches"][gm["id"]][1]
-                            new_a = st.number_input(
-                                "Gols Away",
-                                min_value=0,
-                                max_value=9,
-                                value=val_a,
-                                step=1,
-                                key=f"score_a_{gm['id']}",
-                                label_visibility="collapsed"
-                            )
-                            
-                        with sub_c5:
-                            if a_badge:
-                                st.image(a_badge, width=32)
-                            st.markdown(f"<div><b>{a_name}</b></div>", unsafe_allow_html=True)
-                            
-                        # Save if score changed
-                        if new_h != val_h or new_a != val_a:
-                            state["group_matches"][gm["id"]] = [new_h, new_a]
-                            
-                st.markdown("---")
-                st.markdown("#### Classificação do Grupo")
-                
-                # Check if group is completely unplayed
-                group_unplayed = [gm["id"] for gm in g_matches if state["group_matches"][gm["id"]][0] is None or state["group_matches"][gm["id"]][1] is None]
-                if len(group_unplayed) == len(g_matches):
-                    st.info("ℹ️ Preencha os jogos deste grupo para calcular a classificação.")
-                
-                # Calculate current standing
-                match_objs = []
-                for m in GROUP_MATCHES:
-                    m_id = m["id"]
-                    score = state["group_matches"][m_id]
-                    match_objs.append(GroupMatch(
-                        id=m_id,
-                        group=m["group"],
-                        round=m["round"],
-                        home_id=m["home_id"],
-                        away_id=m["away_id"],
-                        home_score=score[0],
-                        away_score=score[1]
-                    ))
-                g_standings = calculate_group_standings(g_letter, match_objs)
-                
-                # Render disclaimer if completely tied
-                all_zero = all(stg.played == 0 for stg in g_standings)
-                if all_zero:
-                    st.caption("⚠️ Classificação parcial sujeita aos critérios de desempate.")
-                
-                # Render Standings Table
-                render_standings_table(g_standings)
+                with sub_c1:
+                    if h_badge:
+                        st.image(h_badge, width=32)
+                    st.markdown(f"<div style='text-align: right;'><b>{h_name}</b></div>", unsafe_allow_html=True)
+                    
+                with sub_c2:
+                    val_h = state["group_matches"][gm["id"]][0]
+                    new_h = st.number_input(
+                        "Gols Home",
+                        min_value=0,
+                        max_value=9,
+                        value=val_h,
+                        step=1,
+                        key=f"score_h_{gm['id']}",
+                        label_visibility="collapsed"
+                    )
+                    
+                with sub_c3:
+                    st.markdown("<div style='text-align: center; line-height: 40px;'>x</div>", unsafe_allow_html=True)
+                    
+                with sub_c4:
+                    val_a = state["group_matches"][gm["id"]][1]
+                    new_a = st.number_input(
+                        "Gols Away",
+                        min_value=0,
+                        max_value=9,
+                        value=val_a,
+                        step=1,
+                        key=f"score_a_{gm['id']}",
+                        label_visibility="collapsed"
+                    )
+                    
+                with sub_c5:
+                    if a_badge:
+                        st.image(a_badge, width=32)
+                    st.markdown(f"<div><b>{a_name}</b></div>", unsafe_allow_html=True)
+                    
+                # Save if score changed
+                if new_h != val_h or new_a != val_a:
+                    state["group_matches"][gm["id"]] = [new_h, new_a]
+                    st.rerun()
+                    
+        st.markdown("---")
+        st.markdown("#### Classificação do Grupo")
+        
+        # Check if group is completely unplayed
+        group_unplayed = [gm["id"] for gm in g_matches if state["group_matches"][gm["id"]][0] is None or state["group_matches"][gm["id"]][1] is None]
+        if len(group_unplayed) == len(g_matches):
+            st.info("ℹ️ Preencha os jogos deste grupo para calcular a classificação.")
+        
+        # Calculate current standing
+        match_objs = []
+        for m in GROUP_MATCHES:
+            m_id = m["id"]
+            score = state["group_matches"][m_id]
+            match_objs.append(GroupMatch(
+                id=m_id,
+                group=m["group"],
+                round=m["round"],
+                home_id=m["home_id"],
+                away_id=m["away_id"],
+                home_score=score[0],
+                away_score=score[1]
+            ))
+        g_standings = calculate_group_standings(g_letter, match_objs)
+        
+        # Render disclaimer if completely tied
+        all_zero = all(stg.played == 0 for stg in g_standings)
+        if all_zero:
+            st.caption("⚠️ Classificação parcial sujeita aos critérios de desempate.")
+        
+        # Render Standings Table
+        render_standings_table(g_standings)
 
     # 2. Classificados Tab
     with step_tabs[1]:
@@ -262,7 +330,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                     "1º Colocado": t1,
                     "2º Colocado": t2
                 })
-            st.dataframe(pd.DataFrame(direct_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(direct_rows), width="stretch", hide_index=True)
             
             st.markdown("#### Ranking dos Terceiros Colocados")
             best_thirds = get_best_third_placed_teams(standings)
@@ -296,16 +364,17 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                 if slot_id not in slots:
                     slots[slot_id] = None
                     
-            # Render bracket phases in subtabs
-            phase_tabs = st.tabs(["Décima-sextas", "Oitavas", "Quartas", "Semifinais", "Final & Campeão"])
+            # Render bracket phases selectbox/radio to render only the selected round
+            phase_options = ["Décima-sextas", "Oitavas", "Quartas", "Semifinais", "Final & Campeão"]
+            selected_phase = st.radio("Selecione a fase do mata-mata para simular", options=phase_options, horizontal=True, key="sim_phase_select")
+            st.markdown("---")
             
             # Décima-sextas (Round of 32)
-            with phase_tabs[0]:
+            if selected_phase == "Décima-sextas":
                 render_bracket_round("fase_32", MAP_FASE_32, slots)
                 
             # Oitavas
-            with phase_tabs[1]:
-                # Check if all fase_32 matches are simulated (slots 15 to 30 populated)
+            elif selected_phase == "Oitavas":
                 missing_fase_32 = [w for _, _, w in MAP_FASE_32 if slots[w] is None]
                 if missing_fase_32:
                     st.warning("Preencha todos os vencedores das Décima-sextas para liberar as Oitavas de Final.")
@@ -313,7 +382,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                     render_bracket_round("oitavas", MAP_OITAVAS, slots)
                     
             # Quartas
-            with phase_tabs[2]:
+            elif selected_phase == "Quartas":
                 missing_oitavas = [w for _, _, w in MAP_OITAVAS if slots[w] is None]
                 if missing_oitavas:
                     st.warning("Preencha todos os vencedores das Oitavas para liberar as Quartas de Final.")
@@ -321,7 +390,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                     render_bracket_round("quartas", MAP_QUARTAS, slots)
                     
             # Semifinais
-            with phase_tabs[3]:
+            elif selected_phase == "Semifinais":
                 missing_quartas = [w for _, _, w in MAP_QUARTAS if slots[w] is None]
                 if missing_quartas:
                     st.warning("Preencha todos os vencedores das Quartas para liberar as Semifinais.")
@@ -329,7 +398,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                     render_bracket_round("semifinais", MAP_SEMIFINAIS, slots)
                     
             # Final & Campeão
-            with phase_tabs[4]:
+            elif selected_phase == "Final & Campeão":
                 missing_semis = [w for _, _, w in MAP_SEMIFINAIS if slots[w] is None]
                 if missing_semis:
                     st.warning("Preencha os vencedores das Semifinais para liberar a grande Final.")
@@ -340,21 +409,42 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
     with step_tabs[3]:
         st.markdown("### 📝 Revisão do seu Palpite" if not is_admin else "### 📝 Revisão do Resultado Oficial")
         
-        # Check completeness
-        unplayed = [gm["id"] for gm in GROUP_MATCHES if state["group_matches"][gm["id"]][0] is None or state["group_matches"][gm["id"]][1] is None]
-        missing_winners = [i for i in range(63) if state["slots"].get(i) is None]
+        # Get completion state
+        comp_state = get_guess_completion_state(state)
         
-        is_complete = not (unplayed or missing_winners)
+        # Display checklist if not admin
+        if not is_admin:
+            st.markdown("#### 📋 Checklist de Conclusão")
+            
+            total_items = 72 + 63
+            missing_knocks = len([i for i in range(63) if state["slots"].get(i) is None])
+            filled_items = comp_state["group_matches_filled"] + (63 - missing_knocks)
+            render_progress_status("Preenchimento total do bolão", filled_items, total_items)
+            
+            col_ch1, col_ch2, col_ch3 = st.columns(3)
+            with col_ch1:
+                st.markdown(f"**1. Identificação**")
+                st.markdown("✅ Nome registrado" if comp_state["player_name_ok"] else "❌ Nome ausente (topo da página)")
+            with col_ch2:
+                st.markdown(f"**2. Fase de Grupos**")
+                g_f = comp_state["group_matches_filled"]
+                st.markdown(f"✅ {g_f}/72 jogos" if g_f == 72 else f"⏳ {g_f}/72 jogos")
+            with col_ch3:
+                st.markdown(f"**3. Mata-mata**")
+                st.markdown("✅ Chave completa" if comp_state["knockout_complete"] else f"⏳ {63 - missing_knocks}/63 escolhas")
+                
+            if not comp_state["can_submit"]:
+                st.markdown('<div class="warn-box">⚠️ <strong>Palpite Incompleto:</strong> Para enviar, você precisa completar todos os itens acima.</div>', unsafe_allow_html=True)
+                for item in comp_state["missing_items"]:
+                    st.markdown(f"- {item}")
+            else:
+                st.markdown('<div class="callout success">🎉 <strong>Tudo pronto!</strong> Prossiga para a confirmação de envio abaixo.</div>', unsafe_allow_html=True)
+                
+        is_complete = comp_state["can_submit"]
         
         if not is_complete:
             if is_admin:
                 st.warning("⚠️ O resultado oficial está incompleto (competição em andamento). Como Administrador, você pode salvar o resultado oficial parcial para atualizar o ranking durante a Copa.")
-            else:
-                st.error("Seu palpite está incompleto. Por favor, certifique-se de que simulou todos os jogos de grupo e selecionou todos os vencedores do mata-mata (incluindo o campeão).")
-                if unplayed:
-                    st.write(f"- Restam {len(unplayed)} jogos da fase de grupos.")
-                if missing_winners:
-                    st.write(f"- Restam {len(missing_winners)} confrontos do mata-mata sem vencedor.")
         else:
             st.success("🎉 Palpite completo!" if not is_admin else "🎉 Resultado oficial completo!")
             
@@ -482,7 +572,7 @@ def render_standings_table(standings: list[GroupStanding]):
             "%": f"{stg.percent:.1f}%"
         })
     df = pd.DataFrame(rows)
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, width="stretch", hide_index=True)
 
 def render_best_thirds_table(best_thirds: list[GroupStanding]):
     rows = []
@@ -509,7 +599,7 @@ def render_best_thirds_table(best_thirds: list[GroupStanding]):
         color = 'background-color: rgba(46, 117, 89, 0.2)' if val == 'Classificado' else 'background-color: rgba(186, 45, 45, 0.2)'
         return color
         
-    st.dataframe(df.style.map(highlight_rows, subset=['Status']), use_container_width=True, hide_index=True)
+    st.dataframe(df.style.map(highlight_rows, subset=['Status']), width="stretch", hide_index=True)
 
 def render_bracket_round(phase_name: str, matches_mapping: list[tuple[int, int, int]], slots: dict[int, str | None]):
     col_l1, col_l2 = st.columns(2)
@@ -536,7 +626,7 @@ def render_bracket_round(phase_name: str, matches_mapping: list[tuple[int, int, 
                 if h_badge:
                     st.image(h_badge, width=32)
                 btn_type = "primary" if (winner_id and winner_id == h_id) else "secondary"
-                if st.button(h_name, key=f"progress_{phase_name}_{idx}_home", use_container_width=True, type=btn_type, disabled=not h_id):
+                if st.button(h_name, key=f"progress_{phase_name}_{idx}_home", width="stretch", type=btn_type, disabled=not h_id):
                     propagate_winner(slots, h, h_id)
                     st.rerun()
                     
@@ -547,7 +637,7 @@ def render_bracket_round(phase_name: str, matches_mapping: list[tuple[int, int, 
                 if a_badge:
                     st.image(a_badge, width=32)
                 btn_type = "primary" if (winner_id and winner_id == a_id) else "secondary"
-                if st.button(a_name, key=f"progress_{phase_name}_{idx}_visitor", use_container_width=True, type=btn_type, disabled=not a_id):
+                if st.button(a_name, key=f"progress_{phase_name}_{idx}_visitor", width="stretch", type=btn_type, disabled=not a_id):
                     propagate_winner(slots, v, a_id)
                     st.rerun()
             st.markdown("<br>", unsafe_allow_html=True)
@@ -570,7 +660,7 @@ def render_final_and_champion(slots: dict[int, str | None]):
         if h_badge:
             st.image(h_badge, width=64)
         btn_type = "primary" if (winner_id and winner_id == h_id) else "secondary"
-        if st.button(h_name, key="final_home", use_container_width=True, type=btn_type, disabled=not h_id):
+        if st.button(h_name, key="final_home", width="stretch", type=btn_type, disabled=not h_id):
             slots[0] = h_id
             st.rerun()
             
@@ -582,7 +672,7 @@ def render_final_and_champion(slots: dict[int, str | None]):
         if a_badge:
             st.image(a_badge, width=64)
         btn_type = "primary" if (winner_id and winner_id == a_id) else "secondary"
-        if st.button(a_name, key="final_visitor", use_container_width=True, type=btn_type, disabled=not a_id):
+        if st.button(a_name, key="final_visitor", width="stretch", type=btn_type, disabled=not a_id):
             slots[0] = a_id
             st.rerun()
             
@@ -599,3 +689,64 @@ def render_final_and_champion(slots: dict[int, str | None]):
             st.markdown(f"<div style='text-align: center; font-size: 20px; font-weight: bold;'>{champ_name}</div>", unsafe_allow_html=True)
     else:
         st.info("Selecione o vencedor da grande final acima para coroar a equipe campeã!")
+
+
+def get_guess_completion_state(state) -> dict:
+    if not state:
+        return {
+            "player_name_ok": False,
+            "group_matches_filled": 0,
+            "group_matches_total": 72,
+            "groups_complete": 0,
+            "groups_total": 12,
+            "knockout_complete": False,
+            "champion": None,
+            "can_submit": False,
+            "missing_items": ["Simulador não inicializado."]
+        }
+    
+    group_matches = state.get("group_matches", {})
+    slots = state.get("slots", {})
+    
+    player_name = st.session_state.get("public_sim_name", "").strip()
+    player_name_ok = len(player_name) >= 2
+    
+    unplayed = [gm["id"] for gm in GROUP_MATCHES if group_matches.get(gm["id"])[0] is None or group_matches.get(gm["id"])[1] is None]
+    group_matches_filled = 72 - len(unplayed)
+    
+    groups_complete = 0
+    for g_letter in GROUPS_TEAMS.keys():
+        g_matches = [gm["id"] for gm in GROUP_MATCHES if gm["group"] == g_letter]
+        g_unplayed = [m_id for m_id in g_matches if group_matches.get(m_id)[0] is None or group_matches.get(m_id)[1] is None]
+        if not g_unplayed:
+            groups_complete += 1
+            
+    missing_winners = [i for i in range(63) if slots.get(i) is None]
+    knockout_complete = len(missing_winners) == 0
+    
+    champion_id = slots.get(0)
+    champion_name = TEAMS.get(champion_id, {}).get("name", None) if champion_id else None
+    
+    missing_items = []
+    if not player_name_ok:
+        missing_items.append("Nome do participante (digite seu nome no topo).")
+    if len(unplayed) > 0:
+        missing_items.append(f"Jogos da fase de grupos ({len(unplayed)} restantes).")
+    if len(missing_winners) > 0:
+        missing_items.append(f"Confrontos do mata-mata ({len(missing_winners)} restantes).")
+    if not champion_id:
+        missing_items.append("Escolha do time campeão na aba Final & Campeão.")
+        
+    can_submit = player_name_ok and len(unplayed) == 0 and len(missing_winners) == 0
+    
+    return {
+        "player_name_ok": player_name_ok,
+        "group_matches_filled": group_matches_filled,
+        "group_matches_total": 72,
+        "groups_complete": groups_complete,
+        "groups_total": 12,
+        "knockout_complete": knockout_complete,
+        "champion": champion_name,
+        "can_submit": can_submit,
+        "missing_items": missing_items
+    }
