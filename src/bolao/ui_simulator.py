@@ -121,6 +121,8 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                 if random.random() < 0.2:
                     h = a = random.choice([0, 1, 2])
                 state["group_matches"][gm["id"]] = [h, a]
+                st.session_state[f"score_h_{gm['id']}"] = h
+                st.session_state[f"score_a_{gm['id']}"] = a
             standings = recalculate_all_standings(state)
             best_thirds = [stg.team_id for stg in get_best_third_placed_teams(standings)[:8]]
             best_thirds_groups = []
@@ -135,6 +137,8 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
         if st.button("🧹 Limpar simulador", width="stretch"):
             for gm in GROUP_MATCHES:
                 state["group_matches"][gm["id"]] = [None, None]
+                st.session_state.pop(f"score_h_{gm['id']}", None)
+                st.session_state.pop(f"score_a_{gm['id']}", None)
             state["slots"] = {i: None for i in range(63)}
             st.toast("Simulador limpo.")
             st.rerun()
