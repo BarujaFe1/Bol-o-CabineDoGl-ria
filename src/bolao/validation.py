@@ -40,28 +40,3 @@ def validate_prediction(pred: Prediction, strict: bool = False) -> list[ParseIss
 
 def has_blocking_errors(issues: list[ParseIssue]) -> bool:
     return any(i.level == "error" for i in issues)
-
-
-def validate_prediction_complete(pred: Prediction) -> list[str]:
-    """Returns a list of missing items that prevent a prediction from being saved/approved.
-    Returns an empty list if the prediction is complete."""
-    missing = []
-    if not pred.participant or len(pred.participant.strip()) < 2:
-        missing.append("Nome do participante")
-    for g in GROUPS:
-        values = pred.groups.get(g, [])
-        clean = [v for v in values if v]
-        if len(clean) < 4:
-            missing.append(f"Grupo {g} incompleto ({len(clean)}/4 times)")
-    if not pred.best_thirds:
-        missing.append("Melhores terceiros não definidos")
-    for phase in PHASES:
-        matches = pred.knockout.get(phase, [])
-        if not matches:
-            missing.append(f"Fase '{phase}' sem jogos")
-        for m in matches:
-            if not m.winner:
-                missing.append(f"Jogo em {phase} sem vencedor")
-    if not pred.champion:
-        missing.append("Campeã não informada")
-    return missing

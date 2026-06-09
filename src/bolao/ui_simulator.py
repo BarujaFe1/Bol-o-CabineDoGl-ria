@@ -23,18 +23,10 @@ from .simulator_engine import (
     MAP_FINAL
 )
 from .models import Prediction
-from .utils import is_debug_mode
 from .ui_components import render_progress_status, render_step_indicator
 
 def _sim_state_key(is_admin: bool = False) -> str:
     return "sim_admin" if is_admin else "sim_public"
-
-def render_safe_error(summary: str, detail: str | None = None) -> None:
-    """Renders a user-friendly error without exposing tracebacks to public."""
-    st.error(summary)
-    if detail and is_debug_mode():
-        with st.expander("Detalhes técnicos (apenas admin)", expanded=False):
-            st.code(detail, language="text")
 
 def migrate_sim_state_if_needed():
     """Migrates legacy/unversioned simulator state to current version."""
