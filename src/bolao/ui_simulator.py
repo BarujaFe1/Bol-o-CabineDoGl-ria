@@ -117,72 +117,40 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
     sim_key = _sim_state_key(is_admin)
     state = st.session_state.get(sim_key) or st.session_state.get("sim_public")
     
-    # Ensure all 63 slots exist
     normalize_slots(state["slots"])
     
-    # Global Controls
-    show_debug = is_admin or is_debug_mode()
-    
     st.markdown("### 🎛️ Controles do Simulador")
-    if show_debug:
-        col_c1, col_c2, col_c3 = st.columns(3)
-        with col_c1:
-            if st.button("🔮 Preencher teste automaticamente", help="Use o preenchimento automático apenas para testar o simulador. Para participar de verdade, preencha seus próprios placares.", width="stretch"):
-                # Fill group stage matches
-                for gm in GROUP_MATCHES:
-                    # Random realistic football score
-                    h = random.choice([0, 1, 2, 3, 4])
-                    a = random.choice([0, 1, 2, 3])
-                    # Weights
-                    if random.random() < 0.2:
-                        h = a = random.choice([0, 1, 2])
-                    state["group_matches"][gm["id"]] = [h, a]
-                
-                # Recalculate standings and slots
-                standings = recalculate_all_standings(state)
-                best_thirds = [stg.team_id for stg in get_best_third_placed_teams(standings)[:8]]
-                best_thirds_groups = []
-                for tid in best_thirds:
-                    g_letter = next(g for g, t_ids in GROUPS_TEAMS.items() if tid in t_ids)
-                    best_thirds_groups.append(g_letter)
-                    
-                state["slots"] = build_initial_bracket_slots(standings, best_thirds_groups)
-                
-                # Simulate knockout randomly
-                simulate_knockout_randomly(state["slots"])
-                st.toast("Simulação aleatória gerada com sucesso!")
-                st.rerun()
-                
-        with col_c2:
-            if st.button("🧹 Limpar simulador", width="stretch"):
-                # Reset all
-                for gm in GROUP_MATCHES:
-                    state["group_matches"][gm["id"]] = [None, None]
-                state["slots"] = {i: None for i in range(63)}
-                st.toast("Simulador limpo.")
-                st.rerun()
-                
-        with col_c3:
-            if st.button("🔄 Atualizar classificação", width="stretch"):
-                recalculate_all_standings(state)
-                st.toast("Classificação atualizada!")
-                st.rerun()
-    else:
-        col_c1, col_c2 = st.columns(2)
-        with col_c1:
-            if st.button("🧹 Limpar simulador", width="stretch"):
-                # Reset all
-                for gm in GROUP_MATCHES:
-                    state["group_matches"][gm["id"]] = [None, None]
-                state["slots"] = {i: None for i in range(63)}
-                st.toast("Simulador limpo.")
-                st.rerun()
-                
-        with col_c2:
-            if st.button("🔄 Atualizar classificação", width="stretch"):
-                recalculate_all_standings(state)
-                st.toast("Classificação atualizada!")
-                st.rerun()
+    col_c1, col_c2, col_c3 = st.columns(3)
+    with col_c1:
+        if st.button("🔮 Preencher automaticamente", help="Gera palpites aleatórios para testar o simulador.", width="stretch"):
+            for gm in GROUP_MATCHES:
+                h = random.choice([0, 1, 2, 3, 4])
+                a = random.choice([0, 1, 2, 3])
+                if random.random() < 0.2:
+                    h = a = random.choice([0, 1, 2])
+                state["group_matches"][gm["id"]] = [h, a]
+            standings = recalculate_all_standings(state)
+            best_thirds = [stg.team_id for stg in get_best_third_placed_teams(standings)[:8]]
+            best_thirds_groups = []
+            for tid in best_thirds:
+                g_letter = next(g for g, t_ids in GROUPS_TEAMS.items() if tid in t_ids)
+                best_thirds_groups.append(g_letter)
+            state["slots"] = build_initial_bracket_slots(standings, best_thirds_groups)
+            simulate_knockout_randomly(state["slots"])
+            st.toast("Simulação aleatória gerada com sucesso!")
+            st.rerun()
+    with col_c2:
+        if st.button("🧹 Limpar simulador", width="stretch"):
+            for gm in GROUP_MATCHES:
+                state["group_matches"][gm["id"]] = [None, None]
+            state["slots"] = {i: None for i in range(63)}
+            st.toast("Simulador limpo.")
+            st.rerun()
+    with col_c3:
+        if st.button("🔄 Atualizar classificação", width="stretch"):
+            recalculate_all_standings(state)
+            st.toast("Classificação atualizada!")
+            st.rerun()
 
     # Step progress indicator
     steps_labels = ["Identificação", "Fase de grupos", "Classificados", "Mata-mata", "Revisão"]
@@ -199,8 +167,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
         step_idx = 2
     else:
         step_idx = 1
-    if not is_admin:
-        render_step_indicator(steps_labels, step_idx)
+    render_step_indicator(steps_labels, step_idx)
 
     # Step navigation tabs
     step_tabs = st.tabs(["1. Fase de grupos", "2. Classificados", "3. Mata-mata", "4. Revisão e envio"])
