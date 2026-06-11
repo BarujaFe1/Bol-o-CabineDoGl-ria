@@ -179,3 +179,21 @@ def test_calculate_live_ranking():
     assert ranking[1]["participant"] == "Pedro"
     assert ranking[1]["total"] == 4
     assert ranking[1]["position"] == 2
+
+
+def test_match_team_badge_resolution():
+    from src.bolao.storage import load_matches
+    from src.bolao.ui_simulator import get_team_badge_path
+    from src.bolao.simulator_engine import name_to_id
+    
+    matches = load_matches()
+    for m in matches:
+        h_id = name_to_id(m.home_team)
+        a_id = name_to_id(m.away_team)
+        
+        h_badge = get_team_badge_path(h_id) if h_id else None
+        a_badge = get_team_badge_path(a_id) if a_id else None
+        
+        assert h_badge is None or isinstance(h_badge, str)
+        assert a_badge is None or isinstance(a_badge, str)
+

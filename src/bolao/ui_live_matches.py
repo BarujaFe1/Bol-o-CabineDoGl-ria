@@ -161,7 +161,6 @@ def render_jogos_de_hoje() -> None:
                 col_teams1, col_inputs, col_btn = st.columns([5, 4, 3])
                 
                 with col_teams1:
-                    h_badge = get_team_badge_path(next((tid for tid, t in m.home_team.items() if t == m.home_team), None) or m.home_team) # Simple fallback if needed
                     # Wait, get_team_badge_path expects team ID. Let's find team ID by name:
                     from .simulator_engine import name_to_id
                     h_id = name_to_id(m.home_team)
