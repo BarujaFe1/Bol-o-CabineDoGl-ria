@@ -8,6 +8,7 @@ from .utils import normalize_participant_key, now_iso
 from .live_scoring import calculate_live_ranking, calculate_live_prediction_points
 from .scoring import rank_predictions
 from .ui_simulator import get_team_badge_path
+from .ui_live_matches import is_match_open_for_prediction
 from .constants import GROUPS, PHASE_LABELS
 
 def render_minha_cartela() -> None:
@@ -98,29 +99,26 @@ def render_minha_cartela() -> None:
         live_next_match = f"{next_m.home_team} x {next_m.away_team} (em {next_m.starts_at.replace('T', ' ')})"
 
     # Render Main Card
-    st.markdown(
-        f"""
-        <div style="border: 2px solid #D8A94A; border-radius: 24px; padding: 25px; background: linear-gradient(180deg, #ffffff, #FFFDF8); box-shadow: 0 16px 48px rgba(11, 51, 40, 0.08); margin-bottom: 25px;">
-            <div style="font-size: 40px; text-align: center; margin-bottom: 5px;">⚽</div>
-            <h3 style="text-align: center; color: #0B3328; margin: 5px 0;">{selected_name}</h3>
-            <p style="text-align: center; color: #66736D; font-size: 14px;">Chave estável: {pkey}</p>
-            
-            <div style="display: flex; gap: 20px; justify-content: space-around; margin-top: 20px; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 200px; padding: 15px; border-radius: 12px; background-color: #F8F9FA; border: 1px solid rgba(11, 51, 40, 0.08); text-align: center;">
-                    <span style="font-size: 12px; color: #66736D; text-transform: uppercase; letter-spacing: 0.5px;">Modo Clássico</span>
-                    <h2 style="margin: 8px 0; color: #176B4D;">{classic_points} <span style="font-size: 14px; color: #66736D;">pts</span></h2>
-                    <div style="font-size: 13px; color: #66736D;">Rank: <b>{classic_rank}</b> · Campeão: <b>{classic_champ}</b></div>
-                </div>
-                <div style="flex: 1; min-width: 200px; padding: 15px; border-radius: 12px; background-color: #F8F9FA; border: 1px solid rgba(11, 51, 40, 0.08); text-align: center;">
-                    <span style="font-size: 12px; color: #66736D; text-transform: uppercase; letter-spacing: 0.5px;">Modo Jogo a Jogo</span>
-                    <h2 style="margin: 8px 0; color: #176B4D;">{live_points} <span style="font-size: 14px; color: #66736D;">pts</span></h2>
-                    <div style="font-size: 13px; color: #66736D;">Rank: <b>{live_rank}</b> · Aprov.: <b>{live_rate}</b></div>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    card_html = f"""
+<div style="border: 2px solid #D8A94A; border-radius: 24px; padding: 25px; background: linear-gradient(180deg, #ffffff, #FFFDF8); box-shadow: 0 16px 48px rgba(11, 51, 40, 0.08); margin-bottom: 25px;">
+<div style="font-size: 40px; text-align: center; margin-bottom: 5px;">⚽</div>
+<h3 style="text-align: center; color: #0B3328; margin: 5px 0;">{selected_name}</h3>
+<p style="text-align: center; color: #66736D; font-size: 14px;">Chave estável: {pkey}</p>
+<div style="display: flex; gap: 20px; justify-content: space-around; margin-top: 20px; flex-wrap: wrap;">
+<div style="flex: 1; min-width: 200px; padding: 15px; border-radius: 12px; background-color: #F8F9FA; border: 1px solid rgba(11, 51, 40, 0.08); text-align: center;">
+<span style="font-size: 12px; color: #66736D; text-transform: uppercase; letter-spacing: 0.5px;">Modo Clássico</span>
+<h2 style="margin: 8px 0; color: #176B4D;">{classic_points} <span style="font-size: 14px; color: #66736D;">pts</span></h2>
+<div style="font-size: 13px; color: #66736D;">Rank: <b>{classic_rank}</b> · Campeão: <b>{classic_champ}</b></div>
+</div>
+<div style="flex: 1; min-width: 200px; padding: 15px; border-radius: 12px; background-color: #F8F9FA; border: 1px solid rgba(11, 51, 40, 0.08); text-align: center;">
+<span style="font-size: 12px; color: #66736D; text-transform: uppercase; letter-spacing: 0.5px;">Modo Jogo a Jogo</span>
+<h2 style="margin: 8px 0; color: #176B4D;">{live_points} <span style="font-size: 14px; color: #66736D;">pts</span></h2>
+<div style="font-size: 13px; color: #66736D;">Rank: <b>{live_rank}</b> · Aprov.: <b>{live_rate}</b></div>
+</div>
+</div>
+</div>
+"""
+    st.markdown(card_html, unsafe_allow_html=True)
 
     c_tabs = st.tabs(["📊 Resumo Geral", "🏆 Palpite Clássico", "🎯 Palpites Jogo a Jogo", "💡 Pontuação", "⚖️ Comparar com Amigo"])
 

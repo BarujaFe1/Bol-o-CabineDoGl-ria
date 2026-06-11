@@ -37,7 +37,16 @@ APP_CSS = """
   background: linear-gradient(180deg, #0B3328, #102d24 70%, #061914);
 }
 
-[data-testid="stSidebar"] * { 
+[data-testid="stSidebar"] .stMarkdown, 
+[data-testid="stSidebar"] .stMarkdown p,
+[data-testid="stSidebar"] h1, 
+[data-testid="stSidebar"] h2, 
+[data-testid="stSidebar"] h3, 
+[data-testid="stSidebar"] h4,
+[data-testid="stSidebar"] [data-testid="stRadio"] label,
+[data-testid="stSidebar"] [data-testid="stRadio"] p,
+[data-testid="stSidebar"] .stCaption,
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
   color: #FFFDF8 !important; 
 }
 

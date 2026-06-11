@@ -107,6 +107,7 @@ def run_before_and_after_tests():
     mock_st.text_input.reset_mock()
     mock_st.number_input.reset_mock()
     mock_st.selectbox.reset_mock()
+    mock_st.selectbox.side_effect = lambda label, options, **kwargs: options[0] if options else None
     mock_st.text_area.reset_mock()
     mock_st.link_button.reset_mock()
     mock_st.write.reset_mock()
@@ -257,7 +258,14 @@ def test_render_minha_cartela(mock_preds, mock_matches, mock_official, mock_subm
     sub_1.champion = "Brasil"
     sub_1.groups = {"A": ["Brasil", "França", "Coreia do Sul", "México"]}
     sub_1.knockout = {"final": [MagicMock(a="Brasil", b="França", winner="Brasil")]}
-    mock_submissions.return_value = [sub_1]
+    
+    sub_2 = Prediction(participant="Pedro")
+    sub_2.submission_id = "testcode456"
+    sub_2.champion = "Argentina"
+    sub_2.groups = {"A": ["Argentina", "França", "Coreia do Sul", "México"]}
+    sub_2.knockout = {"final": [MagicMock(a="Argentina", b="França", winner="Argentina")]}
+    
+    mock_submissions.return_value = [sub_1, sub_2]
     
     # Set up live predictions
     pred_1 = LivePrediction(
@@ -265,10 +273,15 @@ def test_render_minha_cartela(mock_preds, mock_matches, mock_official, mock_subm
         match_id="1", predicted_home_goals=3, predicted_away_goals=1,
         submitted_at="2026-06-11T16:00:00", updated_at="2026-06-11T16:00:00"
     )
-    mock_preds.return_value = [pred_1]
+    pred_2 = LivePrediction(
+        id="pedro_1", participant_name="Pedro", participant_key="pedro",
+        match_id="1", predicted_home_goals=2, predicted_away_goals=2,
+        submitted_at="2026-06-11T16:00:00", updated_at="2026-06-11T16:00:00"
+    )
+    mock_preds.return_value = [pred_1, pred_2]
     
-    # Mock selected name return
-    mock_st.selectbox.return_value = "César"
+    # Mock selected name return: first call (César), second call (Pedro)
+    mock_st.selectbox.side_effect = ["César", "Pedro"]
     
     # Run UI rendering
     render_minha_cartela()
