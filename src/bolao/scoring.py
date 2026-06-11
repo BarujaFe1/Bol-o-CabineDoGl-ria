@@ -58,11 +58,12 @@ def score_prediction(pred: Prediction, official: Prediction, config: ScoreConfig
             o_score = off_matches.get(m_id)
             
             # If not filled/simulated, 0 points
-            if p_score is None or o_score is None or len(p_score) < 2 or len(o_score) < 2:
+            if (p_score is None or o_score is None or len(p_score) < 2 or len(o_score) < 2 or
+                p_score[0] is None or p_score[1] is None or o_score[0] is None or o_score[1] is None):
                 points = 0
                 hit = False
                 p_text = "—"
-                o_text = f"{o_score[0]}x{o_score[1]}" if o_score else "—"
+                o_text = f"{o_score[0]}x{o_score[1]}" if (o_score and o_score[0] is not None and o_score[1] is not None) else "—"
             else:
                 p_h, p_a = int(p_score[0]), int(p_score[1])
                 o_h, o_a = int(o_score[0]), int(o_score[1])

@@ -631,3 +631,38 @@ def test_init_simulator_state_deserializes_knockout():
         assert state["slots"][first_w_slot] == "232"
         assert state["slots"][0] == "232"
 
+
+def test_score_prediction_with_none():
+    from src.bolao.scoring import ScoreConfig, score_prediction
+    from src.bolao.constants import DEFAULT_V2_RULES
+    
+    official = Prediction(participant="Resultado oficial")
+    official.meta["group_matches"] = {
+        "m1": [None, None],
+        "m2": [1, None],
+        "m3": [None, 2]
+    }
+    
+    pred = Prediction(participant="Participante")
+    pred.meta["group_matches"] = {
+        "m1": [2, 1],
+        "m2": [None, None],
+        "m3": [2, 1]
+    }
+    
+    import src.bolao.scoring as scoring_mod
+    original_group_matches = scoring_mod.GROUP_MATCHES
+    scoring_mod.GROUP_MATCHES = [
+        {"id": "m1", "group": "A", "home_id": "228", "away_id": "232"},
+        {"id": "m2", "group": "A", "home_id": "228", "away_id": "232"},
+        {"id": "m3", "group": "A", "home_id": "228", "away_id": "232"},
+    ]
+    
+    try:
+        config = ScoreConfig(mode="v2", v2_rules=DEFAULT_V2_RULES)
+        sb = score_prediction(pred, official, config)
+        assert sb.group_points == 0
+    finally:
+        scoring_mod.GROUP_MATCHES = original_group_matches
+
+
