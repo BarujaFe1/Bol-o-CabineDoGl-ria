@@ -587,7 +587,7 @@ def test_init_simulator_state_restores_slots():
     session_state_mock = {}
     with patch.object(st, "session_state", session_state_mock):
         init_simulator_state(pred, force_reset=True)
-        state = session_state_mock["sim_public"]
+        state = session_state_mock["public_classic_guess_state"]
         
         # Verify group matches restored
         assert state["group_matches"][m_id] == [2, 1]
@@ -620,7 +620,7 @@ def test_init_simulator_state_deserializes_knockout():
     session_state_mock = {}
     with patch.object(st, "session_state", session_state_mock):
         init_simulator_state(pred, force_reset=True)
-        state = session_state_mock["sim_public"]
+        state = session_state_mock["public_classic_guess_state"]
         
         # slots should be populated by deserialize_prediction_to_slots
         # México is team 232. Let's assert winner slot of first fase_32 match or champion slot is '232'

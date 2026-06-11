@@ -366,22 +366,34 @@ MAP_FINAL = [
 ]
 
 
-SIMULATOR_STATE_VERSION = "2026-06-08-v2"
+SIMULATOR_STATE_VERSION = "2026-live-mode-v1"
 
-def normalize_slots(slots: dict[int, str | None] | list | None) -> dict[int, str | None]:
-    """Normaliza slots para dict com chaves int 0-62, convertendo str/int/list/None."""
+def normalize_slots(slots: Any) -> dict[int, str | None]:
+    """
+    Normaliza slots do simulador.
+    Aceita None, dict ou list.
+    Retorna dict.
+    Converte chaves numéricas string para int.
+    Mantém chaves não numéricas.
+    Não perde dados.
+    """
     if slots is None:
-        return {i: None for i in range(63)}
+        return {}
     if isinstance(slots, list):
-        return {i: slots[i] if i < len(slots) else None for i in range(63)}
-    result: dict[int, str | None] = {}
-    for k, v in slots.items():
-        try:
-            result[int(k)] = v
-        except (ValueError, TypeError):
-            result[k] = v
-    for i in range(63):
-        result.setdefault(i, None)
+        return {i: v for i, v in enumerate(slots)}
+    
+    result = {}
+    if isinstance(slots, dict):
+        for k, v in slots.items():
+            try:
+                # Se k for string numérica, converte para int
+                if isinstance(k, str) and k.isdigit():
+                    result[int(k)] = v
+                else:
+                    # Tenta converter qualquer k numérico
+                    result[int(k)] = v
+            except (ValueError, TypeError):
+                result[k] = v
     return result
 
 
@@ -397,9 +409,10 @@ def name_to_id(name: str | None) -> str | None:
     return None
 
 
-def validate_prediction_complete(prediction: Prediction) -> list[str]:
-    """Returns a list of missing items that prevent saving/approval.
-    Empty list means the prediction is complete."""
+def validate_prediction_complete(prediction: Prediction) -> tuple[bool, list[str]]:
+    """
+    Retorna se palpite/resultado está completo e lista pendências.
+    """
     missing: list[str] = []
     if not prediction.participant or len(prediction.participant.strip()) < 2:
         missing.append("Nome do participante")
@@ -420,7 +433,7 @@ def validate_prediction_complete(prediction: Prediction) -> list[str]:
                 missing.append(f"Jogo em {phase} sem vencedor")
     if not prediction.champion:
         missing.append("Campeã não informada")
-    return missing
+    return len(missing) == 0, missing
 
 
 def serialize_slots_to_prediction(slots: dict[int, str | None], prediction: Prediction) -> None:

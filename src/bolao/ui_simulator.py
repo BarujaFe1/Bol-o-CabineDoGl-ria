@@ -26,11 +26,11 @@ from .models import Prediction
 from .ui_components import render_progress_status, render_step_indicator
 
 def _sim_state_key(is_admin: bool = False) -> str:
-    return "sim_admin" if is_admin else "sim_public"
+    return "admin_official_state" if is_admin else "public_classic_guess_state"
 
-def migrate_sim_state_if_needed():
+def migrate_sim_state_if_needed(is_admin: bool = False):
     """Migrates legacy/unversioned simulator state to current version."""
-    key = "sim_public"
+    key = _sim_state_key(is_admin)
     state = st.session_state.get(key)
     if state is None:
         legacy = st.session_state.pop("simulator", None)
@@ -55,9 +55,9 @@ def get_team_badge_path(team_id: str) -> str | None:
             return abs_path
     return None
 
-def init_simulator_state(prediction: Prediction, force_reset: bool = False):
-    migrate_sim_state_if_needed()
-    key = "sim_public"
+def init_simulator_state(prediction: Prediction, force_reset: bool = False, is_admin: bool = False):
+    migrate_sim_state_if_needed(is_admin)
+    key = _sim_state_key(is_admin)
     if key not in st.session_state or force_reset:
         saved_matches = prediction.meta.get("group_matches", {})
         
@@ -87,8 +87,7 @@ def init_simulator_state(prediction: Prediction, force_reset: bool = False):
                     slots[int(k)] = v
                 except ValueError:
                     slots[k] = v
-            normalize_slots(slots)
-            state["slots"] = slots
+            state["slots"] = normalize_slots(slots)
         else:
             unplayed = [m_id for m_id in group_matches if group_matches[m_id][0] is None or group_matches[m_id][1] is None]
             if not unplayed:
@@ -102,14 +101,14 @@ def init_simulator_state(prediction: Prediction, force_reset: bool = False):
                     slots = deserialize_prediction_to_slots(prediction, standings, best_thirds_groups)
                     state["slots"] = slots
                 except Exception:
-                    normalize_slots(state["slots"])
+                    state["slots"] = normalize_slots(state["slots"])
 
 def render_simulator(prediction: Prediction, is_admin: bool = False) -> Prediction | None:
-    init_simulator_state(prediction)
+    init_simulator_state(prediction, is_admin=is_admin)
     sim_key = _sim_state_key(is_admin)
-    state = st.session_state.get(sim_key) or st.session_state.get("sim_public")
+    state = st.session_state.get(sim_key)
     
-    normalize_slots(state["slots"])
+    state["slots"] = normalize_slots(state["slots"])
     
     st.markdown("### 🎛️ Controles do Simulador")
     col_c1, col_c2, col_c3 = st.columns(3)

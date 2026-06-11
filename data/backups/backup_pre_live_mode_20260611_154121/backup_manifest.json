@@ -1,0 +1,18 @@
+{
+  "timestamp": "20260611_154121",
+  "branch": "feature/live-game-mode-safe-migration",
+  "commit": "22ec8b405cc99debfcc71e5643c5c435f610f6b9",
+  "copied_files": [
+    "config.json",
+    "events.json",
+    "official_result.json",
+    "submissions/baruja-a10ce10e6a14.json",
+    "submissions/bia-245aa2c00b0e.json",
+    "submissions/cesar-df215156598b.json",
+    "submissions/joão-41211839459b.json",
+    "submissions/testador-sanca-cf4e34f0cfda.json"
+  ],
+  "num_classic_predictions": 5,
+  "secrets_ignored": true,
+  "storage_backend": "local"
+}

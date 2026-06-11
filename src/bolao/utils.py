@@ -49,7 +49,20 @@ def read_json(path: Path, default: Any = None) -> Any:
 
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp_path = path.with_suffix(".tmp")
+    tmp_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    import os
+    os.replace(str(tmp_path), str(path))
+
+
+def normalize_participant_key(name: str) -> str:
+    """
+    Gera chave estável a partir do nome.
+    Lowercase, remove acento, trim, troca espaços por hífen.
+    """
+    val = strip_accents(name or "").lower().strip()
+    val = re.sub(r"\s+", "-", val)
+    return val
 
 
 def decode_uploaded_file(file) -> str:

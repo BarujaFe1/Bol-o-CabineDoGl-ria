@@ -1,0 +1,38 @@
+[
+  {
+    "timestamp": "2026-06-08T21:13:29",
+    "kind": "submission_saved",
+    "message": "Palpite de Baruja foi enviado/atualizado.",
+    "metadata": {}
+  },
+  {
+    "timestamp": "2026-06-08T19:39:38",
+    "kind": "demo_loaded",
+    "message": "Dados de demonstração foram carregados pelo administrador.",
+    "metadata": {}
+  },
+  {
+    "timestamp": "2026-06-08T19:39:34",
+    "kind": "demo_loaded",
+    "message": "Dados de demonstração foram carregados pelo administrador.",
+    "metadata": {}
+  },
+  {
+    "timestamp": "2026-06-08T19:39:32",
+    "kind": "demo_loaded",
+    "message": "Dados de demonstração foram carregados pelo administrador.",
+    "metadata": {}
+  },
+  {
+    "timestamp": "2026-06-08T19:37:28",
+    "kind": "submission_saved",
+    "message": "Palpite de Baruja foi enviado/atualizado.",
+    "metadata": {}
+  },
+  {
+    "timestamp": "2026-06-08T14:40:37",
+    "kind": "submission_saved",
+    "message": "Palpite de Testador Sanca foi enviado/atualizado.",
+    "metadata": {}
+  }
+]

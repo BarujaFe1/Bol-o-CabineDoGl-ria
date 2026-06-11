@@ -35,6 +35,8 @@ class Prediction:
     submitted_at: str | None = None
     status: str = "rascunho"
     meta: dict[str, Any] = field(default_factory=dict)
+    mode: str = "classic"
+    schema_version: str = "classic-v1"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -47,6 +49,8 @@ class Prediction:
             "submitted_at": self.submitted_at,
             "status": self.status,
             "meta": self.meta,
+            "mode": self.mode,
+            "schema_version": self.schema_version,
         }
 
     @classmethod
@@ -69,6 +73,8 @@ class Prediction:
             submitted_at=data.get("submitted_at"),
             status=data.get("status", "confirmado"),
             meta=dict(data.get("meta", {})),
+            mode=data.get("mode", "classic"),
+            schema_version=data.get("schema_version", "classic-v1"),
         )
 
 
@@ -101,3 +107,150 @@ class ScoreBreakdown:
             "Desempate": self.tie_breaker,
         }
         return row
+
+
+@dataclass
+class LiveMatch:
+    match_id: str
+    phase: str
+    group: str
+    round_label: str
+    home_team: str
+    away_team: str
+    starts_at: str  # ISO timestamp
+    starts_at_timezone: str = "America/Sao_Paulo"
+    lock_at: str | None = None
+    status: str = "scheduled"  # scheduled, locked, live, finished, result_approved
+    official_home_goals: int | None = None
+    official_away_goals: int | None = None
+    winner: str | None = None  # time vencedor ou 'draw'
+    source: str = "manual"  # manual, official_result, imported
+    sort_order: int = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "match_id": self.match_id,
+            "phase": self.phase,
+            "group": self.group,
+            "round_label": self.round_label,
+            "home_team": self.home_team,
+            "away_team": self.away_team,
+            "starts_at": self.starts_at,
+            "starts_at_timezone": self.starts_at_timezone,
+            "lock_at": self.lock_at,
+            "status": self.status,
+            "official_home_goals": self.official_home_goals,
+            "official_away_goals": self.official_away_goals,
+            "winner": self.winner,
+            "source": self.source,
+            "sort_order": self.sort_order,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "LiveMatch":
+        return cls(
+            match_id=str(d.get("match_id", "")),
+            phase=d.get("phase", ""),
+            group=d.get("group", ""),
+            round_label=d.get("round_label", d.get("round", "")),
+            home_team=d.get("home_team", ""),
+            away_team=d.get("away_team", ""),
+            starts_at=d.get("starts_at", ""),
+            starts_at_timezone=d.get("starts_at_timezone", "America/Sao_Paulo"),
+            lock_at=d.get("lock_at"),
+            status=d.get("status", "scheduled"),
+            official_home_goals=d.get("official_home_goals") if d.get("official_home_goals") is None else int(d.get("official_home_goals")),
+            official_away_goals=d.get("official_away_goals") if d.get("official_away_goals") is None else int(d.get("official_away_goals")),
+            winner=d.get("winner"),
+            source=d.get("source", "manual"),
+            sort_order=int(d.get("sort_order", 0)),
+        )
+
+
+@dataclass
+class LivePrediction:
+    id: str  # unique id (key + "_" + match_id)
+    participant_name: str
+    participant_key: str
+    match_id: str
+    predicted_home_goals: int
+    predicted_away_goals: int
+    submitted_at: str
+    updated_at: str
+    confirmation_code: str | None = None
+    locked_at: str | None = None
+    is_locked: bool = False
+    is_late: bool = False
+    points: int | None = None
+    scoring_breakdown: list[str] = field(default_factory=list)
+    schema_version: str = "live-v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "participant_name": self.participant_name,
+            "participant_key": self.participant_key,
+            "match_id": self.match_id,
+            "predicted_home_goals": self.predicted_home_goals,
+            "predicted_away_goals": self.predicted_away_goals,
+            "submitted_at": self.submitted_at,
+            "updated_at": self.updated_at,
+            "confirmation_code": self.confirmation_code,
+            "locked_at": self.locked_at,
+            "is_locked": self.is_locked,
+            "is_late": self.is_late,
+            "points": self.points,
+            "scoring_breakdown": self.scoring_breakdown,
+            "schema_version": self.schema_version,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "LivePrediction":
+        return cls(
+            id=d.get("id", ""),
+            participant_name=d.get("participant_name", ""),
+            participant_key=d.get("participant_key", ""),
+            match_id=str(d.get("match_id", "")),
+            predicted_home_goals=int(d.get("predicted_home_goals", 0)),
+            predicted_away_goals=int(d.get("predicted_away_goals", 0)),
+            submitted_at=d.get("submitted_at", ""),
+            updated_at=d.get("updated_at", ""),
+            confirmation_code=d.get("confirmation_code"),
+            locked_at=d.get("locked_at"),
+            is_locked=bool(d.get("is_locked", False)),
+            is_late=bool(d.get("is_late", False)),
+            points=d.get("points") if d.get("points") is None else int(d.get("points")),
+            scoring_breakdown=list(d.get("scoring_breakdown") or []),
+            schema_version=d.get("schema_version", "live-v1"),
+        )
+
+
+@dataclass
+class ActivityEvent:
+    id: str
+    timestamp: str
+    kind: str
+    message: str
+    visibility: str = "public"  # public, admin
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "timestamp": self.timestamp,
+            "kind": self.kind,
+            "message": self.message,
+            "visibility": self.visibility,
+            "metadata": self.metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ActivityEvent":
+        return cls(
+            id=d.get("id", ""),
+            timestamp=d.get("timestamp", ""),
+            kind=d.get("kind", ""),
+            message=d.get("message", ""),
+            visibility=d.get("visibility", "public"),
+            metadata=dict(d.get("metadata") or {}),
+        )

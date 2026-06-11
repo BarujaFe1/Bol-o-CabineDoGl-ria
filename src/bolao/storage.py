@@ -7,9 +7,10 @@ from pathlib import Path
 import streamlit as st
 
 from .constants import DEFAULT_UNIFORM_RULES, DEFAULT_V2_RULES, DEFAULT_WEIGHTED_RULES
-from .models import Prediction
-from .utils import now_iso, read_json, safe_filename, stable_id, write_json
-from dataclasses import dataclass
+from .models import Prediction, LiveMatch, LivePrediction, ActivityEvent
+from .utils import now_iso, read_json, safe_filename, stable_id, write_json, normalize_participant_key
+from dataclasses import dataclass, field
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
@@ -19,6 +20,9 @@ UPLOADS_DIR = STATE_DIR / "uploads"
 OFFICIAL_PATH = STATE_DIR / "official_result.json"
 CONFIG_PATH = STATE_DIR / "config.json"
 EVENTS_PATH = STATE_DIR / "events.json"
+MATCHES_PATH = STATE_DIR / "matches_2026.json"
+LIVE_PREDICTIONS_PATH = STATE_DIR / "live_predictions.json"
+MIGRATIONS_PATH = STATE_DIR / "migrations.json"
 
 
 def get_storage_backend() -> str:
@@ -127,6 +131,25 @@ def default_config() -> dict:
         "admin_password_enabled": False,
         "last_api_sync": None,
         "is_bolao_locked": False,
+        "classic_enabled": True,
+        "live_mode_enabled": True,
+        "combined_ranking_enabled": False,
+        "live_lock_minutes_before_match": 10,
+        "live_scoring": {
+            "exact_score": 5,
+            "outcome": 3,
+            "goal_one_team": 1,
+            "goal_both_teams": 2,
+            "goal_difference": 1,
+            "late_prediction": 0
+        },
+        "combined_ranking_weights": {
+            "classic": 1.0,
+            "live": 1.0
+        },
+        "reveal_live_predictions_after_lock": True,
+        "allow_live_prediction_edit_until_lock": True,
+        "public_show_activity_feed": True,
     }
 
 
@@ -345,6 +368,12 @@ def export_all_state() -> dict:
         "config": load_config(),
         "official": load_official().to_dict() if load_official() else None,
         "submissions": [p.to_dict() for p in load_submissions()],
+        "live_predictions": [p.to_dict() for p in load_live_predictions()],
+        "matches": [m.to_dict() for m in load_matches()],
+        "events": load_events(limit=1000),
+        "migrations": load_migrations(),
+        "timestamp": now_iso(),
+        "app_version": "2026-live-mode-v1"
     }
 
 
@@ -398,31 +427,7 @@ def load_demo_state() -> None:
         shutil.copy2(official, OFFICIAL_PATH)
 
 
-def append_event(kind: str, message: str, metadata: dict | None = None) -> None:
-    ensure_state()
-    events = load_events(limit=200)
-    
-    from .utils import now_iso
-    new_event = {
-        "timestamp": now_iso(),
-        "kind": kind,
-        "message": message,
-        "metadata": metadata or {}
-    }
-    events.insert(0, new_event)
-    events = events[:100]
-    write_json(EVENTS_PATH, events)
-
-
-def load_events(limit: int = 20) -> list[dict]:
-    ensure_state()
-    if not EVENTS_PATH.exists():
-        return []
-    try:
-        events = read_json(EVENTS_PATH, [])
-        return events[:limit]
-    except Exception:
-        return []
+from .events import append_event, load_events
 
 
 @dataclass
@@ -430,6 +435,9 @@ class AppDataContext:
     submissions: list[Prediction]
     official: Prediction | None
     config: dict
+    matches: list[LiveMatch] = field(default_factory=list)
+    live_predictions: list[LivePrediction] = field(default_factory=list)
+    events: list[dict] = field(default_factory=list)
 
 
 @st.cache_data(ttl=15, show_spinner=False)
@@ -437,4 +445,132 @@ def load_app_data_cached() -> AppDataContext:
     submissions = load_submissions()
     official = load_official()
     config = load_config()
-    return AppDataContext(submissions=submissions, official=official, config=config)
+    matches = load_matches()
+    live_predictions = load_live_predictions()
+    events = load_events(limit=100)
+    return AppDataContext(
+        submissions=submissions,
+        official=official,
+        config=config,
+        matches=matches,
+        live_predictions=live_predictions,
+        events=events
+    )
+
+
+def load_app_context(include_events: bool = False) -> AppDataContext:
+    ctx = load_app_data_cached()
+    if not include_events:
+        ctx.events = []
+    return ctx
+
+
+def load_matches() -> list[LiveMatch]:
+    ensure_state()
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client and _supabase_table_exists(client, "bolao_matches"):
+            try:
+                result = client.table("bolao_matches").select("*").execute()
+                return [LiveMatch.from_dict(row) for row in result.data]
+            except Exception:
+                pass
+    
+    # Fallback to local
+    if not MATCHES_PATH.exists():
+        # Seed matches from worldcup_2026_data.py on first load
+        from .worldcup_2026_data import GROUP_MATCHES, TEAMS
+        matches = []
+        for idx, gm in enumerate(GROUP_MATCHES):
+            starts_at = f"{gm['date'].split('/')[2]}-{gm['date'].split('/')[1]}-{gm['date'].split('/')[0]}T{gm['hour']}:00"
+            m = LiveMatch(
+                match_id=str(gm["id"]),
+                phase="grupos",
+                group=gm["group"],
+                round_label=f"Rodada {gm['round']}",
+                home_team=TEAMS.get(gm["home_id"], {}).get("name", "Mandante"),
+                away_team=TEAMS.get(gm["away_id"], {}).get("name", "Visitante"),
+                starts_at=starts_at,
+                starts_at_timezone="America/Sao_Paulo",
+                lock_at=None,
+                status="scheduled",
+                sort_order=idx
+            )
+            matches.append(m)
+        save_matches(matches)
+        return matches
+
+    data = read_json(MATCHES_PATH, [])
+    return [LiveMatch.from_dict(m) for m in data]
+
+
+def save_matches(matches: list[LiveMatch]) -> None:
+    ensure_state()
+    config = load_config()
+    lock_mins = int(config.get("live_lock_minutes_before_match", 10))
+    from datetime import datetime, timedelta
+    for m in matches:
+        if m.starts_at:
+            try:
+                dt = datetime.fromisoformat(m.starts_at)
+                m.lock_at = (dt - timedelta(minutes=lock_mins)).isoformat()
+            except Exception:
+                pass
+    
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client and _supabase_table_exists(client, "bolao_matches"):
+            try:
+                data = [m.to_dict() for m in matches]
+                client.table("bolao_matches").upsert(data, on_conflict="match_id").execute()
+                return
+            except Exception:
+                pass
+
+    write_json(MATCHES_PATH, [m.to_dict() for m in matches])
+
+
+def load_live_predictions() -> list[LivePrediction]:
+    ensure_state()
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client and _supabase_table_exists(client, "bolao_live_predictions"):
+            try:
+                result = client.table("bolao_live_predictions").select("*").execute()
+                return [LivePrediction.from_dict(row) for row in result.data]
+            except Exception:
+                pass
+
+    if not LIVE_PREDICTIONS_PATH.exists():
+        return []
+    data = read_json(LIVE_PREDICTIONS_PATH, [])
+    return [LivePrediction.from_dict(p) for p in data]
+
+
+def save_live_predictions(predictions: list[LivePrediction]) -> None:
+    ensure_state()
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client and _supabase_table_exists(client, "bolao_live_predictions"):
+            try:
+                data = [p.to_dict() for p in predictions]
+                client.table("bolao_live_predictions").upsert(data, on_conflict="id").execute()
+                return
+            except Exception:
+                pass
+
+    write_json(LIVE_PREDICTIONS_PATH, [p.to_dict() for p in predictions])
+
+
+def load_migrations() -> dict:
+    if not MIGRATIONS_PATH.exists():
+        return {}
+    return read_json(MIGRATIONS_PATH, {})
+
+
+def save_migrations(migrations: dict) -> None:
+    write_json(MIGRATIONS_PATH, migrations)
