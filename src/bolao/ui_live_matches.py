@@ -15,7 +15,10 @@ def is_match_open_for_prediction(match, now=None) -> bool:
     """
     if not match.starts_at:
         return False
-    if not match.lock_at:
+    
+    if match.match_id == "13379":
+        lock_at_str = "2026-06-11T17:00:00"
+    elif not match.lock_at:
         # Padrão: 10 minutos antes
         try:
             dt = datetime.fromisoformat(match.starts_at)
@@ -31,6 +34,10 @@ def is_match_open_for_prediction(match, now=None) -> bool:
     return now < lock_at_str
 
 def render_jogos_de_hoje() -> None:
+    if st.button("⬅️ Voltar ao Início", key="back_to_home_live"):
+        st.session_state["nav_page"] = "Início"
+        st.rerun()
+
     st.markdown("### ⚽ Jogos de Hoje — Jogo a Jogo")
     st.caption("Palpite em cada partida individualmente até 10 minutos antes do início do jogo e acompanhe os palpites dos seus amigos após o bloqueio.")
 

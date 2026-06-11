@@ -11,6 +11,10 @@ from .ui_simulator import get_team_badge_path
 from .constants import GROUPS, PHASE_LABELS
 
 def render_minha_cartela() -> None:
+    if st.button("⬅️ Voltar ao Início", key="back_to_home_cartela"):
+        st.session_state["nav_page"] = "Início"
+        st.rerun()
+
     st.markdown("### 📋 Minha Cartela — Visão Geral do Participante")
     st.caption("Acompanhe o status detalhado das suas apostas, pontuação, próximos confrontos e compare seus palpites com os amigos.")
 

@@ -44,7 +44,6 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                 st.info("Nenhum palpite clássico enviado ainda.")
         else:
             if score_config is None:
-                from .storage import load_config
                 from .scoring import ScoreConfig
                 from .constants import DEFAULT_WEIGHTED_RULES, DEFAULT_UNIFORM_RULES, DEFAULT_V2_RULES
                 cfg = load_config()

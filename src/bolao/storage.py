@@ -467,13 +467,19 @@ def load_app_context(include_events: bool = False) -> AppDataContext:
 
 def load_matches() -> list[LiveMatch]:
     ensure_state()
+    def _override_first_match_lock(matches_list: list[LiveMatch]) -> list[LiveMatch]:
+        for m in matches_list:
+            if m.match_id == "13379":
+                m.lock_at = "2026-06-11T17:00:00"
+        return matches_list
+
     backend = get_storage_backend()
     if backend == "supabase":
         client = _get_supabase_client()
         if client and _supabase_table_exists(client, "bolao_matches"):
             try:
                 result = client.table("bolao_matches").select("*").execute()
-                return [LiveMatch.from_dict(row) for row in result.data]
+                return _override_first_match_lock([LiveMatch.from_dict(row) for row in result.data])
             except Exception:
                 pass
     
@@ -498,11 +504,12 @@ def load_matches() -> list[LiveMatch]:
                 sort_order=idx
             )
             matches.append(m)
+        _override_first_match_lock(matches)
         save_matches(matches)
         return matches
 
     data = read_json(MATCHES_PATH, [])
-    return [LiveMatch.from_dict(m) for m in data]
+    return _override_first_match_lock([LiveMatch.from_dict(m) for m in data])
 
 
 def save_matches(matches: list[LiveMatch]) -> None:
@@ -511,7 +518,9 @@ def save_matches(matches: list[LiveMatch]) -> None:
     lock_mins = int(config.get("live_lock_minutes_before_match", 10))
     from datetime import datetime, timedelta
     for m in matches:
-        if m.starts_at:
+        if m.match_id == "13379":
+            m.lock_at = "2026-06-11T17:00:00"
+        elif m.starts_at:
             try:
                 dt = datetime.fromisoformat(m.starts_at)
                 m.lock_at = (dt - timedelta(minutes=lock_mins)).isoformat()
