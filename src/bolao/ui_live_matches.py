@@ -17,7 +17,7 @@ def is_match_open_for_prediction(match, now=None) -> bool:
         return False
     
     if match.match_id == "13379":
-        lock_at_str = "2026-06-11T18:00:00"
+        lock_at_str = "2026-06-11T21:00:00"
     elif not match.lock_at:
         # Padrão: 10 minutos antes
         try:

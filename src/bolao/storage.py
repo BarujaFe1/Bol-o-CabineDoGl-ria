@@ -107,7 +107,64 @@ def _ensure_supabase_tables(client) -> None:
     )
 
 
+_submissions_synced = False
+
+
+def _sync_local_to_supabase(client) -> None:
+    try:
+        # Sync local submissions
+        for path in sorted(SUBMISSIONS_DIR.glob("*.json")):
+            try:
+                data = read_json(path, {})
+                if not data or "participant" not in data:
+                    continue
+                prediction = Prediction.from_dict(data)
+                if not prediction.submission_id:
+                    continue
+                # Upsert to Supabase
+                client.table("bolao_submissions").upsert({
+                    "id": prediction.submission_id,
+                    "participant": prediction.participant,
+                    "groups": prediction.groups,
+                    "best_thirds": prediction.best_thirds,
+                    "knockout": {k: [m.to_dict() if hasattr(m, 'to_dict') else m for m in v] for k, v in prediction.knockout.items()},
+                    "champion": prediction.champion,
+                    "submission_id": prediction.submission_id,
+                    "submitted_at": prediction.submitted_at,
+                    "status": prediction.status,
+                    "meta": prediction.meta,
+                }, on_conflict="id").execute()
+            except Exception:
+                pass
+
+        # Sync official result
+        if OFFICIAL_PATH.exists():
+            try:
+                data = read_json(OFFICIAL_PATH, {})
+                if data and "participant" in data:
+                    prediction = Prediction.from_dict(data)
+                    prediction.participant = "Resultado oficial"
+                    client.table("bolao_official").upsert({
+                        "id": "official",
+                        "participant": prediction.participant,
+                        "groups": prediction.groups,
+                        "best_thirds": prediction.best_thirds,
+                        "knockout": {k: [m.to_dict() if hasattr(m, 'to_dict') else m for m in v] for k, v in prediction.knockout.items()},
+                        "champion": prediction.champion,
+                        "submission_id": prediction.submission_id,
+                        "submitted_at": prediction.submitted_at,
+                        "status": prediction.status,
+                        "meta": prediction.meta,
+                        "updated_at": now_iso(),
+                    }, on_conflict="id").execute()
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
 def ensure_state() -> None:
+    global _submissions_synced
     SUBMISSIONS_DIR.mkdir(parents=True, exist_ok=True)
     UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
     STATE_DIR.mkdir(parents=True, exist_ok=True)
@@ -119,6 +176,9 @@ def ensure_state() -> None:
         client = _get_supabase_client()
         if client:
             _ensure_supabase_tables(client)
+            if not _submissions_synced:
+                _sync_local_to_supabase(client)
+                _submissions_synced = True
 
 
 def default_config() -> dict:
@@ -470,7 +530,7 @@ def load_matches() -> list[LiveMatch]:
     def _override_first_match_lock(matches_list: list[LiveMatch]) -> list[LiveMatch]:
         for m in matches_list:
             if m.match_id == "13379":
-                m.lock_at = "2026-06-11T18:00:00"
+                m.lock_at = "2026-06-11T21:00:00"
         return matches_list
 
     backend = get_storage_backend()
@@ -519,7 +579,7 @@ def save_matches(matches: list[LiveMatch]) -> None:
     from datetime import datetime, timedelta
     for m in matches:
         if m.match_id == "13379":
-            m.lock_at = "2026-06-11T18:00:00"
+            m.lock_at = "2026-06-11T21:00:00"
         elif m.starts_at:
             try:
                 dt = datetime.fromisoformat(m.starts_at)
