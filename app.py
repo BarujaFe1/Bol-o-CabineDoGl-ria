@@ -141,61 +141,7 @@ def apply_review_form(prefix: str, pred: Prediction) -> Prediction:
 
 
 
-def infer_best_thirds_from_knockout(pred: Prediction) -> list[str]:
-    """Infere os melhores terceiros a partir dos times que aparecem na fase de 32.
-
-    Como o print dos grupos do ge não mostra a lista dos 8 terceiros classificados,
-    a forma mais segura é cruzar o 3º colocado de cada grupo com os times que
-    aparecem em Décima-sextas no texto exportado pelo ge.
-    """
-    fase_32_teams = set()
-    for match in pred.knockout.get("fase_32", []):
-        if match.a:
-            fase_32_teams.add(norm_team(match.a))
-        if match.b:
-            fase_32_teams.add(norm_team(match.b))
-    thirds = []
-    for group in GROUPS:
-        values = pred.groups.get(group, [])
-        third = values[2] if len(values) >= 3 else None
-        if third and norm_team(third) in fase_32_teams:
-            thirds.append(third)
-    return thirds
-
-def build_prediction_from_public_inputs(name: str, af_file, gl_file, knockout_text: str) -> Prediction:
-    from src.bolao.ocr_groups import merge_ocr_results, run_group_ocr
-    expected_1 = list("ABCDEF")
-    expected_2 = list("GHIJKL")
-    ocr_results = []
-    meta = {"ocr": {}, "warnings": []}
-
-    if af_file is not None:
-        ocr_results.append(run_group_ocr(af_file.getvalue(), expected_1))
-    if gl_file is not None:
-        ocr_results.append(run_group_ocr(gl_file.getvalue(), expected_2))
-    groups, ocr_meta = merge_ocr_results(ocr_results)
-    meta["ocr"] = ocr_meta
-    meta["warnings"].extend(ocr_meta.get("warnings", []))
-
-    knockout, champion, issues, ko_meta = parse_ge_knockout_text(knockout_text)
-    meta["knockout_parser"] = ko_meta
-    meta["knockout_issues"] = [issue.__dict__ for issue in issues]
-    pred = Prediction(
-        participant=name.strip(),
-        groups=groups,
-        knockout=knockout,
-        champion=champion,
-        submission_id=stable_id(name, now_iso()),
-        submitted_at=now_iso(),
-        status="rascunho",
-        meta=meta,
-    )
-    pred.best_thirds = infer_best_thirds_from_knockout(pred)
-    if pred.best_thirds:
-        pred.meta.setdefault("info", []).append(
-            "Melhores terceiros inferidos automaticamente a partir da fase Décima-sextas."
-        )
-    return pred
+# Removed unused OCR/GE parsing functions to clean up the codebase.
 
 
 def public_home() -> None:
@@ -606,6 +552,45 @@ def admin_dashboard() -> None:
                 st.rerun()
 
     st.markdown("---")
+    st.markdown("### 🎛️ Painel de Controle (Navegação Rápida)")
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        if st.button("👥 Participantes", key="nav_admin_part", width="stretch"):
+            st.session_state["nav_page"] = "Participantes"
+            st.rerun()
+    with c2:
+        if st.button("📅 Jogos e Agenda", key="nav_admin_matches", width="stretch"):
+            st.session_state["nav_page"] = "Jogos e Agenda"
+            st.rerun()
+    with c3:
+        if st.button("⚽ Resultados Oficiais", key="nav_admin_results", width="stretch"):
+            st.session_state["nav_page"] = "Resultados oficiais"
+            st.rerun()
+    with c4:
+        if st.button("🏆 Ranking Admin", key="nav_admin_ranking", width="stretch"):
+            st.session_state["nav_page"] = "Ranking Admin"
+            st.rerun()
+
+    c5, c6, c7, c8 = st.columns(4)
+    with c5:
+        if st.button("📦 Exportações", key="nav_admin_exports", width="stretch"):
+            st.session_state["nav_page"] = "Exportações"
+            st.rerun()
+    with c6:
+        if st.button("⚙️ Configurações", key="nav_admin_settings", width="stretch"):
+            st.session_state["nav_page"] = "Configurações"
+            st.rerun()
+    with c7:
+        if st.button("📖 Ajuda Admin", key="nav_admin_help", width="stretch"):
+            st.session_state["nav_page"] = "Ajuda Admin"
+            st.rerun()
+    with c8:
+        if st.button("🌐 Ver Modo Público", key="nav_admin_public", width="stretch"):
+            st.session_state["admin_mode"] = False
+            st.session_state["nav_page"] = "Início"
+            st.rerun()
+
+    st.markdown("---")
     st.markdown("### 📋 Histórico de Auditoria (Últimos Eventos)")
     events = load_events(20)
     if events:
@@ -617,6 +602,9 @@ def admin_dashboard() -> None:
 
 
 def admin_participants() -> None:
+    if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_participants", width="stretch"):
+        st.session_state["nav_page"] = "Dashboard"
+        st.rerun()
     render_page_header("Admin", "Participantes", "Gerencie os palpites enviados pelos participantes.", "👥")
     submissions = load_app_data_cached().submissions
     if not submissions:
@@ -658,6 +646,9 @@ def make_prediction_from_text(name: str, text: str) -> Prediction:
 
 
 def admin_official_results() -> None:
+    if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_results", width="stretch"):
+        st.session_state["nav_page"] = "Dashboard"
+        st.rerun()
     render_page_header("Admin", "Resultados Oficiais", "Preencha os resultados conforme a competição avança — salve o progresso a qualquer momento.", "⚽")
     st.caption("Fluxo recomendado: preencher jogos realizados → Salvar Progresso → voltar depois e continuar de onde parou → Aprovar quando completo.")
 
@@ -766,11 +757,17 @@ def admin_official_results() -> None:
 
 
 def admin_ranking() -> None:
+    if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_ranking", width="stretch"):
+        st.session_state["nav_page"] = "Dashboard"
+        st.rerun()
     from src.bolao.ui_ranking import render_rankings_tabs
     render_rankings_tabs(is_admin=True)
 
 
 def admin_exports() -> None:
+    if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_exports", width="stretch"):
+        st.session_state["nav_page"] = "Dashboard"
+        st.rerun()
     render_page_header("Admin", "Exportações", "Baixe dados do bolão em vários formatos.", "📦")
     
     from src.bolao.storage import load_app_data_cached, export_all_state
@@ -938,6 +935,9 @@ def admin_exports() -> None:
 
 
 def admin_settings() -> None:
+    if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_settings", width="stretch"):
+        st.session_state["nav_page"] = "Dashboard"
+        st.rerun()
     render_page_header("Admin", "Configurações", "Controle geral do bolão: status, pontuação e prazos.", "⚙️")
     config = load_app_data_cached().config
     
@@ -1189,6 +1189,9 @@ def admin_settings() -> None:
 
 
 def admin_help() -> None:
+    if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_help", width="stretch"):
+        st.session_state["nav_page"] = "Dashboard"
+        st.rerun()
     render_page_header("Admin", "Ajuda Rápida", "Fluxos e instruções do sistema.", "📖")
     st.markdown(
         """

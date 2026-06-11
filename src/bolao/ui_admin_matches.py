@@ -10,6 +10,9 @@ from .storage import load_matches, save_matches, load_live_predictions, save_liv
 from .utils import now_iso
 
 def admin_matches_agenda() -> None:
+    if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_matches", width="stretch"):
+        st.session_state["nav_page"] = "Dashboard"
+        st.rerun()
     st.markdown("### 📅 Jogos e Agenda — Modo Jogo a Jogo")
     st.caption("Cadastre jogos, gerencie a agenda da Copa, defina os horários oficiais e aprove os placares para pontuar os participantes.")
 
