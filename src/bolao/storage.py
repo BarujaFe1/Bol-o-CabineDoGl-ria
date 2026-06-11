@@ -159,6 +159,15 @@ def _sync_local_to_supabase(client) -> None:
                     }, on_conflict="id").execute()
             except Exception:
                 pass
+
+        # Sync local live predictions
+        if LIVE_PREDICTIONS_PATH.exists():
+            try:
+                live_data = read_json(LIVE_PREDICTIONS_PATH, [])
+                if live_data and _supabase_table_exists(client, "bolao_live_predictions"):
+                    client.table("bolao_live_predictions").upsert(live_data, on_conflict="id").execute()
+            except Exception:
+                pass
     except Exception:
         pass
 
