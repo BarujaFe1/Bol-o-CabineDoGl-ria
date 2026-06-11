@@ -105,6 +105,11 @@ def _ensure_supabase_tables(client) -> None:
         );
         """
     )
+    try:
+        client.execute_sql("ALTER TABLE bolao_submissions ADD COLUMN IF NOT EXISTS meta JSONB;")
+        client.execute_sql("ALTER TABLE bolao_official ADD COLUMN IF NOT EXISTS meta JSONB;")
+    except Exception:
+        pass
 
 
 _submissions_synced = False

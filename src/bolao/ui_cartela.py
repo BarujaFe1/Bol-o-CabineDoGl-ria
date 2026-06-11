@@ -179,6 +179,30 @@ def render_minha_cartela() -> None:
             # Show best thirds
             st.markdown(f"##### 🥉 Melhores terceiros classificados: `{', '.join(classic_pred.best_thirds) if classic_pred.best_thirds else '—'}`")
 
+            # Show group matches predictions
+            st.markdown("##### ⚽ Palpites de Placares nos Grupos")
+            group_matches = classic_pred.meta.get("group_matches", {})
+            if group_matches:
+                from .worldcup_2026_data import GROUP_MATCHES, TEAMS
+                gm_rows = []
+                for gm in GROUP_MATCHES:
+                    m_id = str(gm["id"])
+                    score = group_matches.get(m_id)
+                    if score and len(score) == 2:
+                        home_name = TEAMS.get(gm["home_id"], {}).get("name", "Mandante")
+                        away_name = TEAMS.get(gm["away_id"], {}).get("name", "Visitante")
+                        gm_rows.append({
+                            "Grupo": f"Grupo {gm['group']}",
+                            "Rodada": f"Rodada {gm['round']}",
+                            "Jogo": f"{home_name} x {away_name}",
+                            "Palpite": f"{score[0]} x {score[1]}"
+                        })
+                if gm_rows:
+                    with st.expander("Ver Todos os Palpites de Placares da Fase de Grupos", expanded=False):
+                        st.dataframe(pd.DataFrame(gm_rows), width="stretch", hide_index=True)
+            else:
+                st.caption("Nenhum palpite de placar da fase de grupos salvo no metadado.")
+
             # Show knockout path
             st.markdown("##### ⚔️ Chave de Mata-Mata")
             for phase, matches_list in classic_pred.knockout.items():
