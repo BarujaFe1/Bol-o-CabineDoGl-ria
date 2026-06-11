@@ -324,6 +324,13 @@ def public_home() -> None:
         else:
             st.caption("Nenhum evento registrado ainda.")
 
+    st.markdown("---")
+    col_adm_left, col_adm_mid, col_adm_right = st.columns([2, 1, 2])
+    with col_adm_mid:
+        if st.button("🔒 Área Admin", key="home_admin_login_btn", use_container_width=True):
+            st.session_state["nav_page"] = "Admin Login"
+            st.rerun()
+
 
 def public_submission() -> None:
     if st.button("⬅️ Voltar ao Início", key="back_to_home_submission"):
