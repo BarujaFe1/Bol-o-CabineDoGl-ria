@@ -470,7 +470,7 @@ def load_matches() -> list[LiveMatch]:
     def _override_first_match_lock(matches_list: list[LiveMatch]) -> list[LiveMatch]:
         for m in matches_list:
             if m.match_id == "13379":
-                m.lock_at = "2026-06-11T17:00:00"
+                m.lock_at = "2026-06-11T18:00:00"
         return matches_list
 
     backend = get_storage_backend()
@@ -519,7 +519,7 @@ def save_matches(matches: list[LiveMatch]) -> None:
     from datetime import datetime, timedelta
     for m in matches:
         if m.match_id == "13379":
-            m.lock_at = "2026-06-11T17:00:00"
+            m.lock_at = "2026-06-11T18:00:00"
         elif m.starts_at:
             try:
                 dt = datetime.fromisoformat(m.starts_at)
