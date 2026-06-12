@@ -11,9 +11,8 @@ def navigate_to(page: str, *, admin_mode: bool | None = None) -> None:
     if admin_mode is not None:
         st.session_state["admin_mode"] = admin_mode
 
-    # Synchronize keys with radio/selectbox widgets to prevent mismatch warnings
-    for key in ["public_nav_radio_key", "admin_nav_radio_key", "mobile_nav_selectbox_key"]:
-        if key in st.session_state:
-            st.session_state[key] = page
-
+    # We do NOT directly write to the widget keys (public_nav_radio_key, admin_nav_radio_key,
+    # mobile_nav_selectbox_key) here because that raises a StreamlitAPIException if
+    # the widget has already been instantiated on this run. Instead, the main script flow
+    # in app.py handles setting these keys before drawing the widgets on the next rerun.
     st.rerun()

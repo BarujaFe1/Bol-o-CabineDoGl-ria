@@ -67,6 +67,20 @@ from src.bolao.simulator_engine import validate_prediction_complete
 from src.bolao.ui_simulator import render_simulator, init_simulator_state, get_guess_completion_state
 from src.bolao.migrations import migrate_existing_submissions_to_classic_schema
 
+# Static UI modules imports to prevent Streamlit hot-reload ImportErrors
+from src.bolao.ui_cartela import render_minha_cartela
+from src.bolao.ui_live_matches import render_jogos_de_hoje, render_match_center, is_match_open_for_prediction
+from src.bolao.ui_ranking import render_rankings_tabs
+from src.bolao.ui_social_pages import (
+    render_central_do_bolao,
+    render_palpites_do_grupo,
+    render_analise_dos_palpites,
+    render_duelo_de_palpites,
+    render_regras_do_bolao,
+)
+from src.bolao.ui_admin_matches import admin_matches_agenda
+from src.bolao.storage import load_archived_participants
+
 
 st.set_page_config(
     page_title=f"{APP_NAME} · {APP_SUBTITLE}",
@@ -588,15 +602,12 @@ def public_submission() -> None:
 def public_ranking() -> None:
     if st.button("⬅️ Voltar ao Início", key="back_to_home_ranking", width="stretch"):
         navigate_to("Início")
-    from src.bolao.ui_ranking import render_rankings_tabs
     render_rankings_tabs(is_admin=False)
 
 
 def admin_dashboard() -> None:
     hero("Painel do admin", "Controle do bolão", "Gerencie participantes, resultados, palpites jogo a jogo, auditoria e configurações.")
     ctx = load_app_data_cached()
-    from src.bolao.storage import load_registered_participants, load_archived_participants
-    from src.bolao.ui_live_matches import is_match_open_for_prediction
     import datetime
     
     matches = ctx.matches
@@ -1702,13 +1713,19 @@ def render_login_screen() -> None:
     st.markdown("<br><br>", unsafe_allow_html=True)
     col_login_spacer1, col_login_btn, col_login_spacer2 = st.columns([2, 1.2, 2])
 def on_public_nav_change() -> None:
-    st.session_state["nav_page"] = st.session_state["public_nav_radio_key"]
+    val = st.session_state.get("public_nav_radio_key")
+    if val:
+        st.session_state["nav_page"] = val
 
 def on_admin_nav_change() -> None:
-    st.session_state["nav_page"] = st.session_state["admin_nav_radio_key"]
+    val = st.session_state.get("admin_nav_radio_key")
+    if val:
+        st.session_state["nav_page"] = val
 
 def on_mobile_nav_change() -> None:
-    st.session_state["nav_page"] = st.session_state["mobile_nav_selectbox_key"]
+    val = st.session_state.get("mobile_nav_selectbox_key")
+    if val:
+        st.session_state["nav_page"] = val
 
 
 def main() -> None:
@@ -1891,7 +1908,6 @@ def main() -> None:
         elif page == "Editar Palpite Clássico":
             admin_edit_classic_page()
         elif page == "Jogos e Agenda":
-            from src.bolao.ui_admin_matches import admin_matches_agenda
             admin_matches_agenda()
         elif page == "Resultados Oficiais":
             admin_official_results()
@@ -1912,30 +1928,22 @@ def main() -> None:
         elif page == "Palpite Clássico":
             public_submission()
         elif page == "Jogos de Hoje":
-            from src.bolao.ui_live_matches import render_jogos_de_hoje
             render_jogos_de_hoje()
         elif page == "Minha Cartela":
-            from src.bolao.ui_cartela import render_minha_cartela
             render_minha_cartela()
         elif page == "Ranking":
             public_ranking()
         elif page == "Central do Bolão":
-            from src.bolao.ui_social_pages import render_central_do_bolao
             render_central_do_bolao()
         elif page == "Palpites do Grupo":
-            from src.bolao.ui_social_pages import render_palpites_do_grupo
             render_palpites_do_grupo()
         elif page == "Análise dos Palpites":
-            from src.bolao.ui_social_pages import render_analise_dos_palpites
             render_analise_dos_palpites()
         elif page == "Duelo de Palpites":
-            from src.bolao.ui_social_pages import render_duelo_de_palpites
             render_duelo_de_palpites()
         elif page == "Regras":
-            from src.bolao.ui_social_pages import render_regras_do_bolao
             render_regras_do_bolao()
         elif page == "Match Center":
-            from src.bolao.ui_live_matches import render_match_center
             render_match_center()
 
 
