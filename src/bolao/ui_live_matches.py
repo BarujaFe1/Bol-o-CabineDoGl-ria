@@ -382,12 +382,11 @@ def render_match_center() -> None:
 
     # Se o jogo ainda está aberto e o usuário está identificado
     if is_open:
-        st.info("🔒 Estatísticas do grupo e palpites dos amigos serão revelados assim que o prazo de palpite expirar.")
+        st.info("🟢 O jogo está aberto para palpites! Acompanhe o que o pessoal do grupo está apostando em tempo real.")
         if user_pred:
             st.success(f"Seu palpite atual: **{user_pred.predicted_home_goals} x {user_pred.predicted_away_goals}**")
         else:
             st.warning("Você ainda não salvou palpite para esta partida. Vá em Jogos de Hoje para palpitar!")
-        return
 
     # Se o jogo está bloqueado (estatísticas e palpites revelados)
     st.markdown("---")

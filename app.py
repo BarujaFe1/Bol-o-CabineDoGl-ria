@@ -1226,22 +1226,170 @@ def admin_auditoria() -> None:
         st.caption("Nenhum evento registrado ainda.")
 
 
+def render_login_screen() -> None:
+    from src.bolao.storage import load_submissions, load_live_predictions
+    from src.bolao.utils import normalize_participant_key
+
+    st.markdown(
+        """
+        <div style='text-align: center; margin-bottom: 30px;'>
+            <h1 style='color: var(--ink); font-weight: 900; font-size: 36px; margin-bottom: 10px;'>🏆 Bem-vindo ao Bolão</h1>
+            <p style='color: var(--muted); font-size: 16px;'>Identifique-se para palpitar e acompanhar os rankings em tempo real!</p>
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
+
+    # Obter todos os participantes cadastrados
+    try:
+        subs = load_submissions()
+        live_preds = load_live_predictions()
+        
+        all_names_set = set()
+        for s in subs:
+            if s.participant:
+                all_names_set.add(s.participant.strip())
+        for lp in live_preds:
+            if lp.participant_name:
+                all_names_set.add(lp.participant_name.strip())
+                
+        all_names = sorted(list(all_names_set))
+    except Exception:
+        all_names = []
+
+    # Display form in a nice card
+    st.markdown("<div class='card' style='max-width: 500px; margin: 0 auto; padding: 30px;'>", unsafe_allow_html=True)
+    st.markdown("### 👤 Entrar no Bolão")
+    
+    # Opções
+    login_type = st.radio("Como deseja entrar?", ["Selecionar perfil existente", "Criar novo perfil"], horizontal=True, key="login_profile_type")
+    
+    selected_name = None
+    if login_type == "Selecionar perfil existente":
+        if not all_names:
+            st.info("Nenhum perfil cadastrado ainda. Selecione 'Criar novo perfil' para começar!")
+        else:
+            selected_name = st.selectbox("Escolha seu nome:", ["-- Selecione --"] + all_names, key="login_select_selectbox")
+    else:
+        selected_name = st.text_input("Seu nome completo ou apelido:", placeholder="Ex: César", key="login_new_text_input")
+        
+    btn_enter = st.button("🚀 Entrar no Bolão", type="primary", key="login_submit_btn", width="stretch")
+    
+    if btn_enter:
+        if not selected_name or selected_name == "-- Selecione --" or not selected_name.strip():
+            st.error("Por favor, selecione ou digite seu nome.")
+        else:
+            name_clean = selected_name.strip()
+            pkey = normalize_participant_key(name_clean)
+            
+            # Verificar se já existe palpite clássico para este usuário
+            try:
+                classic_subs = load_submissions()
+                existing_classic = [s for s in classic_subs if s.participant.strip().lower() == name_clean.lower()]
+                conf_code = existing_classic[0].submission_id if existing_classic else None
+            except Exception:
+                conf_code = None
+            
+            # Definir sessão
+            st.session_state["live_user_name"] = name_clean
+            st.session_state["live_user_key"] = pkey
+            st.session_state["public_sim_name"] = name_clean
+            if conf_code:
+                st.session_state["live_confirmation_code"] = conf_code
+            
+            st.query_params["user"] = name_clean
+            st.success(f"Entrando como {name_clean}...")
+            st.rerun()
+            
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col_login_spacer1, col_login_btn, col_login_spacer2 = st.columns([2, 1.2, 2])
+    with col_login_btn:
+        if st.button("🔒 Área Organizador", key="login_admin_btn", width="stretch"):
+            st.session_state["nav_page"] = "Admin Login"
+            st.rerun()
+
+
 def main() -> None:
     # Rodar migrações seguras
     try:
         migrate_existing_submissions_to_classic_schema()
+        from src.bolao.migrations import sync_classic_to_live_predictions
+        sync_classic_to_live_predictions()
     except Exception:
         pass
+
+    from src.bolao.utils import normalize_participant_key
+    # Auto-login via query parameter if session state is empty
+    if not st.session_state.get("live_user_name") and "user" in st.query_params:
+        username = st.query_params["user"]
+        if username:
+            pkey = normalize_participant_key(username)
+            st.session_state["live_user_name"] = username
+            st.session_state["live_user_key"] = pkey
+            st.session_state["public_sim_name"] = username
+            
+            # Find and set classic confirmation code if exists
+            try:
+                classic_subs = load_submissions()
+                existing_classic = [s for s in classic_subs if s.participant.strip().lower() == username.lower()]
+                if existing_classic:
+                    st.session_state["live_confirmation_code"] = existing_classic[0].submission_id
+            except Exception:
+                pass
 
     if "nav_page" not in st.session_state:
         st.session_state["nav_page"] = "Início"
     if "admin_mode" not in st.session_state:
         st.session_state["admin_mode"] = False
 
+    is_logged_in = bool(st.session_state.get("live_user_name"))
+    is_admin_flow = st.session_state.get("admin_mode", False) or st.session_state.get("nav_page") == "Admin Login"
+
+    if not is_logged_in and not is_admin_flow:
+        with st.sidebar:
+            st.markdown(f"## 🏆 {APP_NAME}")
+            st.caption(APP_SUBTITLE)
+            st.markdown("---")
+            st.info("Por favor, identifique-se na tela principal para navegar pelo site.")
+            st.markdown("---")
+            from src.bolao.ui_components import render_theme_selector
+            render_theme_selector()
+            st.markdown("---")
+            if st.button("🔒 Área Admin", width="stretch", key="sidebar_admin_login_btn"):
+                st.session_state["nav_page"] = "Admin Login"
+                st.rerun()
+        
+        render_login_screen()
+        return
+
     with st.sidebar:
         st.markdown(f"## 🏆 {APP_NAME}")
         st.caption(APP_SUBTITLE)
         st.markdown("---")
+
+        user_name = st.session_state.get("live_user_name")
+        if user_name:
+            conf_code = st.session_state.get("live_confirmation_code")
+            st.markdown(
+                f"""
+                <div style="background-color: var(--panel-strong); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 15px; color: var(--ink);">
+                    👤 Logado como:<br><b>{user_name}</b>
+                    {f'<br><span class="badge success" style="margin-top:5px; font-size:10px; color:#ffffff; background-color:var(--green);">Cartela Vinculada</span>' if conf_code else ''}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            if st.button("🚪 Sair / Trocar Conta", key="sidebar_logout_btn", width="stretch"):
+                st.session_state.pop("live_user_name", None)
+                st.session_state.pop("live_user_key", None)
+                st.session_state.pop("public_sim_name", None)
+                st.session_state.pop("live_confirmation_code", None)
+                if "user" in st.query_params:
+                    st.query_params.pop("user")
+                st.rerun()
+            st.markdown("---")
 
         if st.session_state.get("admin_authenticated", False) and st.session_state.get("admin_mode", False):
             # Admin Menu

@@ -517,7 +517,29 @@ header {{ visibility: hidden; }}
   line-height: 1.4; 
 }}
 
-/* Button & Scroll for Mobile */
+/* Button & Scroll for Mobile & Premium Tables */
+div[data-testid="stDataFrame"] {
+  border: 1px solid var(--line) !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  background-color: var(--panel) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.match-card {
+  border: 1px solid var(--line);
+  background: linear-gradient(135deg, var(--panel-strong) 0%, var(--panel) 100%);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.match-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
 @media (max-width: 768px) {{
   .kpi-grid, .step-grid, .podium {{ 
     grid-template-columns: 1fr; 
@@ -533,6 +555,9 @@ header {{ visibility: hidden; }}
     padding-left: 10px;
     padding-right: 10px;
   }}
+  .stButton > button {
+    width: 100% !important;
+  }
 }}
 
 /* Step Indicator */

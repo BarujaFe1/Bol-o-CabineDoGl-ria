@@ -148,19 +148,9 @@ def render_palpites_do_grupo() -> None:
 
     st.markdown(f"#### Palpites para: {m.home_team} x {m.away_team}")
     
-    # Privacidade: não mostrar palpites se o jogo ainda estiver aberto
+    # Mostrar um aviso caso esteja aberto, mas continuar exibindo os palpites
     if is_open:
-        st.markdown(
-            f"""
-            <div class="empty-state">
-                <div class="icon">🔒</div>
-                <h3>Palpites Ocultos</h3>
-                <p>Os palpites deste jogo só serão revelados às <b>{m.lock_at.replace("T", " ")}</b> (10 minutos antes do jogo começar).</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        return
+        st.info("🟢 O jogo está aberto para palpites! Palpites do grupo são atualizados em tempo real.")
 
     # Revelar palpites
     match_preds = [lp for lp in live_preds if lp.match_id == m.match_id]

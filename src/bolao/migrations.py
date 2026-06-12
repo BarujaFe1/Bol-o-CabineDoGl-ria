@@ -194,3 +194,58 @@ def migrate_existing_submissions_to_classic_schema() -> dict:
     Executa a migração parallel_modes que engloba tudo.
     """
     return migrate_to_parallel_modes()
+
+
+def sync_classic_to_live_predictions() -> int:
+    """
+    Sincroniza os palpites de fase de grupos clássicos para o Jogo a Jogo.
+    Garante que todos os participantes com cartela clássica tenham seus palpites
+    de grupos copiados para o banco de dados Jogo a Jogo, evitando que desapareçam.
+    """
+    try:
+        from .storage import load_submissions, load_live_predictions, save_live_predictions
+        from .models import LivePrediction
+        from .utils import normalize_participant_key, now_iso
+        
+        submissions = load_submissions()
+        live_preds = load_live_predictions()
+        
+        existing_ids = {p.id for p in live_preds}
+        added_live_preds = False
+        added_count = 0
+        
+        for pred in submissions:
+            pkey = normalize_participant_key(pred.participant)
+            group_matches = pred.meta.get("group_matches", {})
+            for match_id, scores in group_matches.items():
+                pred_id = f"{pkey}_{match_id}"
+                if pred_id not in existing_ids:
+                    home, away = scores
+                    new_lp = LivePrediction(
+                        id=pred_id,
+                        participant_name=pred.participant,
+                        participant_key=pkey,
+                        match_id=str(match_id),
+                        predicted_home_goals=int(home),
+                        predicted_away_goals=int(away),
+                        submitted_at=pred.submitted_at or now_iso(),
+                        updated_at=pred.submitted_at or now_iso(),
+                        confirmation_code=pred.submission_id,
+                        locked_at=None,
+                        is_locked=False,
+                        is_late=False,
+                        points=None,
+                        scoring_breakdown=[],
+                        schema_version="live-v1"
+                    )
+                    live_preds.append(new_lp)
+                    existing_ids.add(pred_id)
+                    added_live_preds = True
+                    added_count += 1
+                    
+        if added_live_preds:
+            save_live_predictions(live_preds)
+        return added_count
+    except Exception:
+        return 0
+
