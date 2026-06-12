@@ -55,6 +55,9 @@ class Prediction:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Prediction":
+        from .utils import format_display_name
+        raw_name = data.get("participant") or data.get("participante") or "Participante"
+        participant = format_display_name(raw_name)
         groups = {g: list(data.get("groups", {}).get(g, [None, None, None, None]))[:4] for g in GROUPS}
         for g in GROUPS:
             while len(groups[g]) < 4:
@@ -64,7 +67,7 @@ class Prediction:
             raw_matches = data.get("knockout", {}).get(phase, [])
             knockout[phase] = [Match(m.get("a"), m.get("b"), m.get("winner")) for m in raw_matches if isinstance(m, dict)]
         return cls(
-            participant=data.get("participant") or data.get("participante") or "Participante",
+            participant=participant,
             groups=groups,
             best_thirds=list(data.get("best_thirds") or data.get("melhores_terceiros") or []),
             knockout=knockout,
@@ -209,21 +212,72 @@ class LivePrediction:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "LivePrediction":
+        from .utils import format_display_name, normalize_participant_key
+        
+        # 1. Format name and guarantee key
+        raw_name = d.get("participant_name", "")
+        participant_name = format_display_name(raw_name)
+        participant_key = d.get("participant_key")
+        if not participant_key:
+            participant_key = normalize_participant_key(participant_name)
+        else:
+            participant_key = normalize_participant_key(participant_key)
+            
+        # 2. Match ID coercion
+        match_id = str(d.get("match_id", ""))
+        
+        # 3. ID conversion & fallback
+        pred_id = d.get("id") or d.get("prediction_id")
+        if not pred_id:
+            pred_id = f"{participant_key}_{match_id}"
+            
+        # 4. Coerce goals
+        try:
+            predicted_home_goals = int(d.get("predicted_home_goals", 0))
+        except (ValueError, TypeError):
+            predicted_home_goals = 0
+            
+        try:
+            predicted_away_goals = int(d.get("predicted_away_goals", 0))
+        except (ValueError, TypeError):
+            predicted_away_goals = 0
+            
+        # 5. Points conversion
+        points = d.get("points")
+        if points is not None:
+            try:
+                points = int(points)
+            except (ValueError, TypeError):
+                points = None
+                
+        # 6. Normalize scoring breakdown
+        raw_breakdown = d.get("scoring_breakdown")
+        if raw_breakdown is None:
+            scoring_breakdown = []
+        elif isinstance(raw_breakdown, dict):
+            scoring_breakdown = [f"{k}: {v}" for k, v in raw_breakdown.items()]
+        elif isinstance(raw_breakdown, str):
+            scoring_breakdown = [raw_breakdown]
+        elif isinstance(raw_breakdown, list):
+            scoring_breakdown = [str(x) for x in raw_breakdown]
+        else:
+            scoring_breakdown = [str(raw_breakdown)]
+
         return cls(
-            id=d.get("id", ""),
-            participant_name=d.get("participant_name", ""),
-            participant_key=d.get("participant_key", ""),
-            match_id=str(d.get("match_id", "")),
-            predicted_home_goals=int(d.get("predicted_home_goals", 0)),
-            predicted_away_goals=int(d.get("predicted_away_goals", 0)),
+            id=pred_id,
+            participant_name=participant_name,
+            participant_key=participant_key,
+            match_id=match_id,
+            predicted_home_goals=predicted_home_goals,
+            predicted_away_goals=predicted_away_goals,
             submitted_at=d.get("submitted_at", ""),
             updated_at=d.get("updated_at", ""),
             confirmation_code=d.get("confirmation_code"),
             locked_at=d.get("locked_at"),
             is_locked=bool(d.get("is_locked", False)),
             is_late=bool(d.get("is_late", False)),
-            points=d.get("points") if d.get("points") is None else int(d.get("points")),
-            scoring_breakdown=list(d.get("scoring_breakdown") or []),
+            points=points,
+            scoring_breakdown=scoring_breakdown,
             schema_version=d.get("schema_version", "live-v1"),
         )
 

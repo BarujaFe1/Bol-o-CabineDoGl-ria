@@ -45,6 +45,7 @@ from src.bolao.storage import (
     load_registered_participants,
     delete_registered_participant,
 )
+from src.bolao.navigation import navigate_to
 from src.bolao.ui_components import (
     badges,
     dataframe_to_groups,
@@ -153,20 +154,33 @@ def public_home() -> None:
     from src.bolao.ui_live_matches import is_match_open_for_prediction
     import datetime
     import html
+    import re
 
     hero(
         title="Bolão da Copa 2026",
         subtitle="Cabine do Glória",
-        description="Evolua seu engajamento! Agora você pode participar de dois modos simultâneos de bolão: o Modo Clássico (cartela preenchida antes do início da Copa) e o Novo Modo Jogo a Jogo (palpites individuais partida por partida até 10 minutos antes do início)."
+        description="Palpite jogo a jogo, acompanhe o ranking em tempo real e provoque a galera."
     )
 
     ctx = load_app_data_cached()
     config = ctx.config
     matches = ctx.matches
 
-    # Banner for today's matches
+    # Banner principal com CTAs rápidos
+    col_hero_cta1, col_hero_cta2 = st.columns(2)
+    with col_hero_cta1:
+        if st.button("⚽ Palpitar nos Jogos de Hoje", type="primary", key="home_hero_cta_jogos", width="stretch"):
+            navigate_to("Jogos de Hoje")
+    with col_hero_cta2:
+        if st.button("🏆 Ver Ranking Jogo a Jogo", key="home_hero_cta_ranking", width="stretch"):
+            navigate_to("Ranking")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # BANNER DINÂMICO
     now = datetime.datetime.now().isoformat()
     open_today = []
+    next_close_m = None
     for m in matches:
         if is_match_open_for_prediction(m, now):
             try:
@@ -174,36 +188,122 @@ def public_home() -> None:
                 today_dt = datetime.datetime.now()
                 if starts_dt.date() == today_dt.date():
                     open_today.append(m)
+                    if next_close_m is None or m.lock_at < next_close_m.lock_at:
+                        next_close_m = m
             except Exception:
                 pass
     
     if open_today:
+        next_close_time = next_close_m.lock_at.split("T")[1][:5] if next_close_m and next_close_m.lock_at else "—"
         st.markdown(
             f"""
             <div class="callout warning" style="margin-bottom: 25px; width: 100%;">
                 <h4 style="margin: 0;">🔥 Há jogos abertos hoje!</h4>
-                <p style="margin: 5px 0 0; font-size: 14px;">Você tem <b>{len(open_today)}</b> partida(s) para palpitar hoje no Modo Jogo a Jogo.</p>
+                <p style="margin: 5px 0 0; font-size: 14px;">Você tem <b>{len(open_today)}</b> partida(s) abertas hoje no Jogo a Jogo. O próximo palpite fecha às <b>{next_close_time}</b> para <b>{next_close_m.home_team} x {next_close_m.away_team}</b>.</p>
             </div>
             """,
             unsafe_allow_html=True
         )
-        if st.button("🎯 Palpitar agora nos Jogos de Hoje", type="primary", key="btn_home_banner_jogos", width="stretch"):
-            st.session_state["nav_page"] = "Jogos de Hoje"
-            st.rerun()
+    else:
+        # Encontrar próximo jogo agendado futuro
+        future_matches = [m for m in matches if m.starts_at and m.starts_at > now and m.status != "result_approved"]
+        future_matches.sort(key=lambda m: m.starts_at)
+        if future_matches:
+            next_m = future_matches[0]
+            st.markdown(
+                f"""
+                <div class="callout info" style="margin-bottom: 20px; width: 100%;">
+                    <h5 style="margin: 0;">⏳ Próxima Partida</h5>
+                    <p style="margin: 5px 0 0; font-size: 14px;">
+                        <b>{next_m.home_team} x {next_m.away_team}</b> ({next_m.round_label}) em <b>{next_m.starts_at.replace('T', ' ')}</b>.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
-    # Layout for two modes
-    col_c1, col_c2 = st.columns(2)
+    # Se há jogos bloqueados, mostra link do Match Center
+    blocked_matches = [m for m in matches if m.status != "result_approved" and not is_match_open_for_prediction(m, now)]
+    if blocked_matches:
+        blocked_matches.sort(key=lambda m: m.starts_at, reverse=True)
+        recent_blocked = blocked_matches[0]
+        st.markdown(
+            f"""
+            <div class="callout success" style="margin-bottom: 20px; width: 100%;">
+                <h5 style="margin: 0;">🏟️ Match Center em Andamento</h5>
+                <p style="margin: 5px 0 0; font-size: 14px;">
+                    O palpite para <b>{recent_blocked.home_team} x {recent_blocked.away_team}</b> fechou! Acompanhe as apostas e secadas em tempo real.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        if st.button(f"👁️ Abrir Match Center: {recent_blocked.home_team} x {recent_blocked.away_team}", key="btn_home_match_center_banner", width="stretch"):
+            st.session_state["match_center_selected_match_id"] = recent_blocked.match_id
+            navigate_to("Match Center")
 
-    with col_c1:
+    # CARDS E SEÇÕES DO BOLÃO
+    st.markdown("### ⚽ Atividades e Modos do Bolão")
+    
+    col_main1, col_main2 = st.columns([3, 2])
+    with col_main1:
         with st.container(border=True):
             st.markdown(
                 f"""
-                <div style="font-size: 32px; margin-bottom: 10px;">📋</div>
-                <h3 style="margin: 0 0 10px 0; color: var(--ink);">Modo Clássico</h3>
-                <p style="font-size: 14px; margin-bottom: 15px; color: var(--muted);">
-                    O modo clássico tradicional do bolão. Cada participante preenche o palpite completo da Copa (grupos, chaveamento de mata-mata e campeão) uma única vez antes de a bola rolar.
+                <div style="font-size: 36px; margin-bottom: 8px;">🎯</div>
+                <h3 style="margin: 0 0 8px 0; color: var(--ink);">Novo Modo Jogo a Jogo</h3>
+                <p style="font-size: 14px; margin-bottom: 12px; color: var(--muted);">
+                    Palpite nos placares de cada partida individualmente ao longo de toda a Copa do Mundo! Envie seus palpites até 10 minutos antes de cada jogo.
                 </p>
-                <div style="margin-bottom: 20px; color: var(--ink);">
+                <div style="margin-bottom: 16px;">
+                    <span style="font-weight: bold; font-size: 13px;">Status:</span>
+                    {'<span class="badge success">🟢 Disponível</span>' if config.get("live_mode_enabled", True) else '<span class="badge error">🔒 Suspenso</span>'}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            if config.get("live_mode_enabled", True):
+                if st.button("⚡ Ir para Jogos de Hoje", key="btn_home_live_guess_new", type="primary", width="stretch"):
+                    navigate_to("Jogos de Hoje")
+                    
+        with st.container(border=True):
+            st.markdown(
+                f"""
+                <div style="font-size: 32px; margin-bottom: 8px;">👤</div>
+                <h4 style="margin: 0 0 8px 0; color: var(--ink);">Minha Cartela Pessoal</h4>
+                <p style="font-size: 13.5px; margin-bottom: 12px; color: var(--muted);">
+                    Veja todos os seus palpites clássicos, jogo a jogo, suas conquistas (insígnias) e compartilhe seu desempenho no WhatsApp!
+                </p>
+                """,
+                unsafe_allow_html=True
+            )
+            if st.button("📋 Acessar Minha Cartela", key="btn_home_my_cartela_new", width="stretch"):
+                navigate_to("Minha Cartela")
+
+    with col_main2:
+        with st.container(border=True):
+            st.markdown(
+                f"""
+                <div style="font-size: 32px; margin-bottom: 8px;">🏆</div>
+                <h4 style="margin: 0 0 8px 0; color: var(--ink);">Ranking Jogo a Jogo</h4>
+                <p style="font-size: 13.5px; margin-bottom: 12px; color: var(--muted);">
+                    Acompanhe a classificação em tempo real e o pódio de líderes da Copa no Jogo a Jogo!
+                </p>
+                """,
+                unsafe_allow_html=True
+            )
+            if st.button("🥇 Ver Rankings", key="btn_home_rankings_new", width="stretch"):
+                navigate_to("Ranking")
+                
+        with st.container(border=True):
+            st.markdown(
+                f"""
+                <div style="font-size: 28px; margin-bottom: 8px;">🏛️</div>
+                <h4 style="margin: 0 0 8px 0; color: var(--ink);">Modo Clássico (Secundário)</h4>
+                <p style="font-size: 13px; margin-bottom: 12px; color: var(--muted);">
+                    Preenchimento único da cartela pré-Copa (fase de grupos e mata-mata).
+                </p>
+                <div style="margin-bottom: 12px; font-size: 12px;">
                     <span style="font-weight: bold;">Status:</span>
                     {'<span class="badge error">🔒 Encerrado</span>' if config.get("is_bolao_locked", False) else '<span class="badge success">🟢 Aberto</span>'}
                 </div>
@@ -211,58 +311,41 @@ def public_home() -> None:
                 unsafe_allow_html=True
             )
             if not config.get("is_bolao_locked", False):
-                if st.button("🚀 Preencher Cartela Clássica", key="btn_home_classic_guess", type="primary", use_container_width=True):
-                    st.session_state["nav_page"] = "Palpite Clássico"
-                    st.rerun()
+                if st.button("🚀 Preencher Clássico", key="btn_home_classic_guess_new", width="stretch"):
+                    navigate_to("Palpite Clássico")
             else:
-                if st.button("🔍 Ver Palpites Enviados", key="btn_home_classic_view", use_container_width=True):
-                    st.session_state["nav_page"] = "Ranking"
-                    st.rerun()
+                if st.button("🔍 Ver Palpites Clássicos", key="btn_home_classic_view_new", width="stretch"):
+                    navigate_to("Ranking")
 
-    with col_c2:
-        with st.container(border=True):
-            st.markdown(
-                f"""
-                <div style="font-size: 32px; margin-bottom: 10px;">🎯</div>
-                <h3 style="margin: 0 0 10px 0; color: var(--ink);">Modo Jogo a Jogo</h3>
-                <p style="font-size: 14px; margin-bottom: 15px; color: var(--muted);">
-                    A grande novidade! Palpite no placar de cada jogo individualmente ao longo da Copa até 10 minutos antes do início de cada partida. Tem ranking próprio e pontuação independente.
-                </p>
-                <div style="margin-bottom: 20px; color: var(--ink);">
-                    <span style="font-weight: bold;">Status:</span>
-                    {'<span class="badge success">🟢 Disponível</span>' if config.get("live_mode_enabled", True) else '<span class="badge error">🔒 Suspenso</span>'}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-            if config.get("live_mode_enabled", True):
-                if st.button("⚡ Ir para Jogos de Hoje", key="btn_home_live_guess", type="primary", use_container_width=True):
-                    st.session_state["nav_page"] = "Jogos de Hoje"
-                    st.rerun()
-            else:
-                st.info("O Modo Jogo a Jogo está suspenso no momento.")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    col_h1, col_h2 = st.columns(2)
-    with col_h1:
-        if st.button("📋 Minha Cartela Completa", key="btn_home_my_cartela", width="stretch"):
-            st.session_state["nav_page"] = "Minha Cartela"
-            st.rerun()
-    with col_h2:
-        if st.button("🏆 Classificações & Rankings", key="btn_home_rankings", width="stretch"):
-            st.session_state["nav_page"] = "Ranking"
-            st.rerun()
-
-    # Activity Feed
-    if config.get("public_show_activity_feed", True):
+    # Feed de Atividades
+    if config.get("public_features", {}).get("show_public_activity_feed", True):
         st.markdown("---")
         st.markdown("### 📣 Feed de Atividades")
-        events = load_events(limit=15, visibility="public")
-        if events:
-            for ev in events:
-                ts = ev["timestamp"].split("T")[0]
-                time = ev["timestamp"].split("T")[1][:5]
-                st.markdown(f"🗓️ `{ts} {time}` · {ev['message']}")
+        from src.bolao.storage import get_archived_keys
+        archived_keys = get_archived_keys()
+        
+        events = load_events(limit=25, visibility="public")
+        filtered_events = []
+        for ev in events:
+            # 1. Skip if archived
+            meta = ev.get("metadata", {})
+            pkey = meta.get("participant_key")
+            if pkey and pkey in archived_keys:
+                continue
+                
+            # 2. Sanitizar a mensagem (esconder confirmation codes ou hashes longos)
+            message = ev.get("message", "")
+            message_clean = re.sub(r'\b[a-f0-9]{12,}\b', '[CÓDIGO OCULTO]', message)
+            
+            ts = ev["timestamp"].split("T")[0]
+            time = ev["timestamp"].split("T")[1][:5]
+            filtered_events.append(f"🗓️ `{ts} {time}` · {message_clean}")
+            if len(filtered_events) >= 5:
+                break
+                
+        if filtered_events:
+            for item in filtered_events:
+                st.markdown(item)
         else:
             st.caption("Nenhum evento registrado ainda.")
 
@@ -270,14 +353,12 @@ def public_home() -> None:
     col_adm_left, col_adm_mid, col_adm_right = st.columns([2, 1, 2])
     with col_adm_mid:
         if st.button("🔒 Área Admin", key="home_admin_login_btn", width="stretch"):
-            st.session_state["nav_page"] = "Admin Login"
-            st.rerun()
+            navigate_to("Admin Login")
 
 
 def public_submission() -> None:
-    if st.button("⬅️ Voltar ao Início", key="back_to_home_submission"):
-        st.session_state["nav_page"] = "Início"
-        st.rerun()
+    if st.button("⬅️ Voltar ao Início", key="back_to_home_submission", width="stretch"):
+        navigate_to("Início")
     if st.session_state.get("last_submitted_prediction"):
         pred = st.session_state["last_submitted_prediction"]
         champion = pred.champion or "Indefinido"
@@ -336,9 +417,8 @@ def public_submission() -> None:
             
         with col_sh3:
             if st.button("📊 Ir para o Ranking", width="stretch"):
-                st.session_state["nav_page"] = "Ranking"
                 st.session_state.pop("last_submitted_prediction", None)
-                st.rerun()
+                navigate_to("Ranking")
                 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🆕 Fazer outro palpite", width="stretch"):
@@ -506,31 +586,46 @@ def public_submission() -> None:
 
 
 def public_ranking() -> None:
-    if st.button("⬅️ Voltar ao Início", key="back_to_home_ranking"):
-        st.session_state["nav_page"] = "Início"
-        st.rerun()
+    if st.button("⬅️ Voltar ao Início", key="back_to_home_ranking", width="stretch"):
+        navigate_to("Início")
     from src.bolao.ui_ranking import render_rankings_tabs
     render_rankings_tabs(is_admin=False)
 
 
 def admin_dashboard() -> None:
-    hero("Painel do admin", "Controle do bolão", "Gerencie participantes, resultado oficial, pontuação e exportações.")
+    hero("Painel do admin", "Controle do bolão", "Gerencie participantes, resultados, palpites jogo a jogo, auditoria e configurações.")
     ctx = load_app_data_cached()
+    from src.bolao.storage import load_registered_participants, load_archived_participants
+    from src.bolao.ui_live_matches import is_match_open_for_prediction
+    import datetime
+    
+    matches = ctx.matches
     submissions = ctx.submissions
+    live_preds = ctx.live_predictions
     official = ctx.official
-    scores = rank_predictions(submissions, official, get_score_config()) if official else []
+    now = datetime.datetime.now().isoformat()
+    
+    # KPIs Jogo a Jogo e Clássico
+    open_count = len([m for m in matches if is_match_open_for_prediction(m, now)])
+    blocked_count = len([m for m in matches if m.status != "result_approved" and not is_match_open_for_prediction(m, now)])
+    pending_count = len([m for m in matches if m.status != "result_approved"])
+    total_live_preds = len(live_preds)
+    
+    active_parts = load_registered_participants(include_archived=False)
+    archived_parts = load_archived_participants()
+    
+    st.markdown("#### 📊 KPIs Operacionais (Jogo a Jogo & Clássico)")
     kpi_grid([
-        ("Participantes", str(len(submissions))),
-        ("Resultado oficial", "Aprovado" if official else "Pendente"),
-        ("Líder", scores[0].participant if scores else "—"),
-        ("Pontuação do líder", str(scores[0].total) if scores else "—"),
+        ("Jogos Abertos", str(open_count)),
+        ("Jogos Bloqueados", str(blocked_count)),
+        ("Resultados Pendentes", str(pending_count)),
+        ("Palpites Jogo a Jogo", str(total_live_preds)),
     ])
-    if scores:
-        podium(scores)
-    else:
-        if render_empty_state("Sem ranking calculado", "O resultado oficial ainda não foi aprovado, por isso as pontuações do ranking não puderam ser calculadas.", "Aprovar Resultado", "cta_dashboard_results"):
-            st.session_state["nav_page"] = "Resultados Oficiais"
-            st.rerun()
+    
+    kpi_grid([
+        ("Participantes Ativos", str(len(active_parts))),
+        ("Participantes Arquivados", str(len(archived_parts))),
+    ])
 
     col1, col2 = st.columns(2)
     with col1:
@@ -540,9 +635,16 @@ def admin_dashboard() -> None:
             st.rerun()
     with col2:
         if st.checkbox("⚠️ Desbloquear limpeza de estado", key="confirm_reset_state_chk"):
-            st.markdown('<div class="error-box"><strong>Atenção:</strong> Isso apagará permanentemente todos os palpites, resultado oficial e configurações. Esta ação é irreversível!</div>', unsafe_allow_html=True)
+            st.markdown('<div class="error-box"><strong>Atenção:</strong> Isso apagará permanentemente todos os palpites, resultado oficial e configurações. Esta ação é irreversível e exige backup obrigatório!</div>', unsafe_allow_html=True)
             confirm_word = st.text_input("Digite LIMPAR para confirmar:", key="confirm_reset_state_word")
             if st.button("🚨 Apagar todos os dados", type="primary", disabled=confirm_word != "LIMPAR", width="stretch"):
+                try:
+                    from tools.make_backup import make_backup
+                    backup_dir = make_backup()
+                    st.info(f"📦 Backup de segurança gerado: {backup_dir}")
+                except Exception as e:
+                    st.error(f"Erro ao gerar backup: {e}. Operação abortada por segurança.")
+                    return
                 reset_state()
                 st.toast("Todo o estado foi reiniciado com sucesso.")
                 st.rerun()
@@ -552,38 +654,30 @@ def admin_dashboard() -> None:
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         if st.button("👥 Participantes", key="nav_admin_part", width="stretch"):
-            st.session_state["nav_page"] = "Participantes"
-            st.rerun()
+            navigate_to("Participantes")
     with c2:
         if st.button("📅 Jogos e Agenda", key="nav_admin_matches", width="stretch"):
-            st.session_state["nav_page"] = "Jogos e Agenda"
-            st.rerun()
+            navigate_to("Jogos e Agenda")
     with c3:
         if st.button("⚽ Resultados Oficiais", key="nav_admin_results", width="stretch"):
-            st.session_state["nav_page"] = "Resultados Oficiais"
-            st.rerun()
+            navigate_to("Resultados Oficiais")
     with c4:
         if st.button("🏆 Ranking", key="nav_admin_ranking", width="stretch"):
-            st.session_state["nav_page"] = "Ranking"
-            st.rerun()
+            navigate_to("Ranking")
 
     c5, c6, c7, c8 = st.columns(4)
     with c5:
         if st.button("📦 Exportações", key="nav_admin_exports", width="stretch"):
-            st.session_state["nav_page"] = "Exportações"
-            st.rerun()
+            navigate_to("Exportações")
     with c6:
         if st.button("⚙️ Configurações", key="nav_admin_settings", width="stretch"):
-            st.session_state["nav_page"] = "Configurações"
-            st.rerun()
+            navigate_to("Configurações")
     with c7:
         if st.button("🛡️ Auditoria", key="nav_admin_auditoria", width="stretch"):
-            st.session_state["nav_page"] = "Auditoria"
-            st.rerun()
+            navigate_to("Auditoria")
     with c8:
         if st.button("📖 Ajuda", key="nav_admin_help", width="stretch"):
-            st.session_state["nav_page"] = "Ajuda"
-            st.rerun()
+            navigate_to("Ajuda")
 
     st.markdown("---")
     st.markdown("### 📋 Histórico de Auditoria (Últimos Eventos)")
@@ -598,16 +692,18 @@ def admin_dashboard() -> None:
 
 def admin_participants() -> None:
     if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_participants", width="stretch"):
-        st.session_state["nav_page"] = "Dashboard"
-        st.rerun()
+        navigate_to("Dashboard")
     render_page_header("Admin", "Participantes", "Gerencie os palpites enviados pelos participantes.", "👥")
     submissions = load_app_data_cached().submissions
     from src.bolao.storage import load_live_predictions, save_live_predictions, load_matches, load_registered_participants, delete_registered_participant, register_participant
     from src.bolao.utils import normalize_participant_key
     from src.bolao.ui_simulator import init_simulator_state
     
-    live_preds = load_live_predictions()
-    registered = load_registered_participants()
+    from src.bolao.storage import load_submissions, load_live_predictions, load_registered_participants, load_archived_participants, archive_participant, restore_participant
+    
+    submissions = load_submissions(include_archived=True)
+    live_preds = load_live_predictions(include_archived=True)
+    registered = load_registered_participants(include_archived=True)
     
     all_names_set = set()
     for s in submissions:
@@ -619,239 +715,254 @@ def admin_participants() -> None:
         
     all_names = sorted(list(all_names_set), key=lambda x: x.lower())
 
-    # Form to register a new participant from admin panel
-    with st.expander("➕ Cadastrar Novo Participante no Bolão"):
-        new_name = st.text_input("Nome do novo participante:", key="admin_register_new_part")
-        if st.button("➕ Cadastrar Participante", key="btn_admin_register_new_part", use_container_width=True):
-            if not new_name.strip():
-                st.error("Por favor, digite um nome válido.")
-            else:
-                register_participant(new_name.strip())
-                st.success(f"Participante '{new_name.strip()}' cadastrado com sucesso!")
-                st.cache_data.clear()
-                st.rerun()
+    tabs = st.tabs(["👥 Participantes Ativos", "🗄️ Participantes Arquivados"])
 
-    if all_names:
-        search_term = st.text_input("🔍 Buscar por nome", placeholder="Digite parte do nome...", key="part_search")
-        filtered = [name for name in all_names if search_term.lower() in name.lower()] if search_term else all_names
-
-        if filtered:
-            p_data = []
-            for name in filtered:
-                classic_pred = next((s for s in submissions if s.participant.lower() == name.lower()), None)
-                user_key = normalize_participant_key(name)
-                lp_count = sum(1 for lp in live_preds if lp.participant_key == user_key or normalize_participant_key(lp.participant_name) == user_key)
-                p_data.append({
-                    "Nome": name,
-                    "Palpite Clássico": "Cadastrado" if classic_pred else "Não enviado",
-                    "Palpites Jogo a Jogo": f"{lp_count} palpites",
-                    "Código Clássico": classic_pred.submission_id[:8] + "..." if classic_pred else "—"
-                })
-            st.dataframe(pd.DataFrame(p_data), width="stretch", hide_index=True)
-
-            with st.expander("Ver/editar um participante"):
-                selected_name = st.selectbox("Selecione o participante:", options=filtered, key="part_select")
-                
-                # Load existing classic prediction
-                classic_pred = next((s for s in submissions if s.participant.lower() == selected_name.lower()), None)
-                
-                st.markdown("##### 📋 Palpite Clássico")
-                if classic_pred:
-                    st.json(classic_pred.to_dict(), expanded=False)
-                    
-                    # Edit Classic button
-                    if st.button("✏️ Editar Palpite Clássico", key=f"btn_edit_classic_{classic_pred.submission_id}", use_container_width=True):
-                        st.session_state["admin_editing_classic_prediction"] = classic_pred
-                        init_simulator_state(classic_pred, force_reset=True, is_admin=False)
-                        st.session_state["nav_page"] = "Editar Palpite Clássico"
-                        st.rerun()
-                        
-                    # Danger zone for classic prediction deletion
-                    st.markdown(f'<div class="error-box" style="margin-top: 15px;"><strong>🚨 Zona de Perigo:</strong> Excluir o palpite clássico de <strong>{selected_name}</strong> é irreversível.</div>', unsafe_allow_html=True)
-                    confirm_word = st.text_input(f"Digite EXCLUIR para confirmar a exclusão do palpite clássico de {selected_name}:", key=f"confirm_word_{classic_pred.submission_id}")
-                    if st.button("🚨 Excluir palpite clássico", type="primary", disabled=confirm_word != "EXCLUIR", use_container_width=True):
-                        delete_submission(classic_pred.submission_id)
-                        st.success(f"Palpite clássico de {selected_name} excluído com sucesso.")
-                        st.cache_data.clear()
-                        st.rerun()
+    with tabs[0]:
+        # Form to register a new participant from admin panel
+        with st.expander("➕ Cadastrar Novo Participante no Bolão"):
+            new_name = st.text_input("Nome do novo participante:", key="admin_register_new_part")
+            if st.button("➕ Cadastrar Participante", key="btn_admin_register_new_part", width="stretch"):
+                if not new_name.strip():
+                    st.error("Por favor, digite um nome válido.")
                 else:
-                    st.info("Este participante não possui palpite clássico cadastrado.")
-                    if st.button("➕ Criar Palpite Clássico", key=f"btn_create_classic_{selected_name}", use_container_width=True):
-                        new_pred = Prediction(
-                            participant=selected_name,
-                            submission_id=stable_id(selected_name, now_iso()),
-                            submitted_at=now_iso(),
-                            status="rascunho"
-                        )
-                        st.session_state["admin_editing_classic_prediction"] = new_pred
-                        init_simulator_state(new_pred, force_reset=True, is_admin=False)
-                        st.session_state["nav_page"] = "Editar Palpite Clássico"
-                        st.rerun()
-                    
-                # Edit Jogo a Jogo predictions
-                st.markdown("---")
-                st.markdown("##### 🎯 Palpites Jogo a Jogo")
-                user_key = normalize_participant_key(selected_name)
-                user_live_preds = [lp for lp in live_preds if lp.participant_key == user_key or normalize_participant_key(lp.participant_name) == user_key]
-                
-                matches = load_matches()
-                match_opts = []
-                lp_by_match_id = {lp.match_id: lp for lp in user_live_preds}
-                match_opts_map = {}
-                
-                for m in matches:
-                    lp = lp_by_match_id.get(m.match_id)
-                    if lp:
-                        lbl = f"✅ Match {m.match_id}: {m.home_team} {int(lp.predicted_home_goals)}x{int(lp.predicted_away_goals)} {m.away_team}"
-                    else:
-                        lbl = f"⚪ Match {m.match_id}: {m.home_team} x {m.away_team} (Sem palpite)"
-                    match_opts.append(lbl)
-                    match_opts_map[lbl] = (lp, m)
-                
-                if match_opts:
-                    selected_lp_lbl = st.selectbox("Escolha a partida para palpitar/editar:", options=match_opts, key=f"lp_select_{selected_name}")
-                    selected_lp, selected_m = match_opts_map[selected_lp_lbl]
-                    
-                    val_h = int(selected_lp.predicted_home_goals) if selected_lp else 0
-                    val_a = int(selected_lp.predicted_away_goals) if selected_lp else 0
-                    
-                    col_edit1, col_edit2 = st.columns(2)
-                    with col_edit1:
-                         new_h = st.number_input(f"Gols {selected_m.home_team}", min_value=0, max_value=20, value=val_h, step=1, key=f"edit_lp_h_{selected_m.match_id}_{selected_name}")
-                    with col_edit2:
-                         new_a = st.number_input(f"Gols {selected_m.away_team}", min_value=0, max_value=20, value=val_a, step=1, key=f"edit_lp_a_{selected_m.match_id}_{selected_name}")
-                         
-                    btn_label = "💾 Salvar Alterações Jogo a Jogo" if selected_lp else "➕ Criar Palpite Jogo a Jogo"
-                    if st.button(btn_label, key=f"btn_edit_lp_{selected_m.match_id}_{selected_name}", type="primary", use_container_width=True):
-                         if selected_lp:
-                             selected_lp.predicted_home_goals = int(new_h)
-                             selected_lp.predicted_away_goals = int(new_a)
-                             selected_lp.updated_at = now_iso()
-                             
-                             if selected_m.status == "result_approved":
-                                 from src.bolao.live_scoring import calculate_live_prediction_points
-                                 config = load_config()
-                                 res = calculate_live_prediction_points(selected_lp, selected_m, config)
-                                 selected_lp.points = res["points"]
-                                 selected_lp.scoring_breakdown = res["breakdown"]
-                         else:
-                             from src.bolao.models import LivePrediction
-                             new_lp_id = stable_id(selected_name + str(selected_m.match_id), now_iso())
-
-                             new_lp = LivePrediction(
-                                 id=new_lp_id,
-                                 participant_key=user_key,
-                                 participant_name=selected_name,
-                                 match_id=selected_m.match_id,
-                                 predicted_home_goals=int(new_h),
-                                 predicted_away_goals=int(new_a),
-                                 points=0,
-                                 submitted_at=now_iso(),
-                                 updated_at=now_iso(),
-                                 scoring_breakdown=[]
-                             )
-
-                             if selected_m.status == "result_approved":
-                                 from src.bolao.live_scoring import calculate_live_prediction_points
-                                 config = load_config()
-                                 res = calculate_live_prediction_points(new_lp, selected_m, config)
-                                 new_lp.points = res["points"]
-                                 new_lp.scoring_breakdown = res["breakdown"]
-
-                             live_preds.append(new_lp)
-                             
-                         save_live_predictions(live_preds)
-                         
-                         from src.bolao.events import append_event
-                         append_event(
-                             kind="live_prediction_edited_by_admin",
-                             message=f"O administrador editou/criou o palpite jogo a jogo de {selected_name} no jogo {selected_m.home_team} x {selected_m.away_team} para {new_h}x{new_a}."
-                         )
-                         
-                         st.success(f"Palpite jogo a jogo para {selected_m.home_team} x {selected_m.away_team} atualizado com sucesso!")
-                         st.cache_data.clear()
-                         st.rerun()
-                
-                # Danger Zone: delete entire participant
-                st.markdown("---")
-                st.markdown("##### 🚨 Zona de Perigo do Participante")
-                st.markdown(f'<div class="error-box"><strong>Atenção:</strong> Excluir o participante <strong>{selected_name}</strong> é definitivo. Todos os seus palpites (Clássico e Jogo a Jogo) serão eliminados e o perfil será descadastrado.</div>', unsafe_allow_html=True)
-                confirm_all_word = st.text_input(f"Digite APAGAR TUDO para confirmar a exclusão definitiva de {selected_name}:", key=f"confirm_all_word_{selected_name}")
-                if st.button("🚨 Excluir Participante Completamente", type="primary", disabled=confirm_all_word != "APAGAR TUDO", key=f"btn_delete_all_{selected_name}", use_container_width=True):
-                    if classic_pred:
-                        delete_submission(classic_pred.submission_id)
-                    remaining_live = [lp for lp in live_preds if not (lp.participant_key == user_key or normalize_participant_key(lp.participant_name) == user_key)]
-                    save_live_predictions(remaining_live)
-                    delete_registered_participant(selected_name)
-                    st.success(f"Participante {selected_name} e todos os seus dados foram excluídos com sucesso.")
+                    register_participant(new_name.strip())
+                    st.success(f"Participante '{new_name.strip()}' cadastrado com sucesso!")
                     st.cache_data.clear()
                     st.rerun()
-
+    
+        if all_names:
+            search_term = st.text_input("🔍 Buscar por nome", placeholder="Digite parte do nome...", key="part_search")
+            filtered = [name for name in all_names if search_term.lower() in name.lower()] if search_term else all_names
+    
+            if filtered:
+                p_data = []
+                for name in filtered:
+                    classic_pred = next((s for s in submissions if s.participant.lower() == name.lower()), None)
+                    user_key = normalize_participant_key(name)
+                    lp_count = sum(1 for lp in live_preds if lp.participant_key == user_key or normalize_participant_key(lp.participant_name) == user_key)
+                    p_data.append({
+                        "Nome": name,
+                        "Palpite Clássico": "Cadastrado" if classic_pred else "Não enviado",
+                        "Palpites Jogo a Jogo": f"{lp_count} palpites",
+                        "Código Clássico": classic_pred.submission_id[:8] + "..." if classic_pred else "—"
+                    })
+                st.dataframe(pd.DataFrame(p_data), width="stretch", hide_index=True)
+    
+                with st.expander("Ver/editar um participante"):
+                    selected_name = st.selectbox("Selecione o participante:", options=filtered, key="part_select")
+                    
+                    # Load existing classic prediction
+                    classic_pred = next((s for s in submissions if s.participant.lower() == selected_name.lower()), None)
+                    
+                    st.markdown("##### 📋 Palpite Clássico")
+                    if classic_pred:
+                        st.json(classic_pred.to_dict(), expanded=False)
+                        
+                        # Edit Classic button
+                        if st.button("✏️ Editar Palpite Clássico", key=f"btn_edit_classic_{classic_pred.submission_id}", width="stretch"):
+                            st.session_state["admin_editing_classic_prediction"] = classic_pred
+                            init_simulator_state(classic_pred, force_reset=True, is_admin=False)
+                            navigate_to("Editar Palpite Clássico")
+                            
+                        # Danger zone for classic prediction deletion
+                        st.markdown(f'<div class="error-box" style="margin-top: 15px;"><strong>🚨 Zona de Perigo:</strong> Excluir o palpite clássico de <strong>{selected_name}</strong> é irreversível.</div>', unsafe_allow_html=True)
+                        confirm_word = st.text_input(f"Digite EXCLUIR para confirmar a exclusão do palpite clássico de {selected_name}:", key=f"confirm_word_{classic_pred.submission_id}")
+                        if st.button("🚨 Excluir palpite clássico", type="primary", disabled=confirm_word != "EXCLUIR", width="stretch"):
+                            delete_submission(classic_pred.submission_id)
+                            st.success(f"Palpite clássico de {selected_name} excluído com sucesso.")
+                            st.cache_data.clear()
+                            st.rerun()
+                    else:
+                        st.info("Este participante não possui palpite clássico cadastrado.")
+                        if st.button("➕ Criar Palpite Clássico", key=f"btn_create_classic_{selected_name}", width="stretch"):
+                            new_pred = Prediction(
+                                participant=selected_name,
+                                submission_id=stable_id(selected_name, now_iso()),
+                                submitted_at=now_iso(),
+                                status="rascunho"
+                            )
+                            st.session_state["admin_editing_classic_prediction"] = new_pred
+                            init_simulator_state(new_pred, force_reset=True, is_admin=False)
+                            navigate_to("Editar Palpite Clássico")
+                        
+                    # Edit Jogo a Jogo predictions
+                    st.markdown("---")
+                    st.markdown("##### 🎯 Palpites Jogo a Jogo")
+                    user_key = normalize_participant_key(selected_name)
+                    user_live_preds = [lp for lp in live_preds if lp.participant_key == user_key or normalize_participant_key(lp.participant_name) == user_key]
+                    
+                    matches = load_matches()
+                    match_opts = []
+                    lp_by_match_id = {lp.match_id: lp for lp in user_live_preds}
+                    match_opts_map = {}
+                    
+                    for m in matches:
+                        lp = lp_by_match_id.get(m.match_id)
+                        if lp:
+                            lbl = f"✅ Match {m.match_id}: {m.home_team} {int(lp.predicted_home_goals)}x{int(lp.predicted_away_goals)} {m.away_team}"
+                        else:
+                            lbl = f"⚪ Match {m.match_id}: {m.home_team} x {m.away_team} (Sem palpite)"
+                        match_opts.append(lbl)
+                        match_opts_map[lbl] = (lp, m)
+                    
+                    if match_opts:
+                        selected_lp_lbl = st.selectbox("Escolha a partida para palpitar/editar:", options=match_opts, key=f"lp_select_{selected_name}")
+                        selected_lp, selected_m = match_opts_map[selected_lp_lbl]
+                        
+                        val_h = int(selected_lp.predicted_home_goals) if selected_lp else 0
+                        val_a = int(selected_lp.predicted_away_goals) if selected_lp else 0
+                        
+                        col_edit1, col_edit2 = st.columns(2)
+                        with col_edit1:
+                             new_h = st.number_input(f"Gols {selected_m.home_team}", min_value=0, max_value=20, value=val_h, step=1, key=f"edit_lp_h_{selected_m.match_id}_{selected_name}")
+                        with col_edit2:
+                             new_a = st.number_input(f"Gols {selected_m.away_team}", min_value=0, max_value=20, value=val_a, step=1, key=f"edit_lp_a_{selected_m.match_id}_{selected_name}")
+                             
+                        btn_label = "💾 Salvar Alterações Jogo a Jogo" if selected_lp else "➕ Criar Palpite Jogo a Jogo"
+                        if st.button(btn_label, key=f"btn_edit_lp_{selected_m.match_id}_{selected_name}", type="primary", width="stretch"):
+                             if selected_lp:
+                                 selected_lp.predicted_home_goals = int(new_h)
+                                 selected_lp.predicted_away_goals = int(new_a)
+                                 selected_lp.updated_at = now_iso()
+                                 
+                                 if selected_m.status == "result_approved":
+                                     from src.bolao.live_scoring import calculate_live_prediction_points
+                                     config = load_config()
+                                     res = calculate_live_prediction_points(selected_lp, selected_m, config)
+                                     selected_lp.points = res["points"]
+                                     selected_lp.scoring_breakdown = res["breakdown"]
+                             else:
+                                 from src.bolao.models import LivePrediction
+                                 new_lp_id = stable_id(selected_name + str(selected_m.match_id), now_iso())
+    
+                                 new_lp = LivePrediction(
+                                     id=new_lp_id,
+                                     participant_key=user_key,
+                                     participant_name=selected_name,
+                                     match_id=selected_m.match_id,
+                                     predicted_home_goals=int(new_h),
+                                     predicted_away_goals=int(new_a),
+                                     points=0,
+                                     submitted_at=now_iso(),
+                                     updated_at=now_iso(),
+                                     scoring_breakdown=[]
+                                 )
+    
+                                 if selected_m.status == "result_approved":
+                                     from src.bolao.live_scoring import calculate_live_prediction_points
+                                     config = load_config()
+                                     res = calculate_live_prediction_points(new_lp, selected_m, config)
+                                     new_lp.points = res["points"]
+                                     new_lp.scoring_breakdown = res["breakdown"]
+    
+                                 live_preds.append(new_lp)
+                                 
+                             save_live_predictions(live_preds)
+                             
+                             from src.bolao.events import append_event
+                             append_event(
+                                 kind="live_prediction_edited_by_admin",
+                                 message=f"O administrador editou/criou o palpite jogo a jogo de {selected_name} no jogo {selected_m.home_team} x {selected_m.away_team} para {new_h}x{new_a}."
+                             )
+                             
+                             st.success(f"Palpite jogo a jogo para {selected_m.home_team} x {selected_m.away_team} atualizado com sucesso!")
+                             st.cache_data.clear()
+                             st.rerun()
+                    
+                    # Danger Zone: delete entire participant
+                    st.markdown("---")
+                    st.markdown("##### 🚨 Zona de Perigo do Participante")
+                    st.markdown(f'<div class="error-box"><strong>Atenção:</strong> Excluir o participante <strong>{selected_name}</strong> é definitivo. Todos os seus palpites (Clássico e Jogo a Jogo) serão eliminados e o perfil será descadastrado.</div>', unsafe_allow_html=True)
+                    confirm_all_word = st.text_input(f"Digite APAGAR TUDO para confirmar a exclusão definitiva de {selected_name}:", key=f"confirm_all_word_{selected_name}")
+                    if st.button("🚨 Excluir Participante Completamente", type="primary", disabled=confirm_all_word != "APAGAR TUDO", key=f"btn_delete_all_{selected_name}", width="stretch"):
+                        if classic_pred:
+                            delete_submission(classic_pred.submission_id)
+                        remaining_live = [lp for lp in live_preds if not (lp.participant_key == user_key or normalize_participant_key(lp.participant_name) == user_key)]
+                        save_live_predictions(remaining_live)
+                        delete_registered_participant(selected_name)
+                        st.success(f"Participante {selected_name} e todos os seus dados foram excluídos com sucesso.")
+                        st.cache_data.clear()
+                        st.rerun()
+    
+            else:
+                st.info(f"Nenhum participante encontrado para \"{search_term}\".")
         else:
-            st.info(f"Nenhum participante encontrado para \"{search_term}\".")
-    else:
-        render_empty_state("Nenhum participante ativo", "Não há palpites ativos cadastrados no sistema no momento.", "Ir para Resultados", "cta_participants_empty")
-
-    st.markdown("---")
-
-    # 1. Expander para limpeza de participantes (allowlist)
-    with st.expander("🧹 Limpeza de Participantes Ativos (Allowlist)"):
-        st.markdown(
-            """
-            <div class="callout warning" style="margin-top:0;">
-                ⚠️ <strong>Atenção:</strong> Esta ação removerá do bolão ativo todos os participantes que NÃO pertençam à allowlist de participantes oficiais:
-                <br>• <strong>Baruja</strong>
-                <br>• <strong>Henrique O Terrível</strong>
-                <br>• <strong>Fantato</strong>
-                <br><br>Todos os outros participantes e seus palpites (tanto do Modo Clássico quanto do Jogo a Jogo) serão <strong>arquivados com segurança</strong> antes de serem removidos das exibições ativas.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        
-        confirm_cleanup = st.checkbox("Estou ciente e confirmo que desejo arquivar e limpar os demais participantes", key="confirm_cleanup_checkbox")
-        confirm_text = st.text_input("Digite LIMPAR para confirmar a ação:", key="confirm_cleanup_text")
-        
-        btn_cleanup = st.button("🧹 Executar arquivamento e limpeza", type="primary", disabled=not confirm_cleanup or confirm_text != "LIMPAR", key="btn_run_participants_cleanup", width="stretch")
-        
-        if btn_cleanup:
-            with st.spinner("Executando limpeza e gerando backups..."):
-                from src.bolao.migrations import cleanup_active_participants
-                res = cleanup_active_participants({"baruja", "henrique-o-terrivel", "fantato"})
-                if res["status"] == "success":
-                    st.success(
-                        f"Faxina executada com sucesso! "
-                        f"Removidos: {len(res['removed_participants'])} participante(s). "
-                        f"Backup salvo em: {res['backup_path']}"
-                    )
-                    st.rerun()
-                else:
-                    st.error("Erro desconhecido ao executar a migração de limpeza.")
-
-    # 2. Expander para restaurar participantes arquivados
-    with st.expander("📂 Restaurar Participante Arquivado"):
-        from src.bolao.migrations import load_archived_participants, restore_archived_participant
-        archived = load_archived_participants()
-        if not archived:
-            st.info("Nenhum participante arquivado encontrado nos arquivos históricos.")
-        else:
-            st.caption("Selecione um participante para restaurar todos os seus palpites clássicos e jogo a jogo no sistema ativo:")
-            keys_list = list(archived.keys())
-            selected_restore = st.selectbox(
-                "Escolha o participante a ser restaurado:",
-                options=keys_list,
-                format_func=lambda k: f"{archived[k]['name']} (arquivo: {archived[k]['archive_file']})",
-                key="select_restore_participant_dropdown"
+            render_empty_state("Nenhum participante ativo", "Não há palpites ativos cadastrados no sistema no momento.", "Ir para Resultados", "cta_participants_empty")
+    
+        st.markdown("---")
+    
+        # 1. Expander para limpeza de participantes (allowlist)
+        with st.expander("🧹 Limpeza de Participantes Ativos (Allowlist)"):
+            st.markdown(
+                """
+                <div class="callout warning" style="margin-top:0;">
+                    ⚠️ <strong>Atenção:</strong> Esta ação removerá do bolão ativo todos os participantes que NÃO pertençam à allowlist de participantes oficiais:
+                    <br>• <strong>Baruja</strong>
+                    <br>• <strong>Henrique O Terrível</strong>
+                    <br>• <strong>Fantato</strong>
+                    <br><br>Todos os outros participantes e seus palpites (tanto do Modo Clássico quanto do Jogo a Jogo) serão <strong>arquivados com segurança</strong> antes de serem removidos das exibições ativas.
+                </div>
+                """,
+                unsafe_allow_html=True
             )
             
-            btn_restore = st.button("⏪ Restaurar Participante", type="secondary", key="btn_restore_archived_participant", width="stretch")
-            if btn_restore:
-                with st.spinner("Restaurando dados do participante..."):
-                    if restore_archived_participant(selected_restore):
-                        st.success(f"Participante {archived[selected_restore]['name']} foi restaurado no bolão ativo!")
+            confirm_cleanup = st.checkbox("Estou ciente e confirmo que desejo arquivar e limpar os demais participantes", key="confirm_cleanup_checkbox")
+            confirm_text = st.text_input("Digite LIMPAR para confirmar a ação:", key="confirm_cleanup_text")
+            
+            btn_cleanup = st.button("🧹 Executar arquivamento e limpeza", type="primary", disabled=not confirm_cleanup or confirm_text != "LIMPAR", key="btn_run_participants_cleanup", width="stretch")
+            
+            if btn_cleanup:
+                with st.spinner("Executando limpeza e gerando backups..."):
+                    from src.bolao.migrations import cleanup_active_participants
+                    res = cleanup_active_participants({"baruja", "henrique-o-terrivel", "fantato"})
+                    if res["status"] == "success":
+                        st.success(
+                            f"Faxina executada com sucesso! "
+                            f"Removidos: {len(res['removed_participants'])} participante(s). "
+                            f"Backup salvo em: {res['backup_path']}"
+                        )
                         st.rerun()
                     else:
-                        st.error(f"Erro ao tentar restaurar {archived[selected_restore]['name']}.")
+                        st.error("Erro desconhecido ao executar a migração de limpeza.")
+    
+    # 2. Seção de Participantes Arquivados
+    with tabs[1]:
+        st.markdown("#### 🗄️ Participantes Arquivados (Histórico)")
+        st.caption("Abaixo estão listados os participantes antigos cujos dados foram preservados. Você pode restaurá-los a qualquer momento.")
+        
+        archived_list = load_archived_participants()
+        if not archived_list:
+            st.info("Nenhum participante arquivado no momento nos registros históricos.")
+        else:
+            archived_rows = []
+            for p in archived_list:
+                archived_rows.append({
+                    "Participante": p.get("name"),
+                    "Arquivado em": p.get("archived_at", "—").replace("T", " ")[:19],
+                    "Motivo": p.get("reason", "—"),
+                    "Palpite Clássico": "Sim" if p.get("had_classic_prediction") else "Não",
+                    "Palpites Jogo a Jogo": f"{p.get('live_predictions_count', 0)} palpites",
+                    "Chave": p.get("participant_key")
+                })
+                
+            st.dataframe(pd.DataFrame(archived_rows), width="stretch", hide_index=True)
+            
+            st.markdown("##### ⏪ Restaurar Participante")
+            selected_pkey = st.selectbox(
+                "Selecione o participante a restaurar:",
+                options=[p["Chave"] for p in archived_rows],
+                format_func=lambda k: next(r["Participante"] for r in archived_rows if r["Chave"] == k),
+                key="restore_archived_select"
+            )
+            
+            confirm_restore = st.checkbox("Confirmo que desejo restaurar este participante e torná-lo ativo novamente", key="confirm_restore_chk")
+            if st.button("⏪ Restaurar Participante Selecionado", type="primary", disabled=not confirm_restore, key="btn_restore_archived", width="stretch"):
+                if restore_participant(selected_pkey):
+                    st.success("Participante restaurado com sucesso no bolão ativo!")
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    st.error("Erro ao tentar restaurar o participante.")
 
 
 
@@ -864,8 +975,7 @@ def make_prediction_from_text(name: str, text: str) -> Prediction:
 
 def admin_official_results() -> None:
     if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_results", width="stretch"):
-        st.session_state["nav_page"] = "Dashboard"
-        st.rerun()
+        navigate_to("Dashboard")
     render_page_header("Admin", "Resultados Oficiais", "Preencha os resultados conforme a competição avança — salve o progresso a qualquer momento.", "⚽")
     st.caption("Fluxo recomendado: preencher jogos realizados → Salvar Progresso → voltar depois e continuar de onde parou → Aprovar quando completo.")
 
@@ -975,16 +1085,14 @@ def admin_official_results() -> None:
 
 def admin_ranking() -> None:
     if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_ranking", width="stretch"):
-        st.session_state["nav_page"] = "Dashboard"
-        st.rerun()
+        navigate_to("Dashboard")
     from src.bolao.ui_ranking import render_rankings_tabs
     render_rankings_tabs(is_admin=True)
 
 
 def admin_exports() -> None:
     if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_exports", width="stretch"):
-        st.session_state["nav_page"] = "Dashboard"
-        st.rerun()
+        navigate_to("Dashboard")
     render_page_header("Admin", "Exportações", "Baixe dados do bolão em vários formatos.", "📦")
     
     from src.bolao.storage import load_app_data_cached, export_all_state
@@ -1167,8 +1275,7 @@ def admin_exports() -> None:
 
 def admin_settings() -> None:
     if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_settings", width="stretch"):
-        st.session_state["nav_page"] = "Dashboard"
-        st.rerun()
+        navigate_to("Dashboard")
     render_page_header("Admin", "Configurações", "Controle geral do bolão: status, pontuação e prazos.", "⚙️")
     config = load_app_data_cached().config
     
@@ -1429,9 +1536,8 @@ def admin_settings() -> None:
 def admin_edit_classic_page() -> None:
     from src.bolao.ui_simulator import render_simulator, validate_prediction_complete
     
-    if st.button("⬅️ Voltar para Participantes", key="btn_back_from_edit_classic", use_container_width=True):
-        st.session_state["nav_page"] = "Participantes"
-        st.rerun()
+    if st.button("⬅️ Voltar para Participantes", key="btn_back_from_edit_classic", width="stretch"):
+        navigate_to("Participantes")
 
     pred = st.session_state.get("admin_editing_classic_prediction")
     if not pred:
@@ -1445,7 +1551,7 @@ def admin_edit_classic_page() -> None:
     if updated_pred:
         st.markdown("---")
         st.markdown("#### Salvar Alterações")
-        if st.button("💾 Salvar Alterações do Participante", type="primary", use_container_width=True):
+        if st.button("💾 Salvar Alterações do Participante", type="primary", width="stretch"):
             # Final validation check
             is_complete, missing = validate_prediction_complete(updated_pred)
             if not is_complete:
@@ -1468,15 +1574,13 @@ def admin_edit_classic_page() -> None:
             
             st.success(f"Alterações no palpite de {pred.participant} salvas com sucesso!")
             st.session_state.pop("admin_editing_classic_prediction", None)
-            st.session_state["nav_page"] = "Participantes"
             st.cache_data.clear()
-            st.rerun()
+            navigate_to("Participantes")
 
 
 def admin_help() -> None:
     if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_help", width="stretch"):
-        st.session_state["nav_page"] = "Dashboard"
-        st.rerun()
+        navigate_to("Dashboard")
     render_page_header("Admin", "Ajuda Rápida", "Fluxos e instruções do sistema.", "📖")
     st.markdown(
         """
@@ -1500,8 +1604,7 @@ def admin_help() -> None:
 
 def admin_auditoria() -> None:
     if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_auditoria", width="stretch"):
-        st.session_state["nav_page"] = "Dashboard"
-        st.rerun()
+        navigate_to("Dashboard")
     render_page_header("Admin", "Histórico de Auditoria", "Eventos de auditoria gravados no bolão.", "🛡️")
     events = load_events(100)
     if events:
@@ -1612,8 +1715,9 @@ def main() -> None:
     # Rodar migrações seguras
     try:
         migrate_existing_submissions_to_classic_schema()
-        from src.bolao.migrations import sync_classic_to_live_predictions
+        from src.bolao.migrations import sync_classic_to_live_predictions, run_participant_cleanup_migration
         sync_classic_to_live_predictions()
+        run_participant_cleanup_migration()
     except Exception:
         pass
 
@@ -1654,8 +1758,7 @@ def main() -> None:
             render_theme_selector()
             st.markdown("---")
             if st.button("🔒 Área Admin", width="stretch", key="sidebar_admin_login_btn"):
-                st.session_state["nav_page"] = "Admin Login"
-                st.rerun()
+                navigate_to("Admin Login")
         
         render_login_screen()
         return
@@ -1714,24 +1817,17 @@ def main() -> None:
         if st.session_state.get("admin_authenticated", False):
             if st.session_state.get("admin_mode", False):
                 if st.button("🌐 Ver Modo Público", width="stretch"):
-                    st.session_state["admin_mode"] = False
-                    st.session_state["nav_page"] = "Início"
-                    st.rerun()
+                    navigate_to("Início", admin_mode=False)
             else:
                 if st.button("🛠️ Painel Admin", width="stretch"):
-                    st.session_state["admin_mode"] = True
-                    st.session_state["nav_page"] = "Dashboard"
-                    st.rerun()
+                    navigate_to("Dashboard", admin_mode=True)
             
             if st.button("🚪 Sair do Admin", width="stretch"):
                 st.session_state["admin_authenticated"] = False
-                st.session_state["admin_mode"] = False
-                st.session_state["nav_page"] = "Início"
-                st.rerun()
+                navigate_to("Início", admin_mode=False)
         else:
             if st.button("🔒 Área Admin", width="stretch", key="sidebar_admin_login_btn"):
-                st.session_state["nav_page"] = "Admin Login"
-                st.rerun()
+                navigate_to("Admin Login")
 
     # Route display
     if st.session_state["nav_page"] == "Admin Login":
@@ -1745,19 +1841,26 @@ def main() -> None:
             except Exception:
                 admin_pwd = None
             
-            if password == "brasilhexa" or (admin_pwd and password == admin_pwd):
+            from src.bolao.utils import is_debug_mode
+            import os
+            is_dev = is_debug_mode() or os.getenv("APP_ENV") == "development"
+            
+            allowed = False
+            if is_dev and password == "brasilhexa":
+                allowed = True
+            elif admin_pwd and password == admin_pwd:
+                allowed = True
+            
+            if allowed:
                 st.session_state["admin_authenticated"] = True
-                st.session_state["admin_mode"] = True
-                st.session_state["nav_page"] = "Dashboard"
                 st.success("Login efetuado com sucesso!")
-                st.rerun()
+                navigate_to("Dashboard", admin_mode=True)
             else:
                 st.error("Senha incorreta.")
                     
         st.markdown("---")
         if st.button("Voltar ao Início", width="stretch"):
-            st.session_state["nav_page"] = "Início"
-            st.rerun()
+            navigate_to("Início")
         return
 
     # Renderizar menu de navegação móvel rápida (apenas para celular)

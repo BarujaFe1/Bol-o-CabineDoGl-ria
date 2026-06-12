@@ -189,7 +189,8 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                 else:
                     st.markdown(f"**Rodada {gm['round']}**")
                 h_id, a_id = gm["home_id"], gm["away_id"]
-                h_name, a_name = TEAMS[h_id]["name"], TEAMS[a_id]["name"]
+                h_name = TEAMS.get(h_id, {}).get("name", h_id or "Mandante")
+                a_name = TEAMS.get(a_id, {}).get("name", a_id or "Visitante")
                 h_badge = get_team_badge_path(h_id)
                 a_badge = get_team_badge_path(a_id)
                 
@@ -415,7 +416,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
             # Show summary
             st.markdown("#### 🏆 Campeão da Copa")
             champ_id = state["slots"].get(0)
-            champ_name = TEAMS[champ_id]["name"] if champ_id else "A definir"
+            champ_name = TEAMS.get(champ_id, {}).get("name", champ_id) if champ_id else "A definir"
             champ_badge = get_team_badge_path(champ_id) if champ_id else None
             
             col_c1, col_c2 = st.columns([1, 4])
@@ -432,18 +433,18 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                     st.markdown("**Finalistas:**")
                     f1_id = state["slots"].get(1)
                     f2_id = state["slots"].get(2)
-                    st.write(f"1. {TEAMS[f1_id]['name'] if f1_id else 'A definir'}")
-                    st.write(f"2. {TEAMS[f2_id]['name'] if f2_id else 'A definir'}")
+                    st.write(f"1. {TEAMS.get(f1_id, {}).get('name', f1_id) if f1_id else 'A definir'}")
+                    st.write(f"2. {TEAMS.get(f2_id, {}).get('name', f2_id) if f2_id else 'A definir'}")
                     
                     st.markdown("**Semifinalistas:**")
                     for i in [3, 4, 5, 6]:
                         s_id = state["slots"].get(i)
-                        st.write(f"- {TEAMS[s_id]['name'] if s_id else 'A definir'}")
+                        st.write(f"- {TEAMS.get(s_id, {}).get('name', s_id) if s_id else 'A definir'}")
                 with col_rev2:
                     st.markdown("**Quartas de Final:**")
                     for i in range(7, 15):
                         q_id = state["slots"].get(i)
-                        st.write(f"- {TEAMS[q_id]['name'] if q_id else 'A definir'}")
+                        st.write(f"- {TEAMS.get(q_id, {}).get('name', q_id) if q_id else 'A definir'}")
             
             # Submit Details
             st.markdown("---")
@@ -462,7 +463,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                 prediction.groups[g_letter] = [stg.name for stg in stg_list]
                 
             # Save best thirds
-            prediction.best_thirds = [TEAMS[stg.team_id]["name"] for stg in get_best_third_placed_teams(standings)[:8]]
+            prediction.best_thirds = [TEAMS.get(stg.team_id, {}).get("name", stg.team_id or "A definir") for stg in get_best_third_placed_teams(standings)[:8]]
             
             return prediction
             
@@ -575,8 +576,8 @@ def render_bracket_round(phase_name: str, matches_mapping: list[tuple[int, int, 
             a_id = slots.get(v)
             winner_id = slots.get(w)
             
-            h_name = TEAMS[h_id]["name"] if h_id else BRACKET_SLOTS[h]["label"]
-            a_name = TEAMS[a_id]["name"] if a_id else BRACKET_SLOTS[v]["label"]
+            h_name = TEAMS.get(h_id, {}).get("name", h_id) if h_id else BRACKET_SLOTS[h]["label"]
+            a_name = TEAMS.get(a_id, {}).get("name", a_id) if a_id else BRACKET_SLOTS[v]["label"]
             
             h_badge = get_team_badge_path(h_id) if h_id else None
             a_badge = get_team_badge_path(a_id) if a_id else None
@@ -611,8 +612,8 @@ def render_final_and_champion(slots: dict[int, str | None]):
     a_id = slots.get(2)
     winner_id = slots.get(0)
     
-    h_name = TEAMS[h_id]["name"] if h_id else "Finalista 1"
-    a_name = TEAMS[a_id]["name"] if a_id else "Finalista 2"
+    h_name = TEAMS.get(h_id, {}).get("name", h_id) if h_id else "Finalista 1"
+    a_name = TEAMS.get(a_id, {}).get("name", a_id) if a_id else "Finalista 2"
     
     h_badge = get_team_badge_path(h_id) if h_id else None
     a_badge = get_team_badge_path(a_id) if a_id else None
@@ -641,7 +642,7 @@ def render_final_and_champion(slots: dict[int, str | None]):
     st.markdown("---")
     st.markdown("<div style='text-align: center;'><h2>🏆 Campeã da Copa do Mundo</h2></div>", unsafe_allow_html=True)
     if winner_id:
-        champ_name = TEAMS[winner_id]["name"]
+        champ_name = TEAMS.get(winner_id, {}).get("name", winner_id or "A definir")
         champ_badge = get_team_badge_path(winner_id)
         
         c_col1, c_col2, c_col3 = st.columns([3, 1, 3])

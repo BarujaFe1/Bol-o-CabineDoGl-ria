@@ -24,6 +24,7 @@ MATCHES_PATH = STATE_DIR / "matches_2026.json"
 LIVE_PREDICTIONS_PATH = STATE_DIR / "live_predictions.json"
 MIGRATIONS_PATH = STATE_DIR / "migrations.json"
 REGISTERED_PARTICIPANTS_PATH = STATE_DIR / "registered_participants.json"
+ARCHIVED_PARTICIPANTS_PATH = STATE_DIR / "archived_participants.json"
 
 
 def get_storage_backend() -> str:
@@ -433,16 +434,21 @@ def save_config(config: dict) -> None:
 
 
 @st.cache_data(ttl=15, show_spinner=False)
-def load_submissions() -> list[Prediction]:
+def load_submissions(include_archived: bool = False) -> list[Prediction]:
     ensure_state()
     backend = get_storage_backend()
+    archived_keys = set() if include_archived else get_archived_keys()
 
     if backend == "supabase":
         client = _get_supabase_client()
         if client:
             try:
                 result = client.table("bolao_submissions").select("*").execute()
-                return [Prediction.from_dict(row) for row in result.data if row.get("active") is not False]
+                preds = [Prediction.from_dict(row) for row in result.data if row.get("active") is not False]
+                if not include_archived:
+                    from .utils import normalize_participant_key
+                    preds = [p for p in preds if normalize_participant_key(p.participant) not in archived_keys]
+                return preds
             except Exception:
                 pass
 
@@ -452,6 +458,11 @@ def load_submissions() -> list[Prediction]:
             submissions.append(Prediction.from_dict(read_json(path, {})))
         except Exception:
             continue
+            
+    if not include_archived:
+        from .utils import normalize_participant_key
+        submissions = [p for p in submissions if normalize_participant_key(p.participant) not in archived_keys]
+        
     return submissions
 
 
@@ -710,11 +721,6 @@ def load_app_context(include_events: bool = False) -> AppDataContext:
 @st.cache_data(ttl=15, show_spinner=False)
 def load_matches() -> list[LiveMatch]:
     ensure_state()
-    def _override_first_match_lock(matches_list: list[LiveMatch]) -> list[LiveMatch]:
-        for m in matches_list:
-            if m.match_id == "13379":
-                m.lock_at = "2026-06-11T23:59:00"
-        return matches_list
 
     backend = get_storage_backend()
     if backend == "supabase":
@@ -722,7 +728,7 @@ def load_matches() -> list[LiveMatch]:
         if client and _supabase_table_exists(client, "bolao_matches"):
             try:
                 result = client.table("bolao_matches").select("*").execute()
-                return _override_first_match_lock([LiveMatch.from_dict(row) for row in result.data])
+                return [LiveMatch.from_dict(row) for row in result.data]
             except Exception:
                 pass
     
@@ -747,12 +753,11 @@ def load_matches() -> list[LiveMatch]:
                 sort_order=idx
             )
             matches.append(m)
-        _override_first_match_lock(matches)
         save_matches(matches)
         return matches
 
     data = read_json(MATCHES_PATH, [])
-    return _override_first_match_lock([LiveMatch.from_dict(m) for m in data])
+    return [LiveMatch.from_dict(m) for m in data]
 
 
 def save_matches(matches: list[LiveMatch]) -> None:
@@ -762,9 +767,7 @@ def save_matches(matches: list[LiveMatch]) -> None:
     lock_mins = int(config.get("live_lock_minutes_before_match", 10))
     from datetime import datetime, timedelta
     for m in matches:
-        if m.match_id == "13379":
-            m.lock_at = "2026-06-11T23:59:00"
-        elif m.starts_at:
+        if m.starts_at:
             try:
                 dt = datetime.fromisoformat(m.starts_at)
                 m.lock_at = (dt - timedelta(minutes=lock_mins)).isoformat()
@@ -786,22 +789,30 @@ def save_matches(matches: list[LiveMatch]) -> None:
 
 
 @st.cache_data(ttl=15, show_spinner=False)
-def load_live_predictions() -> list[LivePrediction]:
+def load_live_predictions(include_archived: bool = False) -> list[LivePrediction]:
     ensure_state()
     backend = get_storage_backend()
+    archived_keys = set() if include_archived else get_archived_keys()
+
     if backend == "supabase":
         client = _get_supabase_client()
         if client and _supabase_table_exists(client, "bolao_live_predictions"):
             try:
                 result = client.table("bolao_live_predictions").select("*").execute()
-                return [LivePrediction.from_dict(row) for row in result.data if row.get("active") is not False]
+                preds = [LivePrediction.from_dict(row) for row in result.data if row.get("active") is not False]
+                if not include_archived:
+                    preds = [p for p in preds if p.participant_key not in archived_keys]
+                return preds
             except Exception:
                 pass
 
     if not LIVE_PREDICTIONS_PATH.exists():
         return []
     data = read_json(LIVE_PREDICTIONS_PATH, [])
-    return [LivePrediction.from_dict(p) for p in data]
+    preds = [LivePrediction.from_dict(p) for p in data]
+    if not include_archived:
+        preds = [p for p in preds if p.participant_key not in archived_keys]
+    return preds
 
 
 def save_live_predictions(predictions: list[LivePrediction]) -> None:
@@ -821,6 +832,65 @@ def save_live_predictions(predictions: list[LivePrediction]) -> None:
     write_json(LIVE_PREDICTIONS_PATH, [p.to_dict() for p in predictions])
 
 
+def upsert_live_prediction(
+    participant_name: str,
+    match_id: str,
+    home_goals: int,
+    away_goals: int,
+    confirmation_code: str | None = None
+) -> LivePrediction:
+    from .utils import format_display_name, normalize_participant_key, now_iso
+    from .events import append_event
+    
+    # 1. Normalize name and key
+    name_clean = format_display_name(participant_name)
+    pkey = normalize_participant_key(name_clean)
+    match_id = str(match_id)
+    pred_id = f"{pkey}_{match_id}"
+    
+    # 2. Load live predictions
+    preds = load_live_predictions(include_archived=True)
+    
+    existing = next((p for p in preds if p.id == pred_id), None)
+    now = now_iso()
+    
+    if existing:
+        existing.predicted_home_goals = int(home_goals)
+        existing.predicted_away_goals = int(away_goals)
+        existing.updated_at = now
+        if confirmation_code:
+            existing.confirmation_code = confirmation_code
+        pred_obj = existing
+    else:
+        pred_obj = LivePrediction(
+            id=pred_id,
+            participant_name=name_clean,
+            participant_key=pkey,
+            match_id=match_id,
+            predicted_home_goals=int(home_goals),
+            predicted_away_goals=int(away_goals),
+            submitted_at=now,
+            updated_at=now,
+            confirmation_code=confirmation_code,
+            is_locked=False,
+            is_late=False,
+            points=None,
+            scoring_breakdown=[],
+        )
+        preds.append(pred_obj)
+        
+    save_live_predictions(preds)
+    
+    # 3. Handle registration on the fly for new participants
+    registered = load_registered_participants(include_archived=True)
+    if name_clean not in registered:
+        registered.append(name_clean)
+        save_registered_participants(registered)
+        append_event("participant_registered", f"Participante {name_clean} se registrou jogando Jogo a Jogo.")
+        
+    return pred_obj
+
+
 def load_migrations() -> dict:
     if not MIGRATIONS_PATH.exists():
         return {}
@@ -831,21 +901,46 @@ def save_migrations(migrations: dict) -> None:
     write_json(MIGRATIONS_PATH, migrations)
 
 
-def load_registered_participants() -> list[str]:
+def load_registered_participants(include_archived: bool = False) -> list[str]:
     ensure_state()
     backend = get_storage_backend()
+    archived_keys = set() if include_archived else get_archived_keys()
+
     if backend == "supabase":
         client = _get_supabase_client()
         if client:
             try:
                 result = client.table("bolao_config").select("value").eq("key", "registered_participants").execute()
                 if result.data:
-                    return result.data[0].get("value", [])
+                    parts = result.data[0].get("value", [])
+                    if not include_archived:
+                        from .utils import normalize_participant_key
+                        parts = [p for p in parts if normalize_participant_key(p) not in archived_keys]
+                    return parts
             except Exception:
                 pass
     if not REGISTERED_PARTICIPANTS_PATH.exists():
         return []
-    return read_json(REGISTERED_PARTICIPANTS_PATH, [])
+    parts = read_json(REGISTERED_PARTICIPANTS_PATH, [])
+    if not include_archived:
+        from .utils import normalize_participant_key
+        parts = [p for p in parts if normalize_participant_key(p) not in archived_keys]
+    return parts
+
+
+def load_archived_participants() -> list[dict]:
+    if not ARCHIVED_PARTICIPANTS_PATH.exists():
+        return []
+    return read_json(ARCHIVED_PARTICIPANTS_PATH, [])
+
+
+def save_archived_participants(archived: list[dict]) -> None:
+    write_json(ARCHIVED_PARTICIPANTS_PATH, archived)
+
+
+def get_archived_keys() -> set[str]:
+    archived = load_archived_participants()
+    return {p.get("participant_key") for p in archived if p.get("participant_key")}
 
 
 def save_registered_participants(participants: list[str]) -> None:
@@ -941,3 +1036,63 @@ def sync_official_results_to_matches() -> int:
     save_matches(matches)
     save_live_predictions(live_preds)
     return updated
+
+
+def archive_participant(name: str, reason: str = "cleanup_requested_by_admin", backup_ref: str = "") -> bool:
+    from .utils import normalize_participant_key, now_iso
+    name_clean = name.strip()
+    if not name_clean:
+        return False
+    key = normalize_participant_key(name_clean)
+    
+    # 1. Load active submissions to get info
+    submissions = load_submissions(include_archived=True)
+    live_preds = load_live_predictions(include_archived=True)
+    
+    had_classic = any(normalize_participant_key(s.participant) == key for s in submissions)
+    live_count = sum(1 for lp in live_preds if lp.participant_key == key)
+    
+    # 2. Add to archived_participants.json
+    archived = load_archived_participants()
+    if any(p.get("participant_key") == key for p in archived):
+        return False # already archived
+        
+    archived_entry = {
+        "name": name_clean,
+        "participant_key": key,
+        "archived_at": now_iso(),
+        "reason": reason,
+        "had_classic_prediction": had_classic,
+        "live_predictions_count": live_count,
+        "backup_reference": backup_ref
+    }
+    archived.append(archived_entry)
+    save_archived_participants(archived)
+    
+    # 3. Remove from registered_participants.json if present
+    registered = load_registered_participants(include_archived=True)
+    updated_registered = [p for p in registered if normalize_participant_key(p) != key]
+    save_registered_participants(updated_registered)
+    
+    append_event("participant_archived", f"Participante {name_clean} foi arquivado.")
+    return True
+
+
+def restore_participant(pkey: str) -> bool:
+    archived = load_archived_participants()
+    match = next((p for p in archived if p.get("participant_key") == pkey), None)
+    if not match:
+        return False
+        
+    # Remove from archived_participants.json
+    updated_archived = [p for p in archived if p.get("participant_key") != pkey]
+    save_archived_participants(updated_archived)
+    
+    # Add back to registered_participants.json
+    registered = load_registered_participants(include_archived=True)
+    if pkey not in {normalize_participant_key(p) for p in registered}:
+        registered.append(match["name"])
+        save_registered_participants(registered)
+        
+    append_event("participant_restored", f"Participante {match['name']} foi restaurado.")
+    return True

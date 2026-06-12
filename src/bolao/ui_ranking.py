@@ -5,7 +5,7 @@ import pandas as pd
 from .storage import load_matches, load_live_predictions, load_submissions, load_official, load_config, load_app_data_cached, sync_official_results_to_matches
 from .scoring import rank_predictions
 from .live_scoring import calculate_live_ranking, calculate_live_prediction_points
-from .ui_components import podium, render_badge, render_empty_state
+from .ui_components import podium, render_badge, render_empty_state, render_responsive_table
 from .utils import normalize_participant_key
 from .achievements import calculate_achievements
 
@@ -42,8 +42,8 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
         st.metric("Jogos Concluídos (Jogo a Jogo)", f"{approved_count}/{len(matches)}")
 
     ranking_tabs = st.tabs([
-        "Classic Cup (Modo Clássico)", 
         "Match Day (Jogo a Jogo)", 
+        "Classic Cup (Modo Clássico)", 
         "Ranking Geral Combinado",
         "Por Rodada / Fase",
         "Estatísticas"
@@ -61,7 +61,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
         )
 
     # 1. Classic Cup Tab
-    with ranking_tabs[0]:
+    with ranking_tabs[1]:
         st.markdown("#### 🏆 Classic Cup — Palpite pré-Copa")
         st.caption("Participantes que preencheram a cartela inteira antes do início do torneio.")
         
@@ -80,14 +80,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         "Conquistas": badge_str
                     })
                 
-                # Desktop view
-                st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
-                st.dataframe(pd.DataFrame(classic_list), width="stretch", hide_index=True)
-                st.markdown('</div>', unsafe_allow_html=True)
-
-                # Mobile view
-                st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
-                for item in classic_list:
+                def render_classic_inscrito_card(item):
                     st.markdown(
                         f"""
                         <div class="card" style="margin-bottom: 12px; padding: 16px;">
@@ -100,7 +93,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         """,
                         unsafe_allow_html=True
                     )
-                st.markdown('</div>', unsafe_allow_html=True)
+                render_responsive_table(pd.DataFrame(classic_list), render_classic_inscrito_card, "classic_inscritos")
             else:
                 st.info("Nenhum palpite clássico enviado ainda.")
         else:
@@ -127,14 +120,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     "Conquistas": badge_str
                 })
             
-            # Desktop view
-            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
-            st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            # Mobile view
-            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
-            for r in rows:
+            def render_classic_ranking_card(r):
                 st.markdown(
                     f"""
                     <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
@@ -151,10 +137,10 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     """,
                     unsafe_allow_html=True
                 )
-            st.markdown('</div>', unsafe_allow_html=True)
+            render_responsive_table(pd.DataFrame(rows), render_classic_ranking_card, "classic_ranking")
 
     # 2. Match Day Tab
-    with ranking_tabs[1]:
+    with ranking_tabs[0]:
         st.markdown("#### 🎯 Match Day — Jogo a Jogo")
         st.caption("Ranking baseado no acerto individual de placares rodada a rodada.")
 
@@ -189,14 +175,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     "Conquistas": badge_str
                 })
             
-            # Desktop view
-            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
-            st.dataframe(pd.DataFrame(live_rows), width="stretch", hide_index=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            # Mobile view
-            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
-            for r in live_rows:
+            def render_live_ranking_card(r):
                 st.markdown(
                     f"""
                     <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
@@ -214,7 +193,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     """,
                     unsafe_allow_html=True
                 )
-            st.markdown('</div>', unsafe_allow_html=True)
+            render_responsive_table(pd.DataFrame(live_rows), render_live_ranking_card, "live_ranking")
 
             # Details expansion
             st.markdown("<br>", unsafe_allow_html=True)
@@ -316,14 +295,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     "Conquistas": badge_str
                 })
             
-            # Desktop view
-            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
-            st.dataframe(pd.DataFrame(comb_rows), width="stretch", hide_index=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            # Mobile view
-            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
-            for r in comb_rows:
+            def render_combined_ranking_card(r):
                 st.markdown(
                     f"""
                     <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--gold);">
@@ -339,7 +311,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     """,
                     unsafe_allow_html=True
                 )
-            st.markdown('</div>', unsafe_allow_html=True)
+            render_responsive_table(pd.DataFrame(comb_rows), render_combined_ranking_card, "combined_ranking")
 
     # 4. Por Rodada / Fase Tab
     with ranking_tabs[3]:
@@ -396,14 +368,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         "Conquistas": badge_str
                     })
                 
-                # Desktop view
-                st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
-                st.dataframe(pd.DataFrame(sub_rows), width="stretch", hide_index=True)
-                st.markdown('</div>', unsafe_allow_html=True)
-
-                # Mobile view
-                st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
-                for r in sub_rows:
+                def render_filtered_ranking_card(r):
                     st.markdown(
                         f"""
                         <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
@@ -419,7 +384,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         """,
                         unsafe_allow_html=True
                     )
-                st.markdown('</div>', unsafe_allow_html=True)
+                render_responsive_table(pd.DataFrame(sub_rows), render_filtered_ranking_card, f"filtered_ranking_{filter_option}")
 
     # 5. Estatísticas Tab
     with ranking_tabs[4]:

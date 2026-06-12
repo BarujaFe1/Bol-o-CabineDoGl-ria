@@ -687,10 +687,10 @@ div[data-testid="stNumberInput"] button {{
 }}
 
 /* Classes helper para responsividade */
-.desktop-only {{
+.desktop-only, .desktop-only-table {{
   display: block !important;
 }}
-.mobile-only {{
+.mobile-only, .mobile-only-cards {{
   display: none !important;
 }}
 .mobile-card-grid {{
@@ -706,10 +706,10 @@ div[data-testid="stNumberInput"] button {{
 }}
 
 @media (max-width: 768px) {{
-  .desktop-only {{
+  .desktop-only, .desktop-only-table {{
     display: none !important;
   }}
-  .mobile-only {{
+  .mobile-only, .mobile-only-cards {{
     display: block !important;
   }}
   .mobile-card-grid {{

@@ -50,32 +50,49 @@ def append_event(kind: str, message: str, metadata: dict | None = None, visibili
 
 
 @st.cache_data(ttl=15, show_spinner=False)
-def load_events(limit: int = 20, visibility: str | None = None) -> list[dict]:
+def load_events(limit: int = 20, visibility: str | None = None, include_archived: bool = False) -> list[dict]:
     """
     Carrega eventos do local ou Supabase.
     """
     from .storage import get_storage_backend, _get_supabase_client, _supabase_table_exists
     
+    events_list = []
     backend = get_storage_backend()
     if backend == "supabase":
         client = _get_supabase_client()
         if client and _supabase_table_exists(client, "bolao_events"):
             try:
-                query = client.table("bolao_events").select("*").order("timestamp", desc=True)
+                query = client.table("bolao_events").order("timestamp", desc=True)
                 if visibility:
                     query = query.eq("visibility", visibility)
-                result = query.limit(limit).execute()
-                return result.data
+                result = query.limit(limit * 3).execute() # load extra to allow filtering
+                events_list = result.data
             except Exception:
                 pass
                 
-    # Fallback to local
-    if not EVENTS_PATH.exists():
-        return []
-    try:
-        events = read_json(EVENTS_PATH, [])
-        if visibility:
-            events = [e for e in events if e.get("visibility", "public") == visibility]
-        return events[:limit]
-    except Exception:
-        return []
+    if not events_list:
+        # Fallback to local
+        if not EVENTS_PATH.exists():
+            return []
+        try:
+            events_list = read_json(EVENTS_PATH, [])
+            if visibility:
+                events_list = [e for e in events_list if e.get("visibility", "public") == visibility]
+        except Exception:
+            events_list = []
+
+    if not include_archived and events_list:
+        try:
+            from .storage import load_archived_participants
+            archived = load_archived_participants()
+            archived_names = {p["name"].lower() for p in archived}
+            filtered = []
+            for ev in events_list:
+                msg = ev.get("message", "").lower()
+                if not any(name in msg for name in archived_names):
+                    filtered.append(ev)
+            events_list = filtered
+        except Exception:
+            pass
+
+    return events_list[:limit]

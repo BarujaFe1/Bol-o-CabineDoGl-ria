@@ -11,8 +11,8 @@ from .utils import now_iso
 
 def admin_matches_agenda() -> None:
     if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_matches", width="stretch"):
-        st.session_state["nav_page"] = "Dashboard"
-        st.rerun()
+        from .navigation import navigate_to
+        navigate_to("Dashboard")
     st.markdown("### 📅 Jogos e Agenda — Modo Jogo a Jogo")
     st.caption("Cadastre jogos, gerencie a agenda da Copa, defina os horários oficiais e aprove os placares para pontuar os participantes.")
 
@@ -211,45 +211,48 @@ def admin_matches_agenda() -> None:
                 
                 submitted = st.form_submit_button("Aprovar Placar Oficial", width="stretch")
                 if submitted:
-                    # Update match results
-                    m.official_home_goals = int(goals_h)
-                    m.official_away_goals = int(goals_a)
-                    if goals_h > goals_a:
-                        m.winner = m.home_team
-                    elif goals_h < goals_a:
-                        m.winner = m.away_team
+                    if not m.home_team or not m.away_team or m.home_team.strip() == "" or m.away_team.strip() == "" or "definir" in m.home_team.lower() or "definir" in m.away_team.lower():
+                        st.error("Erro: Não é possível aprovar placar oficial sem mandante e visitante preenchidos ou com times 'A definir'.")
                     else:
-                        m.winner = "draw"
-                    
-                    m.status = "result_approved"
-                    
-                    # Update predictions score
-                    all_preds = load_live_predictions()
-                    config = st.session_state.get("bolao_config", None)
-                    if config is None:
-                        from .storage import load_config
-                        config = load_config()
+                        # Update match results
+                        m.official_home_goals = int(goals_h)
+                        m.official_away_goals = int(goals_a)
+                        if goals_h > goals_a:
+                            m.winner = m.home_team
+                        elif goals_h < goals_a:
+                            m.winner = m.away_team
+                        else:
+                            m.winner = "draw"
+                        
+                        m.status = "result_approved"
+                        
+                        # Update predictions score
+                        all_preds = load_live_predictions()
+                        config = st.session_state.get("bolao_config", None)
+                        if config is None:
+                            from .storage import load_config
+                            config = load_config()
 
-                    # Recalculate points for this match
-                    from .live_scoring import calculate_live_prediction_points
-                    match_preds = [p for p in all_preds if p.match_id == m.match_id]
-                    
-                    for p in match_preds:
-                        res = calculate_live_prediction_points(p, m, config)
-                        p.points = res["points"]
-                        p.scoring_breakdown = res["breakdown"]
-                        p.is_locked = True
+                        # Recalculate points for this match
+                        from .live_scoring import calculate_live_prediction_points
+                        match_preds = [p for p in all_preds if p.match_id == m.match_id]
+                        
+                        for p in match_preds:
+                            res = calculate_live_prediction_points(p, m, config)
+                            p.points = res["points"]
+                            p.scoring_breakdown = res["breakdown"]
+                            p.is_locked = True
 
-                    # Save updated matches and predictions
-                    save_matches(matches)
-                    save_live_predictions(all_preds)
-                    
-                    # Log event
-                    append_event(
-                        kind="result_approved",
-                        message=f"Resultado oficial aprovado: {m.home_team} {goals_h} x {goals_a} {m.away_team}. Pontos recalculados para {len(match_preds)} participantes."
-                    )
-                    
-                    st.success(f"Resultado de {m.home_team} {goals_h} x {goals_a} {m.away_team} aprovado! Pontos recalculados.")
-                    st.cache_data.clear()
-                    st.rerun()
+                        # Save updated matches and predictions
+                        save_matches(matches)
+                        save_live_predictions(all_preds)
+                        
+                        # Log event
+                        append_event(
+                            kind="result_approved",
+                            message=f"Resultado oficial aprovado: {m.home_team} {goals_h} x {goals_a} {m.away_team}. Pontos recalculados para {len(match_preds)} participantes."
+                        )
+                        
+                        st.success(f"Resultado de {m.home_team} {goals_h} x {goals_a} {m.away_team} aprovado! Pontos recalculados.")
+                        st.cache_data.clear()
+                        st.rerun()

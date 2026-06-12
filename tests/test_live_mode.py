@@ -197,3 +197,114 @@ def test_match_team_badge_resolution():
         assert h_badge is None or isinstance(h_badge, str)
         assert a_badge is None or isinstance(a_badge, str)
 
+
+def test_live_prediction_from_dict_normalization():
+    from src.bolao.models import LivePrediction
+    
+    # 1. Prediction ID fallback & mismatch
+    d1 = {
+        "prediction_id": "legacy_123",
+        "participant_name": "César",
+        "match_id": 45,
+        "predicted_home_goals": "2",
+        "predicted_away_goals": "3",
+        "scoring_breakdown": {"outcome": 3, "goals": 1}
+    }
+    lp = LivePrediction.from_dict(d1)
+    assert lp.id == "legacy_123"
+    assert lp.match_id == "45"
+    assert lp.predicted_home_goals == 2
+    assert lp.predicted_away_goals == 3
+    assert "outcome: 3" in lp.scoring_breakdown
+    assert "goals: 1" in lp.scoring_breakdown
+    
+    # 2. String breakdown
+    d2 = {
+        "participant_name": "Pedro",
+        "match_id": "99",
+        "predicted_home_goals": "invalid_number",
+        "scoring_breakdown": "Cravou tudo!"
+    }
+    lp2 = LivePrediction.from_dict(d2)
+    assert lp2.id == "pedro_99"
+    assert lp2.predicted_home_goals == 0
+    assert lp2.scoring_breakdown == ["Cravou tudo!"]
+
+
+def test_upsert_live_prediction_flow(tmp_path, monkeypatch):
+    import streamlit as st
+    import src.bolao.storage as storage
+    
+    # Mock REGISTERED_PARTICIPANTS_PATH and LIVE_PREDICTIONS_PATH to use tmp_path
+    monkeypatch.setattr(storage, "REGISTERED_PARTICIPANTS_PATH", tmp_path / "registered_participants.json")
+    monkeypatch.setattr(storage, "LIVE_PREDICTIONS_PATH", tmp_path / "live_predictions.json")
+    monkeypatch.setattr(storage, "ARCHIVED_PARTICIPANTS_PATH", tmp_path / "archived_participants.json")
+    monkeypatch.setattr(storage, "SUBMISSIONS_DIR", tmp_path / "submissions")
+    
+    # Clear cache
+    st.cache_data.clear()
+    
+    # 1. Upsert first prediction for a new participant
+    from src.bolao.storage import upsert_live_prediction, load_live_predictions, load_registered_participants
+    pred = upsert_live_prediction(participant_name="Henrique", match_id="1337", home_goals=2, away_goals=1)
+    
+    # Henrique must be normalized to "Henrique O Terrível" due to display name aliases
+    assert pred.participant_name == "Henrique O Terrível"
+    assert pred.participant_key == "henrique-o-terrivel"
+    assert pred.match_id == "1337"
+    assert pred.predicted_home_goals == 2
+    assert pred.predicted_away_goals == 1
+    
+    # Check that registered participants lists "Henrique O Terrível"
+    registered = load_registered_participants()
+    assert "Henrique O Terrível" in registered
+    
+    # Guarantee no duplicate entry is created
+    all_preds_before = len(load_live_predictions())
+    
+    # 2. Upsert update (edit)
+    pred_updated = upsert_live_prediction(participant_name="Henrique O Terrível", match_id="1337", home_goals=3, away_goals=3)
+    assert pred_updated.predicted_home_goals == 3
+    assert pred_updated.predicted_away_goals == 3
+    
+    all_preds_after = len(load_live_predictions())
+    assert all_preds_after == all_preds_before
+
+
+def test_archiving_participants_flow(tmp_path, monkeypatch):
+    import streamlit as st
+    import src.bolao.storage as storage
+    
+    # Mock registered participants paths
+    monkeypatch.setattr(storage, "REGISTERED_PARTICIPANTS_PATH", tmp_path / "registered_participants.json")
+    monkeypatch.setattr(storage, "LIVE_PREDICTIONS_PATH", tmp_path / "live_predictions.json")
+    monkeypatch.setattr(storage, "ARCHIVED_PARTICIPANTS_PATH", tmp_path / "archived_participants.json")
+    monkeypatch.setattr(storage, "SUBMISSIONS_DIR", tmp_path / "submissions")
+    
+    # Clear cache
+    st.cache_data.clear()
+    
+    from src.bolao.storage import save_registered_participants, load_registered_participants, archive_participant, restore_participant, get_archived_keys
+    
+    save_registered_participants(["Baruja", "Fantato", "Henrique O Terrível", "Murilov"])
+    
+    # 1. Archive "Murilov"
+    success = archive_participant("Murilov", reason="Inativo")
+    assert success is True
+    
+    # 2. Key must be in archived keys
+    archived_keys = get_archived_keys()
+    assert "murilov" in archived_keys
+    
+    # 3. Reading registered participants by default must hide archived ones
+    active = load_registered_participants(include_archived=False)
+    assert "Murilov" not in active
+    assert "Baruja" in active
+    
+    # 4. Restore "Murilov"
+    restored = restore_participant("murilov")
+    assert restored is True
+    
+    active_post_restore = load_registered_participants(include_archived=False)
+    assert "Murilov" in active_post_restore
+

@@ -62,7 +62,23 @@ def normalize_participant_key(name: str) -> str:
     """
     val = strip_accents(name or "").lower().strip()
     val = re.sub(r"\s+", "-", val)
+    if val == "henrique":
+        return "henrique-o-terrivel"
     return val
+
+
+def format_display_name(name: str) -> str:
+    """
+    Retorna o nome de exibição formatado/com alias.
+    """
+    key = normalize_participant_key(name)
+    if key == "henrique-o-terrivel":
+        return "Henrique O Terrível"
+    if key == "baruja":
+        return "Baruja"
+    if key == "fantato":
+        return "Fantato"
+    return name.strip()
 
 
 def decode_uploaded_file(file) -> str:

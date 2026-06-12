@@ -8,7 +8,7 @@ from .storage import load_matches, load_live_predictions, load_submissions, load
 from .live_scoring import calculate_live_prediction_points, calculate_live_ranking
 from .scoring import rank_predictions
 from .utils import normalize_participant_key
-from .ui_components import render_page_header, render_kpi_grid, render_empty_state, render_badge
+from .ui_components import render_page_header, render_kpi_grid, render_empty_state, render_badge, render_responsive_table
 from .achievements import calculate_achievements
 from .social import build_duel_share_text, build_taunt_text
 from .ui_live_matches import is_match_open_for_prediction
@@ -82,6 +82,11 @@ def render_central_do_bolao() -> None:
         kpi_items.append({"label": "Líder Geral", "value": combined_leader})
     render_kpi_grid(kpi_items)
 
+    # CTA Button for Jogo a Jogo
+    if st.button("⚽ Palpitar nos Jogos de Hoje", type="primary", key="central_cta_jogos_hoje", width="stretch"):
+        from .navigation import navigate_to
+        navigate_to("Jogos de Hoje")
+
     # Zoeira do dia (Taunt)
     st.markdown("#### 🗣️ Provocação da Rodada")
     taunt_ctx = {"nome": live_leader, "kind": "lider"}
@@ -106,13 +111,23 @@ def render_central_do_bolao() -> None:
 
     with col2:
         st.markdown("#### 📢 Últimos Acontecimentos")
-        # Load only public events
-        from .storage import load_events
-        events = load_events(limit=5, visibility="public")
-        if not events:
+        # Load only public events, excluding archived players
+        from .storage import load_events, get_archived_keys
+        archived_keys = get_archived_keys()
+        events = load_events(limit=15, visibility="public")
+        filtered_events = []
+        for e in events:
+            meta = e.get("metadata", {})
+            pkey = meta.get("participant_key")
+            if pkey and pkey in archived_keys:
+                continue
+            filtered_events.append(e)
+            if len(filtered_events) >= 5:
+                break
+        if not filtered_events:
             st.write("Sem atividades recentes.")
         else:
-            for e in events:
+            for e in filtered_events:
                 ts = e.get("timestamp", "").split("T")[1][:5] if "T" in e.get("timestamp", "") else "—"
                 st.write(f"⏱️ **{ts}** — {e.get('message')}")
 
@@ -132,10 +147,23 @@ def render_palpites_do_grupo() -> None:
 
     matches.sort(key=lambda m: (m.starts_at or "", m.sort_order))
 
+    # Filtro por rodada/fase
+    rounds = sorted(list(set(m.round_label for m in matches)))
+    selected_round = st.selectbox("Filtrar por Rodada/Fase", ["Todas"] + rounds, key="palpites_grupo_round_filter")
+    
+    if selected_round != "Todas":
+        filtered_matches = [m for m in matches if m.round_label == selected_round]
+    else:
+        filtered_matches = matches
+        
+    if not filtered_matches:
+        st.info("Nenhuma partida nesta rodada.")
+        return
+
     # Escolher o jogo
     selected_match = st.selectbox(
         "Selecione uma partida para ver os palpites", 
-        matches, 
+        filtered_matches, 
         format_func=lambda m: f"{m.home_team} x {m.away_team} ({m.round_label})"
     )
 
@@ -148,12 +176,20 @@ def render_palpites_do_grupo() -> None:
 
     st.markdown(f"#### Palpites para: {m.home_team} x {m.away_team}")
     
-    # Mostrar um aviso caso esteja aberto, mas continuar exibindo os palpites
-    if is_open:
-        st.info("🟢 O jogo está aberto para palpites! Palpites do grupo são atualizados em tempo real.")
-
-    # Revelar palpites
     match_preds = [lp for lp in live_preds if lp.match_id == m.match_id]
+    
+    # Privado antes do lock
+    if is_open:
+        st.info("🔒 Os palpites individuais estão ocultados até o fechamento das apostas (10 minutos antes do início do jogo).")
+        st.metric("Total de palpites enviados até agora", len(match_preds))
+        return
+
+    # Privacidade pós lock
+    reveal_allowed = config.get("public_features", {}).get("reveal_live_predictions_after_lock", True) or m.status == "result_approved"
+    if not reveal_allowed:
+        st.info("🔒 A visualização dos palpites dos outros participantes está desativada conforme as regras de privacidade do bolão.")
+        return
+
     if not match_preds:
         st.info("Ninguém palpitou nesta partida.")
         return
@@ -172,7 +208,25 @@ def render_palpites_do_grupo() -> None:
             "Envio": lp.submitted_at.replace("T", " ") if lp.submitted_at else "—"
         })
         
-    st.dataframe(pd.DataFrame(data), width="stretch", hide_index=True)
+    def render_palpite_grupo_card(r):
+        badge_pts = f"<span class='badge success'>{r['Pontos Ganhos']}</span>" if r['Pontos Ganhos'] != "—" else ""
+        st.markdown(
+            f"""
+            <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-weight: bold; font-size: 15px; color: var(--ink);">{r['Participante']}</span>
+                    {badge_pts}
+                </div>
+                <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
+                    🎯 Palpite: <strong style="color:var(--green); font-size:14px;">{r['Palpite']}</strong>
+                    <br>⏱️ Envio: {r['Envio']}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    render_responsive_table(pd.DataFrame(data), render_palpite_grupo_card, f"palpites_grupo_{m.match_id}")
 
 
 def render_analise_dos_palpites() -> None:
@@ -208,7 +262,24 @@ def render_analise_dos_palpites() -> None:
             "Placares Exatos": r["exact_scores"],
             "Aproveitamento": f"{int(r['hit_rate']*100)}%"
         } for r in round_ranks])
-        st.dataframe(sub_df, width="stretch", hide_index=True)
+        
+        def render_analise_ranking_card(r):
+            st.markdown(
+                f"""
+                <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-weight: bold; font-size: 15px; color: var(--ink);">{r['Posição']}º. {r['Participante']}</span>
+                        <span class="badge success">{r['Pontos na Rodada']} pts</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
+                        🎯 Placares Exatos: {r['Placares Exatos']}
+                        <br>📈 Aproveitamento: {r['Aproveitamento']}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        render_responsive_table(sub_df, render_analise_ranking_card, f"analise_ranking_{selected_round}")
     else:
         st.caption("Sem palpites computados para esta rodada.")
 
@@ -252,7 +323,21 @@ def render_analise_dos_palpites() -> None:
             })
             
     if zebra_hits_list:
-        st.dataframe(pd.DataFrame(zebra_hits_list), width="stretch", hide_index=True)
+        def render_zebra_card(r):
+            st.markdown(
+                f"""
+                <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--gold);">
+                    <div style="font-weight: bold; font-size: 15px; color: var(--ink); margin-bottom: 6px;">{r['Jogo']}</div>
+                    <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
+                        🏁 Placar Oficial: <b>{r['Placar Oficial']}</b>
+                        <br>📊 Apoio do Grupo: {r['Apoio do Grupo']}
+                        <br>🦓 Quem Acertou: <strong style="color:var(--green);">{r['Quem Acertou']}</strong>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        render_responsive_table(pd.DataFrame(zebra_hits_list), render_zebra_card, "zebra_hits")
     else:
         st.write("Nenhum resultado classificado como zebra ocorreu na Copa ainda.")
 
@@ -360,7 +445,21 @@ def render_duelo_de_palpites() -> None:
 
     st.markdown("#### ⚔️ Divergências de Placares em Jogos Bloqueados")
     if discord_list:
-        st.dataframe(pd.DataFrame(discord_list), width="stretch", hide_index=True)
+        def render_duel_discord_card(r):
+            st.markdown(
+                f"""
+                <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--red);">
+                    <div style="font-weight: bold; font-size: 15px; color: var(--ink); margin-bottom: 6px;">{r['Jogo']}</div>
+                    <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
+                        👤 <b>{player_a}:</b> {r[player_a]}
+                        <br>👥 <b>{player_b}:</b> {r[player_b]}
+                        <br>🏁 Placar Oficial: <b>{r['Resultado Oficial']}</b>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        render_responsive_table(pd.DataFrame(discord_list), render_duel_discord_card, f"duel_{pkey_a}_{pkey_b}")
     else:
         st.caption("Os dois participantes concordaram em todos os palpites dos jogos bloqueados até o momento.")
 

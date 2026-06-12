@@ -143,3 +143,5 @@ DEFAULT_V2_RULES = {
     "ko_champion": 20,
 }
 
+ACTIVE_PARTICIPANT_NAMES = ["Baruja", "Fantato", "Henrique O Terrível"]
+

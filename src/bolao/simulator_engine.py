@@ -44,8 +44,8 @@ def calculate_group_standings(group_letter: str, matches: list[GroupMatch]) -> l
     stats = {
         tid: GroupStanding(
             team_id=tid,
-            name=TEAMS[tid]["name"],
-            abbr=TEAMS[tid]["abbr"]
+            name=TEAMS.get(tid, {}).get("name", tid),
+            abbr=TEAMS.get(tid, {}).get("abbr", tid[:3].upper())
         ) for tid in team_ids
     }
 

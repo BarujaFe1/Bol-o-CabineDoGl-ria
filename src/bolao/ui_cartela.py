@@ -13,6 +13,7 @@ from .ui_live_matches import is_match_open_for_prediction
 from .constants import GROUPS, PHASE_LABELS
 from .achievements import calculate_achievements
 from .social import build_my_card_share_text
+from .ui_components import render_responsive_table
 
 def render_minha_cartela() -> None:
     st.markdown("### 📋 Minha Cartela — Visão Geral do Participante")
@@ -217,14 +218,7 @@ def render_minha_cartela() -> None:
                     "4º Lugar": teams[3] or "—"
                 })
             
-            # Desktop view
-            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
-            st.dataframe(pd.DataFrame(grp_data), width="stretch", hide_index=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            # Mobile view
-            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
-            for item in grp_data:
+            def render_grp_data_card(item):
                 st.markdown(
                     f"""
                     <div class="card" style="margin-bottom: 12px; padding: 16px;">
@@ -239,7 +233,7 @@ def render_minha_cartela() -> None:
                     """,
                     unsafe_allow_html=True
                 )
-            st.markdown('</div>', unsafe_allow_html=True)
+            render_responsive_table(pd.DataFrame(grp_data), render_grp_data_card, "grp_data")
 
             # Show best thirds
             st.markdown(f"##### 🥉 Melhores terceiros classificados: `{', '.join(classic_pred.best_thirds) if classic_pred.best_thirds else '—'}`")
@@ -264,14 +258,7 @@ def render_minha_cartela() -> None:
                         })
                 if gm_rows:
                     with st.expander("Ver Todos os Palpites de Placares da Fase de Grupos", expanded=False):
-                        # Desktop view
-                        st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
-                        st.dataframe(pd.DataFrame(gm_rows), width="stretch", hide_index=True)
-                        st.markdown('</div>', unsafe_allow_html=True)
-
-                        # Mobile view
-                        st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
-                        for r in gm_rows:
+                        def render_gm_row_card(r):
                             st.markdown(
                                 f"""
                                 <div class="card" style="margin-bottom: 8px; padding: 12px; border-left: 3px solid var(--green);">
@@ -284,7 +271,7 @@ def render_minha_cartela() -> None:
                                 """,
                                 unsafe_allow_html=True
                             )
-                        st.markdown('</div>', unsafe_allow_html=True)
+                        render_responsive_table(pd.DataFrame(gm_rows), render_gm_row_card, "gm_rows")
 
             # Show knockout path
             st.markdown("##### ⚔️ Chave de Mata-Mata")
@@ -298,14 +285,7 @@ def render_minha_cartela() -> None:
                             "Vencedor Escolhido": m.winner or "—"
                         })
                     
-                    # Desktop view
-                    st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
-                    st.dataframe(pd.DataFrame(phase_rows), width="stretch", hide_index=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-                    # Mobile view
-                    st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
-                    for r in phase_rows:
+                    def render_phase_row_card(r):
                         st.markdown(
                             f"""
                             <div class="card" style="margin-bottom: 8px; padding: 12px;">
@@ -317,7 +297,7 @@ def render_minha_cartela() -> None:
                             """,
                             unsafe_allow_html=True
                         )
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    render_responsive_table(pd.DataFrame(phase_rows), render_phase_row_card, f"phase_rows_{phase}")
 
     # Tab 3: Jogo a Jogo
     with c_tabs[2]:
@@ -340,14 +320,7 @@ def render_minha_cartela() -> None:
                         "Critério": " · ".join(res["breakdown"]) if m.status == "result_approved" else "—"
                     })
             
-            # Desktop view
-            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
-            st.dataframe(pd.DataFrame(live_rows), width="stretch", hide_index=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            # Mobile view
-            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
-            for r in live_rows:
+            def render_live_row_card(r):
                 badge_points = f"<span class='badge success'>{r['Pontos']} pts</span>" if isinstance(r['Pontos'], int) or str(r['Pontos']).isdigit() or 'pts' in str(r['Pontos']) else f"<span class='badge info'>{r['Pontos']}</span>"
                 st.markdown(
                     f"""
@@ -365,7 +338,7 @@ def render_minha_cartela() -> None:
                     """,
                     unsafe_allow_html=True
                 )
-            st.markdown('</div>', unsafe_allow_html=True)
+            render_responsive_table(pd.DataFrame(live_rows), render_live_row_card, "live_rows")
 
     # Tab 4: Pontos
     with c_tabs[3]:
@@ -434,14 +407,7 @@ def render_minha_cartela() -> None:
                 {"Modo / Critério": "Pontuação Jogo a Jogo", selected_name: f"{live_points} pts", friend_name: f"{next((s['total'] for s in live_scores if s['participant_key'] == friend_key), 0)} pts"}
             ]
             
-            # Desktop view
-            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
-            st.dataframe(pd.DataFrame(comp_general), width="stretch", hide_index=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            # Mobile view
-            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
-            for r in comp_general:
+            def render_comp_general_card(r):
                 st.markdown(
                     f"""
                     <div class="card" style="margin-bottom: 12px; padding: 16px; border-top: 4px solid var(--green);">
@@ -454,7 +420,7 @@ def render_minha_cartela() -> None:
                     """,
                     unsafe_allow_html=True
                 )
-            st.markdown('</div>', unsafe_allow_html=True)
+            render_responsive_table(pd.DataFrame(comp_general), render_comp_general_card, "comp_general")
 
             # Compare Jogo a Jogo
             st.markdown("##### 🔒 Comparativo Jogo a Jogo (Apenas Jogos Bloqueados)")
@@ -477,14 +443,7 @@ def render_minha_cartela() -> None:
                             "Resultado Oficial": f"{m.official_home_goals} x {m.official_away_goals}" if m.status == "result_approved" else "Pendente"
                         })
             if compare_rows:
-                # Desktop view
-                st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
-                st.dataframe(pd.DataFrame(compare_rows), width="stretch", hide_index=True)
-                st.markdown('</div>', unsafe_allow_html=True)
-
-                # Mobile view
-                st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
-                for r in compare_rows:
+                def render_compare_row_card(r):
                     st.markdown(
                         f"""
                         <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--gold);">
@@ -498,6 +457,6 @@ def render_minha_cartela() -> None:
                         """,
                         unsafe_allow_html=True
                     )
-                st.markdown('</div>', unsafe_allow_html=True)
+                render_responsive_table(pd.DataFrame(compare_rows), render_compare_row_card, "compare_rows")
             else:
                 st.caption("Nenhum palpite jogo a jogo em jogos já encerrados ou bloqueados.")

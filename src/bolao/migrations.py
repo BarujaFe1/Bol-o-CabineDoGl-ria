@@ -567,3 +567,51 @@ def restore_archived_participant(pkey: str) -> bool:
     return True
 
 
+def run_participant_cleanup_migration() -> dict:
+    """
+    Executa a migração idempotente para arquivar os participantes não-ativos.
+    """
+    from .storage import load_registered_participants, archive_participant, load_migrations, save_migrations, append_event
+    from .constants import ACTIVE_PARTICIPANT_NAMES
+    from .utils import normalize_participant_key, now_iso
+    import os
+    
+    migrations = load_migrations()
+    if migrations.get("participant_cleanup_migration_v2"):
+        return {"status": "already_done"}
+        
+    # 1. Realizar backup
+    try:
+        from tools.make_backup import make_backup
+        backup_path = make_backup()
+        backup_ref = os.path.basename(backup_path)
+    except Exception:
+        backup_ref = "backup_failed"
+        
+    # 2. Identificar participantes a arquivar
+    all_registered = load_registered_participants(include_archived=True)
+    active_keys = {normalize_participant_key(name) for name in ACTIVE_PARTICIPANT_NAMES}
+    
+    archived_count = 0
+    for name in all_registered:
+        key = normalize_participant_key(name)
+        if key not in active_keys:
+            archive_participant(name, reason="cleanup_requested_by_admin", backup_ref=backup_ref)
+            archived_count += 1
+            
+    # 3. Registrar evento e migração
+    append_event(
+        kind="migration_executed",
+        message=f"Migração de arquivamento executada. {archived_count} participantes arquivados."
+    )
+    
+    migrations["participant_cleanup_migration_v2"] = now_iso()
+    save_migrations(migrations)
+    
+    return {
+        "status": "success",
+        "archived_count": archived_count,
+        "backup_ref": backup_ref
+    }
+
+

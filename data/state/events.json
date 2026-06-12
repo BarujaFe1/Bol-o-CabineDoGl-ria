@@ -1,5 +1,53 @@
 [
   {
+    "id": "c1a16777",
+    "timestamp": "2026-06-12T19:16:19",
+    "kind": "participant_restored",
+    "message": "Participante Murilov foi restaurado.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "dc0bd004",
+    "timestamp": "2026-06-12T19:16:19",
+    "kind": "participant_archived",
+    "message": "Participante Murilov foi arquivado.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "8ca4b424",
+    "timestamp": "2026-06-12T19:16:19",
+    "kind": "participant_registered",
+    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "c64232b5",
+    "timestamp": "2026-06-12T19:15:45",
+    "kind": "participant_registered",
+    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "9b034d1c",
+    "timestamp": "2026-06-12T19:14:06",
+    "kind": "participant_registered",
+    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "d6aa7110",
+    "timestamp": "2026-06-12T19:13:47",
+    "kind": "participant_registered",
+    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
     "id": "b698ce1d",
     "timestamp": "2026-06-12T17:50:54",
     "kind": "live_prediction_edited_by_admin",

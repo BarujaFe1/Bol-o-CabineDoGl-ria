@@ -226,3 +226,29 @@ def render_step_indicator(steps: list[str], current_index: int) -> None:
         f'<div class="step-indicator">{inner}</div>',
         unsafe_allow_html=True
     )
+
+
+def render_responsive_table(
+    df: pd.DataFrame,
+    card_renderer_callback: Any,
+    key: str,
+    desktop_columns: list[str] | None = None
+) -> None:
+    """
+    Renderiza um dataframe no desktop e cards específicos no mobile.
+    """
+    # Desktop view wrapper
+    st.markdown('<div class="desktop-only-table">', unsafe_allow_html=True)
+    df_display = df[desktop_columns] if desktop_columns else df
+    st.dataframe(df_display, width="stretch", hide_index=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Mobile view wrapper
+    st.markdown('<div class="mobile-only-cards">', unsafe_allow_html=True)
+    if df.empty:
+        st.caption("Nenhum registro para exibir.")
+    else:
+        for idx, row in df.iterrows():
+            # Use unique key prefix inside callback if needed
+            card_renderer_callback(row)
+    st.markdown('</div>', unsafe_allow_html=True)
