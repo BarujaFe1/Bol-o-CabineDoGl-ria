@@ -273,42 +273,65 @@ def _seed_initial_state() -> None:
     else:
         write_json(REGISTERED_PARTICIPANTS_PATH, list(INITIAL_PARTICIPANTS))
 
-    if not LIVE_PREDICTIONS_PATH.exists():
-        _seed_initial_live_predictions()
+    MERGE_PREDS = [
+        ("Murilov", "13381", 2, 0),
+        ("Murilov", "13382", 1, 1),
+        ("Mantovas", "13382", 0, 1),
+        ("Lucão", "13381", 2, 0),
+        ("Lucão", "13382", 1, 0),
+    ]
 
-
-def _seed_initial_live_predictions() -> None:
     from .utils import normalize_participant_key
-    now = now_iso()
-    preds = []
-
-    def add(name, match_id, h, a):
-        key = normalize_participant_key(name)
-        preds.append({
-            "id": f"{key}_{match_id}",
-            "participant_name": name,
-            "participant_key": key,
-            "match_id": match_id,
-            "predicted_home_goals": h,
-            "predicted_away_goals": a,
-            "submitted_at": now,
-            "updated_at": now,
-            "confirmation_code": None,
-            "locked_at": None,
-            "is_locked": False,
-            "is_late": False,
-            "points": None,
-            "scoring_breakdown": [],
-            "schema_version": "live-v1"
-        })
-
-    add("Murilov", "13381", 2, 0)
-    add("Murilov", "13382", 1, 1)
-    add("Mantovas", "13382", 0, 1)
-    add("Lucão", "13381", 2, 0)
-    add("Lucão", "13382", 1, 0)
-
-    write_json(LIVE_PREDICTIONS_PATH, preds)
+    if LIVE_PREDICTIONS_PATH.exists():
+        current = read_json(LIVE_PREDICTIONS_PATH, [])
+        existing_ids = {p["id"] for p in current}
+        now = now_iso()
+        for name, m_id, h, a in MERGE_PREDS:
+            key = normalize_participant_key(name)
+            pid = f"{key}_{m_id}"
+            if pid not in existing_ids:
+                current.append({
+                    "id": pid,
+                    "participant_name": name,
+                    "participant_key": key,
+                    "match_id": m_id,
+                    "predicted_home_goals": h,
+                    "predicted_away_goals": a,
+                    "submitted_at": now,
+                    "updated_at": now,
+                    "confirmation_code": None,
+                    "locked_at": None,
+                    "is_locked": False,
+                    "is_late": False,
+                    "points": None,
+                    "scoring_breakdown": [],
+                    "schema_version": "live-v1"
+                })
+                existing_ids.add(pid)
+        write_json(LIVE_PREDICTIONS_PATH, current)
+    else:
+        now = now_iso()
+        base = []
+        for name, m_id, h, a in MERGE_PREDS:
+            key = normalize_participant_key(name)
+            base.append({
+                "id": f"{key}_{m_id}",
+                "participant_name": name,
+                "participant_key": key,
+                "match_id": m_id,
+                "predicted_home_goals": h,
+                "predicted_away_goals": a,
+                "submitted_at": now,
+                "updated_at": now,
+                "confirmation_code": None,
+                "locked_at": None,
+                "is_locked": False,
+                "is_late": False,
+                "points": None,
+                "scoring_breakdown": [],
+                "schema_version": "live-v1"
+            })
+        write_json(LIVE_PREDICTIONS_PATH, base)
 
 
 def default_config() -> dict:
