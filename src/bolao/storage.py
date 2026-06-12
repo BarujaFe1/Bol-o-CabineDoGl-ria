@@ -928,10 +928,8 @@ def sync_official_results_to_matches() -> int:
             m.winner = "draw"
         updated += 1
 
-    if updated == 0:
-        return 0
-
-    # Recalcular pontos dos palpites para os matches atualizados
+    # Recalcular pontos de TODOS os palpites para matches aprovados
+    # (sempre executa, mesmo sem novos syncs, pois palpites podem ter mudado)
     from .live_scoring import calculate_live_prediction_points
     for lp in live_preds:
         if lp.match_id in matches_by_id and matches_by_id[lp.match_id].status == "result_approved":
