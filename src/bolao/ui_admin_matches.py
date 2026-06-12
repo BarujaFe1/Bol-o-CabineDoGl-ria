@@ -81,6 +81,13 @@ def admin_matches_agenda() -> None:
             
             status = st.selectbox("Status do Jogo", ["scheduled", "locked", "live", "finished", "result_approved"], index=["scheduled", "locked", "live", "finished", "result_approved"].index(match_to_edit.status) if match_to_edit else 0)
 
+            # Bets manual override selectbox
+            bets_override_options = ["Padrão (Baseado no Horário)", "Forçar Aberto", "Forçar Fechado"]
+            current_override = "Padrão (Baseado no Horário)"
+            if match_to_edit and hasattr(match_to_edit, "bets_manual_closed") and match_to_edit.bets_manual_closed is not None:
+                current_override = "Forçar Fechado" if match_to_edit.bets_manual_closed else "Forçar Aberto"
+            bets_override = st.selectbox("Status das Apostas (Manual Override)", bets_override_options, index=bets_override_options.index(current_override))
+
             submitted = st.form_submit_button("Salvar Jogo", width="stretch")
             if submitted:
                 if not m_id.strip() or not home_team.strip() or not away_team.strip():
@@ -91,6 +98,12 @@ def admin_matches_agenda() -> None:
                     except Exception:
                         st.error("Formato de data de início inválido. Use YYYY-MM-DDTHH:MM:SS.")
                         return
+
+                    bets_val = None
+                    if bets_override == "Forçar Fechado":
+                        bets_val = True
+                    elif bets_override == "Forçar Aberto":
+                        bets_val = False
 
                     # Create or update match object
                     new_match = LiveMatch(
@@ -103,7 +116,8 @@ def admin_matches_agenda() -> None:
                         starts_at=starts_at,
                         starts_at_timezone=timezone.strip(),
                         status=status,
-                        sort_order=int(sort_order)
+                        sort_order=int(sort_order),
+                        bets_manual_closed=bets_val
                     )
                     
                     if match_to_edit:

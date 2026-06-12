@@ -126,6 +126,7 @@ class LiveMatch:
     winner: str | None = None  # time vencedor ou 'draw'
     source: str = "manual"  # manual, official_result, imported
     sort_order: int = 0
+    bets_manual_closed: bool | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -144,6 +145,7 @@ class LiveMatch:
             "winner": self.winner,
             "source": self.source,
             "sort_order": self.sort_order,
+            "bets_manual_closed": self.bets_manual_closed,
         }
 
     @classmethod
@@ -164,6 +166,7 @@ class LiveMatch:
             winner=d.get("winner"),
             source=d.get("source", "manual"),
             sort_order=int(d.get("sort_order", 0)),
+            bets_manual_closed=d.get("bets_manual_closed") if d.get("bets_manual_closed") is None else bool(d.get("bets_manual_closed")),
         )
 
 

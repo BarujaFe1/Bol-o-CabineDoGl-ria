@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 from typing import Any
-from .models import LivePrediction, Prediction
+from .models import LivePrediction, Prediction, LiveMatch
 from .storage import load_matches, load_live_predictions, save_live_predictions, load_config, append_event, load_submissions, load_official
 from .utils import normalize_participant_key, now_iso
 from .live_scoring import calculate_live_prediction_points, calculate_live_ranking
@@ -14,8 +14,12 @@ from .ui_components import render_badge
 
 def is_match_open_for_prediction(match: Any, now: str | None = None) -> bool:
     """
-    Retorna True se agora < lock_at.
+    Retorna True se o palpite está aberto.
     """
+    # Check manual override first
+    if hasattr(match, "bets_manual_closed") and match.bets_manual_closed is not None:
+        return not match.bets_manual_closed
+
     if not match.starts_at:
         return False
     

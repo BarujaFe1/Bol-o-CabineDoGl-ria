@@ -599,31 +599,120 @@ def admin_participants() -> None:
         st.rerun()
     render_page_header("Admin", "Participantes", "Gerencie os palpites enviados pelos participantes.", "👥")
     submissions = load_app_data_cached().submissions
+    from src.bolao.storage import load_live_predictions, save_live_predictions
+    from src.bolao.utils import normalize_participant_key
+    from src.bolao.ui_simulator import init_simulator_state
     
-    # Seção para exibir participantes ativos
-    if submissions:
+    live_preds = load_live_predictions()
+    
+    all_names_set = set()
+    for s in submissions:
+        all_names_set.add(s.participant)
+    for lp in live_preds:
+        all_names_set.add(lp.participant_name)
+        
+    all_names = sorted(list(all_names_set), key=lambda x: x.lower())
+
+    if all_names:
         search_term = st.text_input("🔍 Buscar por nome", placeholder="Digite parte do nome...", key="part_search")
-        filtered = [p for p in submissions if search_term.lower() in p.participant.lower()] if search_term else submissions
+        filtered = [name for name in all_names if search_term.lower() in name.lower()] if search_term else all_names
 
         if filtered:
-            df = pd.DataFrame([
-                {"Nome": p.participant, "Código": p.submission_id[:8] + "...", "Enviado em": p.submitted_at, "Campeã": p.champion or "—"}
-                for p in filtered
-            ])
-            st.dataframe(df, width="stretch", hide_index=True)
+            p_data = []
+            for name in filtered:
+                classic_pred = next((s for s in submissions if s.participant.lower() == name.lower()), None)
+                user_key = normalize_participant_key(name)
+                lp_count = sum(1 for lp in live_preds if lp.participant_key == user_key or normalize_participant_key(lp.participant_name) == user_key)
+                p_data.append({
+                    "Nome": name,
+                    "Palpite Clássico": "Cadastrado" if classic_pred else "Não enviado",
+                    "Palpites Jogo a Jogo": f"{lp_count} palpites",
+                    "Código Clássico": classic_pred.submission_id[:8] + "..." if classic_pred else "—"
+                })
+            st.dataframe(pd.DataFrame(p_data), width="stretch", hide_index=True)
 
             with st.expander("Ver/editar um participante"):
-                selected = st.selectbox("Participante", options=[f"{p.participant} · {p.submission_id[:8]}..." for p in filtered], key="part_select")
-                idx = [f"{p.participant} · {p.submission_id[:8]}..." for p in filtered].index(selected)
-                pred = filtered[idx]
-                st.json(pred.to_dict(), expanded=False)
-
-                st.markdown(f'<div class="error-box" style="margin-top: 15px;"><strong>🚨 Zona de Perigo:</strong> Excluir o palpite de <strong>{pred.participant}</strong> é irreversível. Não há como recuperar os dados depois.</div>', unsafe_allow_html=True)
-                confirm_word = st.text_input(f"Digite EXCLUIR para confirmar a exclusão de {pred.participant}:", key=f"confirm_word_{pred.submission_id}")
-                if st.button("🚨 Excluir permanentemente", type="primary", disabled=confirm_word != "EXCLUIR", width="stretch"):
-                    delete_submission(pred.submission_id)
-                    st.success(f"Palpite de {pred.participant} excluído permanentemente.")
-                    st.rerun()
+                selected_name = st.selectbox("Selecione o participante:", options=filtered, key="part_select")
+                
+                # Load existing classic prediction
+                classic_pred = next((s for s in submissions if s.participant.lower() == selected_name.lower()), None)
+                
+                if classic_pred:
+                    st.markdown("##### 📋 Palpite Clássico")
+                    st.json(classic_pred.to_dict(), expanded=False)
+                    
+                    # Edit Classic button
+                    if st.button("✏️ Editar Palpite Clássico", key=f"btn_edit_classic_{classic_pred.submission_id}", use_container_width=True):
+                        st.session_state["admin_editing_classic_prediction"] = classic_pred
+                        init_simulator_state(classic_pred, force_reset=True, is_admin=False)
+                        st.session_state["nav_page"] = "Editar Palpite Clássico"
+                        st.rerun()
+                        
+                    # Danger zone for classic prediction deletion
+                    st.markdown(f'<div class="error-box" style="margin-top: 15px;"><strong>🚨 Zona de Perigo:</strong> Excluir o palpite clássico de <strong>{selected_name}</strong> é irreversível.</div>', unsafe_allow_html=True)
+                    confirm_word = st.text_input(f"Digite EXCLUIR para confirmar a exclusão do palpite clássico de {selected_name}:", key=f"confirm_word_{classic_pred.submission_id}")
+                    if st.button("🚨 Excluir palpite clássico", type="primary", disabled=confirm_word != "EXCLUIR", use_container_width=True):
+                        delete_submission(classic_pred.submission_id)
+                        st.success(f"Palpite clássico de {selected_name} excluído com sucesso.")
+                        st.cache_data.clear()
+                        st.rerun()
+                else:
+                    st.info("Este participante não possui palpite clássico cadastrado.")
+                    
+                # Edit Jogo a Jogo predictions
+                st.markdown("---")
+                st.markdown("##### 🎯 Palpites Jogo a Jogo")
+                user_key = normalize_participant_key(selected_name)
+                user_live_preds = [lp for lp in live_preds if lp.participant_key == user_key or normalize_participant_key(lp.participant_name) == user_key]
+                
+                if not user_live_preds:
+                    st.info("Este participante não possui palpites jogo a jogo cadastrados.")
+                else:
+                    st.caption("Selecione um jogo para alterar o palpite de placar:")
+                    matches = load_matches()
+                    match_opts = []
+                    lp_map = {}
+                    for lp in user_live_preds:
+                        m = next((m for m in matches if m.match_id == lp.match_id), None)
+                        if m:
+                            lbl = f"{m.home_team} x {m.away_team} (Palpite: {lp.predicted_home_goals}x{lp.predicted_away_goals})"
+                            match_opts.append(lbl)
+                            lp_map[lbl] = (lp, m)
+                    
+                    if match_opts:
+                        selected_lp_lbl = st.selectbox("Escolha a partida:", options=match_opts, key=f"lp_select_{selected_name}")
+                        selected_lp, selected_m = lp_map[selected_lp_lbl]
+                        
+                        col_edit1, col_edit2 = st.columns(2)
+                        with col_edit1:
+                            new_h = st.number_input(f"Gols {selected_m.home_team}", min_value=0, max_value=20, value=int(selected_lp.predicted_home_goals), step=1, key=f"edit_lp_h_{selected_lp.id}")
+                        with col_edit2:
+                            new_a = st.number_input(f"Gols {selected_m.away_team}", min_value=0, max_value=20, value=int(selected_lp.predicted_away_goals), step=1, key=f"edit_lp_a_{selected_lp.id}")
+                            
+                        if st.button("💾 Atualizar Palpite Jogo a Jogo", key=f"btn_edit_lp_{selected_lp.id}", type="primary", use_container_width=True):
+                            selected_lp.predicted_home_goals = int(new_h)
+                            selected_lp.predicted_away_goals = int(new_a)
+                            selected_lp.updated_at = now_iso()
+                            
+                            # Update points if approved
+                            if selected_m.status == "result_approved":
+                                from src.bolao.live_scoring import calculate_live_prediction_points
+                                config = load_config()
+                                res = calculate_live_prediction_points(selected_lp, selected_m, config)
+                                selected_lp.points = res["points"]
+                                selected_lp.scoring_breakdown = res["breakdown"]
+                                
+                            save_live_predictions(live_preds)
+                            
+                            from src.bolao.events import append_event
+                            append_event(
+                                kind="live_prediction_edited_by_admin",
+                                message=f"O administrador editou o palpite jogo a jogo de {selected_name} no jogo {selected_m.home_team} x {selected_m.away_team} para {new_h}x{new_a}."
+                            )
+                            
+                            st.success(f"Palpite jogo a jogo para {selected_m.home_team} x {selected_m.away_team} atualizado com sucesso!")
+                            st.cache_data.clear()
+                            st.rerun()
         else:
             st.info(f"Nenhum participante encontrado para \"{search_term}\".")
     else:
@@ -1263,6 +1352,53 @@ def admin_settings() -> None:
             st.rerun()
 
 
+def admin_edit_classic_page() -> None:
+    from src.bolao.ui_simulator import render_simulator, validate_prediction_complete
+    
+    if st.button("⬅️ Voltar para Participantes", key="btn_back_from_edit_classic", use_container_width=True):
+        st.session_state["nav_page"] = "Participantes"
+        st.rerun()
+
+    pred = st.session_state.get("admin_editing_classic_prediction")
+    if not pred:
+        st.warning("Nenhum palpite selecionado para edição.")
+        return
+
+    st.markdown(f"### ✏️ Editando Palpite Clássico de **{pred.participant}**")
+    st.caption("Altere os placares da fase de grupos e o chaveamento do mata-mata no simulador abaixo.")
+
+    updated_pred = render_simulator(pred)
+    if updated_pred:
+        st.markdown("---")
+        st.markdown("#### Salvar Alterações")
+        if st.button("💾 Salvar Alterações do Participante", type="primary", use_container_width=True):
+            # Final validation check
+            is_complete, missing = validate_prediction_complete(updated_pred)
+            if not is_complete:
+                st.error("⚠️ Palpite incompleto. Verifique os itens abaixo:")
+                for item in missing:
+                    st.markdown(f"- {item}")
+                return
+            
+            # Save the updated prediction
+            from src.bolao.storage import save_submission
+            from src.bolao.events import append_event
+            
+            updated_pred.submitted_at = now_iso()
+            save_submission(updated_pred)
+            
+            append_event(
+                kind="submission_edited_by_admin",
+                message=f"O administrador editou o palpite clássico do participante {pred.participant}."
+            )
+            
+            st.success(f"Alterações no palpite de {pred.participant} salvas com sucesso!")
+            st.session_state.pop("admin_editing_classic_prediction", None)
+            st.session_state["nav_page"] = "Participantes"
+            st.cache_data.clear()
+            st.rerun()
+
+
 def admin_help() -> None:
     if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_help", width="stretch"):
         st.session_state["nav_page"] = "Dashboard"
@@ -1568,6 +1704,8 @@ def main() -> None:
             admin_dashboard()
         elif page == "Participantes":
             admin_participants()
+        elif page == "Editar Palpite Clássico":
+            admin_edit_classic_page()
         elif page == "Jogos e Agenda":
             from src.bolao.ui_admin_matches import admin_matches_agenda
             admin_matches_agenda()
