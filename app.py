@@ -1480,7 +1480,9 @@ def main() -> None:
                 current_page = "Dashboard"
             idx = admin_options.index(current_page)
             page = st.radio("Admin Menu", admin_options, index=idx, label_visibility="collapsed")
-            st.session_state["nav_page"] = page
+            if page != current_page and current_page in admin_options:
+                st.session_state["nav_page"] = page
+                st.rerun()
             show_admin = True
         else:
             # Public Menu
@@ -1491,8 +1493,9 @@ def main() -> None:
             else:
                 idx = public_options.index(current_page)
             page = st.radio("Navegação", public_options, index=idx, label_visibility="collapsed")
-            if st.session_state["nav_page"] != "Admin Login" and st.session_state["nav_page"] != "Match Center":
+            if page != current_page and current_page in public_options:
                 st.session_state["nav_page"] = page
+                st.rerun()
             show_admin = False
 
         st.markdown("---")
