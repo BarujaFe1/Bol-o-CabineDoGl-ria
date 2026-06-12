@@ -1,0 +1,33 @@
+{
+  "scoring_mode": "v2",
+  "weighted_rules": {
+    "group_1": 5,
+    "group_2": 3,
+    "group_3_best": 2,
+    "best_third": 2,
+    "fase_32": 5,
+    "oitavas": 5,
+    "quartas": 5,
+    "semifinais": 5,
+    "final": 5,
+    "champion_bonus": 0
+  },
+  "uniform_rules": {
+    "decision_points": 1,
+    "champion_bonus": 0
+  },
+  "v2_rules": {
+    "group_exact": 5,
+    "group_result_gd": 3,
+    "group_result": 2,
+    "group_team_goals": 1,
+    "ko_oitavas": 3,
+    "ko_quartas": 5,
+    "ko_semifinais": 8,
+    "ko_final": 12,
+    "ko_champion": 20
+  },
+  "status_label": "Recebendo palpites",
+  "admin_password_enabled": false,
+  "last_api_sync": null
+}

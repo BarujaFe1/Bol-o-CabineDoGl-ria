@@ -1,0 +1,617 @@
+{
+  "participant": "Resultado oficial",
+  "groups": {
+    "A": [
+      "México",
+      "Coreia do Sul",
+      "República Tcheca",
+      "África do Sul"
+    ],
+    "B": [
+      "Suíça",
+      "Catar",
+      "Canadá",
+      "Bósnia"
+    ],
+    "C": [
+      "Brasil",
+      "Marrocos",
+      "Escócia",
+      "Haiti"
+    ],
+    "D": [
+      "Paraguai",
+      "Austrália",
+      "Estados Unidos",
+      "Turquia"
+    ],
+    "E": [
+      "Equador",
+      "Alemanha",
+      "Costa do Marfim",
+      "Curaçao"
+    ],
+    "F": [
+      "Suécia",
+      "Japão",
+      "Tunísia",
+      "Holanda"
+    ],
+    "G": [
+      "Bélgica",
+      "Egito",
+      "Irã",
+      "Nova Zelândia"
+    ],
+    "H": [
+      "Espanha",
+      "Uruguai",
+      "Arábia Saudita",
+      "Cabo Verde"
+    ],
+    "I": [
+      "França",
+      "Senegal",
+      "Iraque",
+      "Noruega"
+    ],
+    "J": [
+      "Argentina",
+      "Áustria",
+      "Jordânia",
+      "Argélia"
+    ],
+    "K": [
+      "Colômbia",
+      "Portugal",
+      "RD Congo",
+      "Uzbequistão"
+    ],
+    "L": [
+      "Inglaterra",
+      "Croácia",
+      "Panamá",
+      "Gana"
+    ]
+  },
+  "best_thirds": [
+    "Canadá",
+    "Escócia",
+    "Estados Unidos",
+    "Costa do Marfim",
+    "Tunísia",
+    "Irã",
+    "Arábia Saudita",
+    "Iraque"
+  ],
+  "knockout": {
+    "fase_32": [
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      }
+    ],
+    "oitavas": [
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      }
+    ],
+    "quartas": [
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      }
+    ],
+    "semifinais": [
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      },
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      }
+    ],
+    "final": [
+      {
+        "a": null,
+        "b": null,
+        "winner": null
+      }
+    ]
+  },
+  "champion": null,
+  "submission_id": "resultado-oficial-demo",
+  "submitted_at": "2026-06-12T13:57:06",
+  "status": "rascunho",
+  "meta": {
+    "group_matches": {
+      "13379": [
+        2,
+        0
+      ],
+      "13380": [
+        2,
+        1
+      ],
+      "13403": [
+        null,
+        null
+      ],
+      "13406": [
+        null,
+        null
+      ],
+      "13431": [
+        null,
+        null
+      ],
+      "13432": [
+        null,
+        null
+      ],
+      "13381": [
+        null,
+        null
+      ],
+      "13383": [
+        null,
+        null
+      ],
+      "13404": [
+        null,
+        null
+      ],
+      "13405": [
+        null,
+        null
+      ],
+      "13427": [
+        null,
+        null
+      ],
+      "13428": [
+        null,
+        null
+      ],
+      "13384": [
+        null,
+        null
+      ],
+      "13385": [
+        null,
+        null
+      ],
+      "13408": [
+        null,
+        null
+      ],
+      "13409": [
+        null,
+        null
+      ],
+      "13429": [
+        null,
+        null
+      ],
+      "13430": [
+        null,
+        null
+      ],
+      "13382": [
+        null,
+        null
+      ],
+      "13386": [
+        null,
+        null
+      ],
+      "13407": [
+        null,
+        null
+      ],
+      "13410": [
+        null,
+        null
+      ],
+      "13437": [
+        null,
+        null
+      ],
+      "13438": [
+        null,
+        null
+      ],
+      "13387": [
+        null,
+        null
+      ],
+      "13389": [
+        null,
+        null
+      ],
+      "13412": [
+        null,
+        null
+      ],
+      "13413": [
+        null,
+        null
+      ],
+      "13433": [
+        null,
+        null
+      ],
+      "13434": [
+        null,
+        null
+      ],
+      "13388": [
+        null,
+        null
+      ],
+      "13390": [
+        null,
+        null
+      ],
+      "13411": [
+        null,
+        null
+      ],
+      "13414": [
+        null,
+        null
+      ],
+      "13435": [
+        null,
+        null
+      ],
+      "13436": [
+        null,
+        null
+      ],
+      "13392": [
+        null,
+        null
+      ],
+      "13394": [
+        null,
+        null
+      ],
+      "13416": [
+        null,
+        null
+      ],
+      "13418": [
+        null,
+        null
+      ],
+      "13443": [
+        null,
+        null
+      ],
+      "13444": [
+        null,
+        null
+      ],
+      "13391": [
+        null,
+        null
+      ],
+      "13393": [
+        null,
+        null
+      ],
+      "13415": [
+        null,
+        null
+      ],
+      "13417": [
+        null,
+        null
+      ],
+      "13441": [
+        null,
+        null
+      ],
+      "13442": [
+        null,
+        null
+      ],
+      "13395": [
+        null,
+        null
+      ],
+      "13396": [
+        null,
+        null
+      ],
+      "13420": [
+        null,
+        null
+      ],
+      "13421": [
+        null,
+        null
+      ],
+      "13440": [
+        null,
+        null
+      ],
+      "13439": [
+        null,
+        null
+      ],
+      "13397": [
+        null,
+        null
+      ],
+      "13398": [
+        null,
+        null
+      ],
+      "13419": [
+        null,
+        null
+      ],
+      "13422": [
+        null,
+        null
+      ],
+      "13449": [
+        null,
+        null
+      ],
+      "13450": [
+        null,
+        null
+      ],
+      "13399": [
+        null,
+        null
+      ],
+      "13402": [
+        null,
+        null
+      ],
+      "13423": [
+        null,
+        null
+      ],
+      "13426": [
+        null,
+        null
+      ],
+      "13447": [
+        null,
+        null
+      ],
+      "13448": [
+        null,
+        null
+      ],
+      "13400": [
+        null,
+        null
+      ],
+      "13401": [
+        null,
+        null
+      ],
+      "13424": [
+        null,
+        null
+      ],
+      "13425": [
+        null,
+        null
+      ],
+      "13445": [
+        null,
+        null
+      ],
+      "13446": [
+        null,
+        null
+      ]
+    },
+    "slots": {
+      "0": null,
+      "1": null,
+      "2": null,
+      "3": null,
+      "4": null,
+      "5": null,
+      "6": null,
+      "7": null,
+      "8": null,
+      "9": null,
+      "10": null,
+      "11": null,
+      "12": null,
+      "13": null,
+      "14": null,
+      "15": null,
+      "16": null,
+      "17": null,
+      "18": null,
+      "19": null,
+      "20": null,
+      "21": null,
+      "22": null,
+      "23": null,
+      "24": null,
+      "25": null,
+      "26": null,
+      "27": null,
+      "28": null,
+      "29": null,
+      "30": null,
+      "31": null,
+      "32": null,
+      "33": null,
+      "34": null,
+      "35": null,
+      "36": null,
+      "37": null,
+      "38": null,
+      "39": null,
+      "40": null,
+      "41": null,
+      "42": null,
+      "43": null,
+      "44": null,
+      "45": null,
+      "46": null,
+      "47": null,
+      "48": null,
+      "49": null,
+      "50": null,
+      "51": null,
+      "52": null,
+      "53": null,
+      "54": null,
+      "55": null,
+      "56": null,
+      "57": null,
+      "58": null,
+      "59": null,
+      "60": null,
+      "61": null,
+      "62": null
+    }
+  },
+  "mode": "classic",
+  "schema_version": "classic-v1"
+}

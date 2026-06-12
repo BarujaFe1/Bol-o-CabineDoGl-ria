@@ -1,0 +1,118 @@
+[
+  {
+    "id": "b698ce1d",
+    "timestamp": "2026-06-12T17:50:54",
+    "kind": "live_prediction_edited_by_admin",
+    "message": "O administrador editou/criou o palpite jogo a jogo de Baruja no jogo México x África do Sul para 2x1.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "c7525503",
+    "timestamp": "2026-06-12T17:50:53",
+    "kind": "live_prediction_edited_by_admin",
+    "message": "O administrador editou/criou o palpite jogo a jogo de Baruja no jogo Canadá x Bósnia para 1x1.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "207c2ec0",
+    "timestamp": "2026-06-12T14:14:09",
+    "kind": "live_guess_saved",
+    "message": "Palpite de Baruja para Canadá x Bósnia salvo.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "29fab68c",
+    "timestamp": "2026-06-12T13:57:06",
+    "kind": "official_saved",
+    "message": "Resultado oficial do bolão foi cadastrado/atualizado.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "7f6abfaf",
+    "timestamp": "2026-06-12T13:57:03",
+    "kind": "official_saved",
+    "message": "Resultado oficial do bolão foi cadastrado/atualizado.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "d10ef772",
+    "timestamp": "2026-06-12T12:55:25",
+    "kind": "migration_executed",
+    "message": "Migração parallel_modes executada. 0 submissões clássicas atualizadas.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "ffeca236",
+    "timestamp": "2026-06-11T16:23:39",
+    "kind": "live_guess_saved",
+    "message": "Palpite de Baruja para Coreia do Sul x República Tcheca salvo.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "ad76d344",
+    "timestamp": "2026-06-11T16:23:31",
+    "kind": "live_guess_saved",
+    "message": "Palpite de Baruja para Coreia do Sul x República Tcheca salvo.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "574bff27",
+    "timestamp": "2026-06-11T16:23:28",
+    "kind": "live_guess_saved",
+    "message": "Palpite de Baruja para Coreia do Sul x República Tcheca salvo.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "c73f33d5",
+    "timestamp": "2026-06-11T15:54:48",
+    "kind": "migration_executed",
+    "message": "Migração segura executada: 0 submissões marcadas como Modo Clássico.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "timestamp": "2026-06-08T21:13:29",
+    "kind": "submission_saved",
+    "message": "Palpite de Baruja foi enviado/atualizado.",
+    "metadata": {}
+  },
+  {
+    "timestamp": "2026-06-08T19:39:38",
+    "kind": "demo_loaded",
+    "message": "Dados de demonstração foram carregados pelo administrador.",
+    "metadata": {}
+  },
+  {
+    "timestamp": "2026-06-08T19:39:34",
+    "kind": "demo_loaded",
+    "message": "Dados de demonstração foram carregados pelo administrador.",
+    "metadata": {}
+  },
+  {
+    "timestamp": "2026-06-08T19:39:32",
+    "kind": "demo_loaded",
+    "message": "Dados de demonstração foram carregados pelo administrador.",
+    "metadata": {}
+  },
+  {
+    "timestamp": "2026-06-08T19:37:28",
+    "kind": "submission_saved",
+    "message": "Palpite de Baruja foi enviado/atualizado.",
+    "metadata": {}
+  },
+  {
+    "timestamp": "2026-06-08T14:40:37",
+    "kind": "submission_saved",
+    "message": "Palpite de Testador Sanca foi enviado/atualizado.",
+    "metadata": {}
+  }
+]
