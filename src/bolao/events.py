@@ -16,6 +16,7 @@ def append_event(kind: str, message: str, metadata: dict | None = None, visibili
     """
     Adiciona um novo evento ao feed de auditoria/atividades.
     """
+    st.cache_data.clear()
     from .storage import get_storage_backend, _get_supabase_client, _supabase_table_exists
     
     EVENTS_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -48,6 +49,7 @@ def append_event(kind: str, message: str, metadata: dict | None = None, visibili
     write_json(EVENTS_PATH, events)
 
 
+@st.cache_data(ttl=15, show_spinner=False)
 def load_events(limit: int = 20, visibility: str | None = None) -> list[dict]:
     """
     Carrega eventos do local ou Supabase.

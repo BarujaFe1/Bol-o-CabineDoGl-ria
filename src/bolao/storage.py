@@ -309,6 +309,7 @@ def default_config() -> dict:
 
 
 
+@st.cache_data(ttl=15, show_spinner=False)
 def load_config() -> dict:
     ensure_state()
     backend = get_storage_backend()
@@ -356,6 +357,7 @@ def save_config(config: dict) -> None:
     write_json(CONFIG_PATH, config)
 
 
+@st.cache_data(ttl=15, show_spinner=False)
 def load_submissions() -> list[Prediction]:
     ensure_state()
     backend = get_storage_backend()
@@ -461,6 +463,7 @@ def delete_submission(submission_id: str) -> bool:
     return deleted
 
 
+@st.cache_data(ttl=15, show_spinner=False)
 def load_official() -> Prediction | None:
     ensure_state()
     backend = get_storage_backend()
@@ -621,6 +624,7 @@ def load_app_context(include_events: bool = False) -> AppDataContext:
     return ctx
 
 
+@st.cache_data(ttl=15, show_spinner=False)
 def load_matches() -> list[LiveMatch]:
     ensure_state()
     def _override_first_match_lock(matches_list: list[LiveMatch]) -> list[LiveMatch]:
@@ -669,6 +673,7 @@ def load_matches() -> list[LiveMatch]:
 
 
 def save_matches(matches: list[LiveMatch]) -> None:
+    st.cache_data.clear()
     ensure_state()
     config = load_config()
     lock_mins = int(config.get("live_lock_minutes_before_match", 10))
@@ -697,6 +702,7 @@ def save_matches(matches: list[LiveMatch]) -> None:
     write_json(MATCHES_PATH, [m.to_dict() for m in matches])
 
 
+@st.cache_data(ttl=15, show_spinner=False)
 def load_live_predictions() -> list[LivePrediction]:
     ensure_state()
     backend = get_storage_backend()
@@ -716,6 +722,7 @@ def load_live_predictions() -> list[LivePrediction]:
 
 
 def save_live_predictions(predictions: list[LivePrediction]) -> None:
+    st.cache_data.clear()
     ensure_state()
     backend = get_storage_backend()
     if backend == "supabase":
