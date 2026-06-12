@@ -13,7 +13,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -30,7 +30,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -38,16 +38,16 @@
     "participant_name": "Baruja",
     "participant_key": "baruja",
     "match_id": "13381",
-    "predicted_home_goals": 1,
-    "predicted_away_goals": 1,
+    "predicted_home_goals": 12,
+    "predicted_away_goals": 11,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-12T14:14:09",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -64,7 +64,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -81,7 +81,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -98,7 +98,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -115,7 +115,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -132,7 +132,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -149,7 +149,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -166,7 +166,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -183,7 +183,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -200,7 +200,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -217,7 +217,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -234,7 +234,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -251,7 +251,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -268,7 +268,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -285,7 +285,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -302,7 +302,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -319,7 +319,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -336,7 +336,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -353,7 +353,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -370,7 +370,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -387,7 +387,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -404,7 +404,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -421,7 +421,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -438,7 +438,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -455,7 +455,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -472,7 +472,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -489,7 +489,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -506,7 +506,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -523,7 +523,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -540,7 +540,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -557,7 +557,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -574,7 +574,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -591,7 +591,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -608,7 +608,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -625,7 +625,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -642,7 +642,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -659,7 +659,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -676,7 +676,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -693,7 +693,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -710,7 +710,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -727,7 +727,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -744,7 +744,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -761,7 +761,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -778,7 +778,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -795,7 +795,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -812,7 +812,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -829,7 +829,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -846,7 +846,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -863,7 +863,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -880,7 +880,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -897,7 +897,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -914,7 +914,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -931,7 +931,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -948,7 +948,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -965,7 +965,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -982,7 +982,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -999,7 +999,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1016,7 +1016,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1033,7 +1033,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1050,7 +1050,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1067,7 +1067,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1084,7 +1084,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1101,7 +1101,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1118,7 +1118,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1135,7 +1135,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1152,7 +1152,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1169,7 +1169,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1186,7 +1186,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1203,7 +1203,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1220,7 +1220,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1237,7 +1237,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1254,7 +1254,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1271,7 +1271,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1288,7 +1288,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1305,7 +1305,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1322,7 +1322,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1339,7 +1339,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1356,7 +1356,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1373,7 +1373,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1390,7 +1390,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1407,7 +1407,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1424,7 +1424,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1441,7 +1441,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1458,7 +1458,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1475,7 +1475,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1492,7 +1492,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1509,7 +1509,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1526,7 +1526,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1543,7 +1543,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1560,7 +1560,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1577,7 +1577,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1594,7 +1594,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1611,7 +1611,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1628,7 +1628,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1645,7 +1645,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1662,7 +1662,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1679,7 +1679,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1696,7 +1696,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1713,7 +1713,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1730,7 +1730,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1747,7 +1747,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1764,7 +1764,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1781,7 +1781,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1798,7 +1798,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1815,7 +1815,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1832,7 +1832,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1849,7 +1849,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1866,7 +1866,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1883,7 +1883,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1900,7 +1900,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1917,7 +1917,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1934,7 +1934,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1951,7 +1951,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1968,7 +1968,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -1985,7 +1985,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2002,7 +2002,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2019,7 +2019,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2036,7 +2036,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2053,7 +2053,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2070,7 +2070,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2087,7 +2087,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2104,7 +2104,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2121,7 +2121,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2138,7 +2138,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2155,7 +2155,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2172,7 +2172,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2189,7 +2189,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2206,7 +2206,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2223,7 +2223,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2240,7 +2240,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2257,7 +2257,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2274,7 +2274,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2291,7 +2291,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2308,7 +2308,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2325,7 +2325,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2342,7 +2342,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2359,7 +2359,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2376,7 +2376,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2393,7 +2393,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2410,7 +2410,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2427,7 +2427,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2444,7 +2444,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2461,7 +2461,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2478,7 +2478,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2495,7 +2495,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2512,7 +2512,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2529,7 +2529,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2546,7 +2546,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2563,7 +2563,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2580,7 +2580,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2597,7 +2597,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2614,7 +2614,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2631,7 +2631,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2648,7 +2648,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2665,7 +2665,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2682,7 +2682,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2699,7 +2699,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2716,7 +2716,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2733,7 +2733,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2750,7 +2750,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2767,7 +2767,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2784,7 +2784,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2801,7 +2801,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2818,7 +2818,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2835,7 +2835,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2852,7 +2852,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2869,7 +2869,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2886,7 +2886,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2903,7 +2903,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2920,7 +2920,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2937,7 +2937,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2954,7 +2954,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2971,7 +2971,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -2988,7 +2988,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3005,7 +3005,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3022,7 +3022,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3039,7 +3039,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3056,7 +3056,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3073,7 +3073,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3090,7 +3090,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3107,7 +3107,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3124,7 +3124,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3141,7 +3141,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3158,7 +3158,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3175,7 +3175,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3192,7 +3192,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3209,7 +3209,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3226,7 +3226,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3243,7 +3243,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3260,7 +3260,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3277,7 +3277,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3294,7 +3294,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3311,7 +3311,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3328,7 +3328,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3345,7 +3345,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3362,7 +3362,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3379,7 +3379,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3396,7 +3396,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3413,7 +3413,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3430,7 +3430,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3447,7 +3447,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3464,7 +3464,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3481,7 +3481,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3498,7 +3498,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3515,7 +3515,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3532,7 +3532,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3549,7 +3549,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3566,7 +3566,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3583,7 +3583,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3600,7 +3600,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3617,7 +3617,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3634,7 +3634,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3651,7 +3651,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {
@@ -3668,7 +3668,7 @@
     "is_locked": false,
     "is_late": false,
     "points": null,
-    "scoring_breakdown": {},
+    "scoring_breakdown": [],
     "schema_version": "live-v1"
   },
   {

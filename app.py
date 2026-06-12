@@ -55,6 +55,7 @@ from src.bolao.ui_components import (
     render_page_header,
     render_empty_state,
     render_badge,
+    render_theme_selector,
 )
 from src.bolao.utils import decode_uploaded_file, norm_team, now_iso, stable_id
 from src.bolao.validation import validate_prediction, has_blocking_errors
@@ -1354,7 +1355,6 @@ def main() -> None:
             st.markdown("---")
             st.info("Por favor, identifique-se na tela principal para navegar pelo site.")
             st.markdown("---")
-            from src.bolao.ui_components import render_theme_selector
             render_theme_selector()
             st.markdown("---")
             if st.button("🔒 Área Admin", width="stretch", key="sidebar_admin_login_btn"):
@@ -1415,7 +1415,6 @@ def main() -> None:
             show_admin = False
 
         st.markdown("---")
-        from src.bolao.ui_components import render_theme_selector
         render_theme_selector()
         st.markdown("---")
 
