@@ -55,6 +55,8 @@ class MockStreamlit:
         self.link_button = MagicMock()
         self.write = MagicMock()
         self.rerun = MagicMock()
+        self.code = MagicMock()
+        self.html = MagicMock()
         
         # Context managers / layout
         self.form = MagicMock(return_value=MockStreamlitContext())
@@ -288,7 +290,7 @@ def test_render_minha_cartela(mock_preds, mock_matches, mock_official, mock_subm
     
     # Verify elements rendering
     mock_st.markdown.assert_any_call("### 📋 Minha Cartela — Visão Geral do Participante")
-    mock_st.tabs.assert_called_once_with(["📊 Resumo Geral", "🏆 Palpite Clássico", "🎯 Palpites Jogo a Jogo", "💡 Pontuação", "⚖️ Comparar com Amigo"])
+    mock_st.tabs.assert_called_once_with(["📊 Resumo Geral", "🏆 Palpite Clássico", "🎯 Palpites Jogo a Jogo", "💡 Pontuação", "🎖️ Conquistas", "⚖️ Comparar com Amigo"])
 
 
 @patch("src.bolao.ui_simulator.init_simulator_state")

@@ -371,30 +371,22 @@ SIMULATOR_STATE_VERSION = "2026-live-mode-v1"
 def normalize_slots(slots: Any) -> dict[int, str | None]:
     """
     Normaliza slots do simulador.
-    Aceita None, dict ou list.
-    Retorna dict.
-    Converte chaves numéricas string para int.
-    Mantém chaves não numéricas.
-    Não perde dados.
     """
     if slots is None:
         return {}
     if isinstance(slots, list):
         return {i: v for i, v in enumerate(slots)}
-    
-    result = {}
     if isinstance(slots, dict):
+        result = {}
         for k, v in slots.items():
             try:
-                # Se k for string numérica, converte para int
-                if isinstance(k, str) and k.isdigit():
-                    result[int(k)] = v
-                else:
-                    # Tenta converter qualquer k numérico
-                    result[int(k)] = v
+                result[int(k)] = v
             except (ValueError, TypeError):
                 result[k] = v
-    return result
+        return result
+    return {}
+
+
 
 
 def name_to_id(name: str | None) -> str | None:

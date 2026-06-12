@@ -2,35 +2,37 @@ from __future__ import annotations
 
 import streamlit as st
 import pandas as pd
+import urllib.parse
 from datetime import datetime
-from .storage import load_submissions, load_matches, load_live_predictions, load_official, load_config
+from .storage import load_submissions, load_matches, load_live_predictions, load_official, load_config, load_app_data_cached
 from .utils import normalize_participant_key, now_iso
-from .live_scoring import calculate_live_ranking, calculate_live_prediction_points
+from .live_scoring import calculate_live_prediction_points, calculate_live_ranking
 from .scoring import rank_predictions
 from .ui_simulator import get_team_badge_path
 from .ui_live_matches import is_match_open_for_prediction
 from .constants import GROUPS, PHASE_LABELS
+from .achievements import calculate_achievements
+from .social import build_my_card_share_text
 
 def render_minha_cartela() -> None:
-    if st.button("⬅️ Voltar ao Início", key="back_to_home_cartela"):
-        st.session_state["nav_page"] = "Início"
-        st.rerun()
-
     st.markdown("### 📋 Minha Cartela — Visão Geral do Participante")
-    st.caption("Acompanhe o status detalhado das suas apostas, pontuação, próximos confrontos e compare seus palpites com os amigos.")
+    st.caption("Acompanhe o status detalhado das suas apostas, pontuação, conquistas e compare seus palpites com os amigos.")
 
     config = load_config()
-    submissions = load_submissions()
-    official = load_official()
-    matches = load_matches()
-    live_preds = load_live_predictions()
+    ctx = load_app_data_cached()
+    submissions = ctx.submissions
+    official = ctx.official
+    matches = ctx.matches
+    live_preds = ctx.live_predictions
+
+    # Obter conquistas calculadas
+    ach_dict = calculate_achievements(ctx)
 
     if not submissions and not live_preds:
         st.info("Nenhum palpite enviado ainda no sistema.")
         return
 
     # Select Participant
-    # Build unique list of participant names
     names = sorted(list(set([p.participant for p in submissions] + [p.participant_name for p in live_preds])), key=lambda x: x.lower())
     selected_name = st.selectbox("Escolha seu Nome para Visualizar a Cartela", options=names, key="cartela_name_select")
     
@@ -38,9 +40,9 @@ def render_minha_cartela() -> None:
 
     # Find predictions for selected participant
     classic_pred = next((p for p in submissions if normalize_participant_key(p.participant) == pkey), None)
-    user_live_preds = [p for p in live_preds if p.participant_key == pkey]
+    user_live_preds = [p for p in live_preds if (p.participant_key or normalize_participant_key(p.participant_name)) == pkey]
 
-    # Calculate classic points and position if official result is approved
+    # Calculate classic points and position
     classic_points = 0
     classic_rank = "—"
     classic_exact = 0
@@ -60,7 +62,7 @@ def render_minha_cartela() -> None:
         user_classic_score = next((s for s in classic_scores if normalize_participant_key(s.participant) == pkey), None)
         if user_classic_score:
             classic_points = user_classic_score.total
-            classic_rank = f"{user_classic_score.position}º" if hasattr(user_classic_score, 'position') else f"{classic_scores.index(user_classic_score)+1}º"
+            classic_rank = f"{user_classic_score.position}" if hasattr(user_classic_score, 'position') else f"{classic_scores.index(user_classic_score)+1}"
             classic_exact = user_classic_score.exact_scores
 
     if classic_pred:
@@ -83,11 +85,45 @@ def render_minha_cartela() -> None:
     user_live_score = next((s for s in live_scores if s["participant_key"] == pkey), None)
     if user_live_score:
         live_points = user_live_score["total"]
-        live_rank = f"{user_live_score['position']}º"
+        live_rank = f"{user_live_score['position']}"
         live_exact = user_live_score["exact_scores"]
         live_rate = f"{int(user_live_score['hit_rate'] * 100)}%"
 
-    # Find next pending game for the user
+    # Calculate combined position if enabled
+    pos_geral = "—"
+    combined_enabled = config.get("combined_ranking_enabled", False)
+    if combined_enabled and official:
+        # Calcular ranking combinado
+        combined_rules = config.get("combined_ranking", {})
+        classic_weight = combined_rules.get("classic_weight", 1.0)
+        live_weight = combined_rules.get("live_weight", 1.0)
+        include_classic_only = combined_rules.get("include_classic_only_players", True)
+        include_live_only = combined_rules.get("include_live_only_players", True)
+        
+        classic_dict = {normalize_participant_key(s.participant): s for s in rank_predictions(submissions, official, score_config)}
+        live_dict = {s["participant_key"]: s for s in live_scores}
+        all_keys = set(classic_dict.keys()).union(live_dict.keys())
+        
+        combined_list = []
+        for pk in all_keys:
+            c_score = classic_dict.get(pk)
+            l_score = live_dict.get(pk)
+            if c_score and not l_score and not include_classic_only:
+                continue
+            if l_score and not c_score and not include_live_only:
+                continue
+            c_pts = c_score.total if c_score else 0
+            l_pts = l_score["total"] if l_score else 0
+            combined_pts = c_pts * classic_weight + l_pts * live_weight
+            combined_list.append({"key": pk, "total": combined_pts, "classic": c_pts, "live": l_pts})
+            
+        combined_list.sort(key=lambda x: (-x["total"], -x["classic"], -x["live"]))
+        for idx, item in enumerate(combined_list, start=1):
+            if item["key"] == pkey:
+                pos_geral = str(idx)
+                break
+
+    # Find next pending game
     now = datetime.now().isoformat()
     open_matches = [m for m in matches if m.status != "result_approved" and m.starts_at and m.starts_at > now]
     open_matches.sort(key=lambda m: m.starts_at)
@@ -99,30 +135,39 @@ def render_minha_cartela() -> None:
         live_next_match = f"{next_m.home_team} x {next_m.away_team} (em {next_m.starts_at.replace('T', ' ')})"
 
     # Render Main Card
-    card_html = f"""
-<div style="border: 2px solid #D8A94A; border-radius: 24px; padding: 25px; background: linear-gradient(180deg, #ffffff, #FFFDF8); box-shadow: 0 16px 48px rgba(11, 51, 40, 0.08); margin-bottom: 25px;">
-<div style="font-size: 40px; text-align: center; margin-bottom: 5px;">⚽</div>
-<h3 style="text-align: center; color: #0B3328; margin: 5px 0;">{selected_name}</h3>
-<p style="text-align: center; color: #66736D; font-size: 14px;">Chave estável: {pkey}</p>
-<div style="display: flex; gap: 20px; justify-content: space-around; margin-top: 20px; flex-wrap: wrap;">
-<div style="flex: 1; min-width: 200px; padding: 15px; border-radius: 12px; background-color: #F8F9FA; border: 1px solid rgba(11, 51, 40, 0.08); text-align: center;">
-<span style="font-size: 12px; color: #66736D; text-transform: uppercase; letter-spacing: 0.5px;">Modo Clássico</span>
-<h2 style="margin: 8px 0; color: #176B4D;">{classic_points} <span style="font-size: 14px; color: #66736D;">pts</span></h2>
-<div style="font-size: 13px; color: #66736D;">Rank: <b>{classic_rank}</b> · Campeão: <b>{classic_champ}</b></div>
-</div>
-<div style="flex: 1; min-width: 200px; padding: 15px; border-radius: 12px; background-color: #F8F9FA; border: 1px solid rgba(11, 51, 40, 0.08); text-align: center;">
-<span style="font-size: 12px; color: #66736D; text-transform: uppercase; letter-spacing: 0.5px;">Modo Jogo a Jogo</span>
-<h2 style="margin: 8px 0; color: #176B4D;">{live_points} <span style="font-size: 14px; color: #66736D;">pts</span></h2>
-<div style="font-size: 13px; color: #66736D;">Rank: <b>{live_rank}</b> · Aprov.: <b>{live_rate}</b></div>
-</div>
-</div>
-</div>
-"""
-    st.markdown(card_html, unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div style="border: 2px solid var(--gold); border-radius: 24px; padding: 25px; background: var(--panel); box-shadow: var(--shadow); margin-bottom: 25px; color: var(--ink);">
+            <div style="font-size: 40px; text-align: center; margin-bottom: 5px;">⚽</div>
+            <h3 style="text-align: center; color: var(--ink); margin: 5px 0;">{selected_name}</h3>
+            <p style="text-align: center; color: var(--muted); font-size: 14px; margin-top:0;">Chave estável: {pkey}</p>
+            <div style="display: flex; gap: 20px; justify-content: space-around; margin-top: 20px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px; padding: 15px; border-radius: 12px; background-color: var(--bg-soft); border: 1px solid var(--line); text-align: center;">
+                    <span style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Modo Clássico</span>
+                    <h2 style="margin: 8px 0; color: var(--green);">{classic_points} <span style="font-size: 14px; color: var(--muted);">pts</span></h2>
+                    <div style="font-size: 13px; color: var(--muted);">Posição: <b>{classic_rank}º</b> · Campeão: <b>{classic_champ}</b></div>
+                </div>
+                <div style="flex: 1; min-width: 200px; padding: 15px; border-radius: 12px; background-color: var(--bg-soft); border: 1px solid var(--line); text-align: center;">
+                    <span style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Modo Jogo a Jogo</span>
+                    <h2 style="margin: 8px 0; color: var(--green);">{live_points} <span style="font-size: 14px; color: var(--muted);">pts</span></h2>
+                    <div style="font-size: 13px; color: var(--muted);">Posição: <b>{live_rank}º</b> · Aprov.: <b>{live_rate}</b></div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    c_tabs = st.tabs(["📊 Resumo Geral", "🏆 Palpite Clássico", "🎯 Palpites Jogo a Jogo", "💡 Pontuação", "⚖️ Comparar com Amigo"])
+    c_tabs = st.tabs([
+        "📊 Resumo Geral", 
+        "🏆 Palpite Clássico", 
+        "🎯 Palpites Jogo a Jogo", 
+        "💡 Pontuação", 
+        "🎖️ Conquistas",
+        "⚖️ Comparar com Amigo"
+    ])
 
-    # Tab 1: Resumo
+    # Tab 1: Resumo Geral
     with c_tabs[0]:
         st.markdown("#### Resumo da sua Participação")
         
@@ -143,10 +188,10 @@ def render_minha_cartela() -> None:
         st.markdown("---")
         st.markdown("#### 📱 Compartilhar status no WhatsApp")
         
-        share_text = f"🏆 Meu status no Bolão da Copa!\n\n⚽ Clássico: {classic_points} pts ({classic_rank})\n🎯 Jogo a Jogo: {live_points} pts ({live_rank})\n🏆 Meu Campeão: {classic_champ}\n\nEntra e palpita também!"
-        st.text_area("Texto copiável para compartilhar", value=share_text, height=120, key="share_txt_cartela", disabled=True)
+        # Build share text via social.py helper
+        share_text = build_my_card_share_text(selected_name, classic_rank, live_rank, pos_geral, classic_points, live_points)
+        st.code(share_text, language="text")
         
-        import urllib.parse
         encoded_text = urllib.parse.quote(share_text)
         st.link_button("💬 Enviar no WhatsApp", f"https://api.whatsapp.com/send?text={encoded_text}", type="primary", width="stretch")
 
@@ -155,9 +200,6 @@ def render_minha_cartela() -> None:
         st.markdown("#### Detalhamento do Palpite Clássico")
         if not classic_pred:
             st.warning("Você não possui palpite clássico registrado.")
-            if st.button("Criar palpite clássico", width="stretch"):
-                st.session_state["nav_page"] = "Fazer palpite"
-                st.rerun()
         else:
             st.markdown(f"**Código de confirmação:** `{classic_pred.submission_id}`")
             st.markdown(f"**Enviado em:** `{classic_pred.submitted_at.replace('T', ' ') if classic_pred.submitted_at else '—'}`")
@@ -200,8 +242,6 @@ def render_minha_cartela() -> None:
                 if gm_rows:
                     with st.expander("Ver Todos os Palpites de Placares da Fase de Grupos", expanded=False):
                         st.dataframe(pd.DataFrame(gm_rows), width="stretch", hide_index=True)
-            else:
-                st.caption("Nenhum palpite de placar da fase de grupos salvo no metadado.")
 
             # Show knockout path
             st.markdown("##### ⚔️ Chave de Mata-Mata")
@@ -215,16 +255,6 @@ def render_minha_cartela() -> None:
                             "Vencedor Escolhido": m.winner or "—"
                         })
                     st.dataframe(pd.DataFrame(phase_rows), width="stretch", hide_index=True)
-
-            # Button to edit classic prediction
-            is_locked = config.get("is_bolao_locked", False)
-            if not is_locked:
-                st.markdown("---")
-                if st.button("✏️ Editar palpite clássico", width="stretch", type="primary"):
-                    st.session_state["nav_page"] = "Fazer palpite"
-                    st.session_state["public_sim_name"] = selected_name
-                    st.session_state["edit_mode"] = "edit"
-                    st.rerun()
 
     # Tab 3: Jogo a Jogo
     with c_tabs[2]:
@@ -267,10 +297,34 @@ def render_minha_cartela() -> None:
         else:
             st.write("Nenhum palpite computado no jogo a jogo.")
 
-    # Tab 5: Comparar com amigo
+    # Tab 5: Conquistas
     with c_tabs[4]:
+        st.markdown("#### 🎖️ Suas Conquistas Sociais")
+        st.caption("Conquistas e insígnias especiais baseadas no desempenho das suas previsões.")
+        
+        user_badges = ach_dict.get(pkey, [])
+        if not user_badges:
+            st.info("Você ainda não desbloqueou nenhuma conquista. Continue palpitando e acertando para ganhar insígnias!")
+        else:
+            cols = st.columns(min(len(user_badges), 3))
+            for idx, badge in enumerate(user_badges):
+                col = cols[idx % len(cols)]
+                with col:
+                    st.markdown(
+                        f"""
+                        <div class="card" style="text-align: center; padding: 20px; border-top: 4px solid var(--gold);">
+                            <div style="font-size: 40px; margin-bottom: 8px;">{badge['icon']}</div>
+                            <h4 style="margin: 0 0 6px; color: var(--ink);">{badge['name']}</h4>
+                            <p style="font-size: 13px; color: var(--muted); margin: 0; line-height:1.3;">{badge['description']}</p>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+    # Tab 6: Comparar com amigo
+    with c_tabs[5]:
         st.markdown("#### Comparar Palpites")
-        st.caption("Selecione um amigo e compare os palpites do modo clássico e do jogo a jogo (apenas jogos bloqueados).")
+        st.caption("Selecione um amigo e compare os palpites do modo clássico e do jogo a jogo.")
         
         friend_names = [n for n in names if n != selected_name]
         if not friend_names:
@@ -280,7 +334,7 @@ def render_minha_cartela() -> None:
             friend_key = normalize_participant_key(friend_name)
             
             friend_classic = next((p for p in submissions if normalize_participant_key(p.participant) == friend_key), None)
-            friend_live_preds = [p for p in live_preds if p.participant_key == friend_key]
+            friend_live_preds = [p for p in live_preds if (p.participant_key or normalize_participant_key(p.participant_name)) == friend_key]
             
             st.markdown(f"##### 📊 Comparativo Geral: {selected_name} vs {friend_name}")
             
@@ -292,7 +346,7 @@ def render_minha_cartela() -> None:
             ]
             st.dataframe(pd.DataFrame(comp_general), width="stretch", hide_index=True)
 
-            # Compare Jogo a Jogo (only locked/closed matches)
+            # Compare Jogo a Jogo
             st.markdown("##### 🔒 Comparativo Jogo a Jogo (Apenas Jogos Bloqueados)")
             locked_match_ids = set(m.match_id for m in matches if m.status == "result_approved" or not is_match_open_for_prediction(m, now))
             

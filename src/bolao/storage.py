@@ -105,9 +105,67 @@ def _ensure_supabase_tables(client) -> None:
         );
         """
     )
+    client.execute_sql(
+        """
+        CREATE TABLE IF NOT EXISTS bolao_live_predictions (
+            id TEXT PRIMARY KEY,
+            participant_name TEXT NOT NULL,
+            participant_key TEXT NOT NULL,
+            match_id TEXT NOT NULL,
+            predicted_home_goals INT NOT NULL,
+            predicted_away_goals INT NOT NULL,
+            submitted_at TEXT,
+            updated_at TEXT,
+            confirmation_code TEXT,
+            locked_at TEXT,
+            is_locked BOOLEAN DEFAULT FALSE,
+            is_late BOOLEAN DEFAULT FALSE,
+            points INT,
+            scoring_breakdown JSONB DEFAULT '[]'::jsonb,
+            schema_version TEXT DEFAULT 'live-v1'
+        );
+        """
+    )
+    client.execute_sql(
+        """
+        CREATE TABLE IF NOT EXISTS bolao_matches (
+            match_id TEXT PRIMARY KEY,
+            phase TEXT NOT NULL,
+            "group" TEXT,
+            round_label TEXT,
+            home_team TEXT NOT NULL,
+            away_team TEXT NOT NULL,
+            starts_at TEXT NOT NULL,
+            starts_at_timezone TEXT DEFAULT 'America/Sao_Paulo',
+            lock_at TEXT,
+            status TEXT DEFAULT 'scheduled',
+            official_home_goals INT,
+            official_away_goals INT,
+            winner TEXT,
+            source TEXT DEFAULT 'manual',
+            sort_order INT DEFAULT 0
+        );
+        """
+    )
+    client.execute_sql(
+        """
+        CREATE TABLE IF NOT EXISTS bolao_events (
+            id TEXT PRIMARY KEY,
+            timestamp TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            message TEXT NOT NULL,
+            visibility TEXT DEFAULT 'public',
+            metadata JSONB DEFAULT '{}'::jsonb
+        );
+        """
+    )
     try:
         client.execute_sql("ALTER TABLE bolao_submissions ADD COLUMN IF NOT EXISTS meta JSONB;")
+        client.execute_sql("ALTER TABLE bolao_submissions ADD COLUMN IF NOT EXISTS mode TEXT;")
+        client.execute_sql("ALTER TABLE bolao_submissions ADD COLUMN IF NOT EXISTS schema_version TEXT;")
         client.execute_sql("ALTER TABLE bolao_official ADD COLUMN IF NOT EXISTS meta JSONB;")
+        client.execute_sql("ALTER TABLE bolao_official ADD COLUMN IF NOT EXISTS mode TEXT;")
+        client.execute_sql("ALTER TABLE bolao_official ADD COLUMN IF NOT EXISTS schema_version TEXT;")
     except Exception:
         pass
 
@@ -208,23 +266,41 @@ def default_config() -> dict:
         "classic_enabled": True,
         "live_mode_enabled": True,
         "combined_ranking_enabled": False,
+        "classic_submissions_locked": False,
         "live_lock_minutes_before_match": 10,
+        "default_timezone": "America/Sao_Paulo",
+        "public_features": {
+            "show_public_analytics": True,
+            "show_public_duels": True,
+            "show_public_group_predictions": True,
+            "show_public_transparency": True,
+            "show_public_match_center": True,
+            "show_public_activity_feed": True,
+            "reveal_classic_predictions_after_close": True,
+            "reveal_live_predictions_after_lock": True,
+            "hide_confirmation_codes_publicly": True,
+        },
+        "theme": {
+            "allow_theme_toggle": True,
+            "default_theme": "system",
+            "available_themes": ["light", "dark", "system"]
+        },
+        "combined_ranking": {
+            "classic_weight": 1.0,
+            "live_weight": 1.0,
+            "include_classic_only_players": True,
+            "include_live_only_players": True,
+            "missing_mode_points_strategy": "zero"
+        },
         "live_scoring": {
             "exact_score": 5,
             "outcome": 3,
-            "goal_one_team": 1,
-            "goal_both_teams": 2,
+            "one_team_goals": 1,
             "goal_difference": 1,
-            "late_prediction": 0
-        },
-        "combined_ranking_weights": {
-            "classic": 1.0,
-            "live": 1.0
-        },
-        "reveal_live_predictions_after_lock": True,
-        "allow_live_prediction_edit_until_lock": True,
-        "public_show_activity_feed": True,
+            "exact_score_mode": "isolated_max"
+        }
     }
+
 
 
 def load_config() -> dict:

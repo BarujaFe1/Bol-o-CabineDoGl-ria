@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import html
@@ -9,11 +8,39 @@ import streamlit as st
 
 from .constants import APP_NAME, APP_SUBTITLE, GE_SIMULATOR_URL, GROUPS, PHASE_LABELS, PHASES
 
-
 def inject_css() -> None:
     from .styles import inject_css as styles_inject
     styles_inject()
 
+def render_theme_selector() -> None:
+    """
+    Renderiza o seletor de tema na barra lateral.
+    """
+    if "theme_mode" not in st.session_state:
+        st.session_state["theme_mode"] = "system"
+        
+    theme_options = {
+        "light": "☀️ Claro",
+        "dark": "🌙 Escuro",
+        "system": "💻 Sistema"
+    }
+    
+    current_theme = st.session_state["theme_mode"]
+    keys = list(theme_options.keys())
+    idx = keys.index(current_theme) if current_theme in keys else 2
+    
+    # Render theme selectbox
+    selected_theme = st.selectbox(
+        "Aparência do App",
+        options=keys,
+        format_func=lambda x: theme_options[x],
+        index=idx,
+        key="theme_selector_selectbox"
+    )
+    
+    if selected_theme != st.session_state["theme_mode"]:
+        st.session_state["theme_mode"] = selected_theme
+        st.rerun()
 
 def hero(title: str = APP_NAME, subtitle: str = APP_SUBTITLE, description: str | None = None) -> None:
     desc = description or "Faça seu palpite completo da Copa do Mundo 2026 diretamente pelo nosso simulador interativo. Preencha os placares dos grupos, acompanhe a classificação em tempo real e decida o mata-mata."
@@ -28,11 +55,9 @@ def hero(title: str = APP_NAME, subtitle: str = APP_SUBTITLE, description: str |
         unsafe_allow_html=True,
     )
 
-
 def kpi_grid(items: list[tuple[str, str]]) -> None:
     html_items = "".join([f'<div class="kpi"><div class="label">{html.escape(label)}</div><div class="value">{html.escape(str(value))}</div></div>' for label, value in items])
     st.markdown(f'<div class="kpi-grid">{html_items}</div>', unsafe_allow_html=True)
-
 
 def step_cards() -> None:
     steps = [
@@ -46,16 +71,13 @@ def step_cards() -> None:
         inner += f'<div class="step"><div class="num">{idx}</div><h4>{html.escape(title)}</h4><p>{html.escape(text)}</p></div>'
     st.markdown(f'<div class="step-grid">{inner}</div>', unsafe_allow_html=True)
 
-
 def card_start(title: str | None = None) -> None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     if title:
         st.markdown(f"### {title}")
 
-
 def card_end() -> None:
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 def issues_box(issues: list[Any]) -> None:
     for issue in issues:
@@ -64,7 +86,6 @@ def issues_box(issues: list[Any]) -> None:
         ctx = getattr(issue, "context", "")
         klass = "error-box" if level == "error" else "warn-box"
         st.markdown(f'<div class="{klass}"><strong>{html.escape(level.upper())}:</strong> {html.escape(msg)} {html.escape(ctx or "")}</div>', unsafe_allow_html=True)
-
 
 def podium(scores: list[Any]) -> None:
     top = scores[:3]
@@ -76,14 +97,28 @@ def podium(scores: list[Any]) -> None:
     for pos, medal, css in order:
         if len(top) >= pos:
             score = top[pos - 1]
+            participant_name = score.get("participant") if isinstance(score, dict) else (score.participant if hasattr(score, 'participant') else "Participante")
+            total_points = score.get("total") if isinstance(score, dict) else (score.total if hasattr(score, 'total') else 0)
+            
+            # Classic mode properties
+            group_points = score.get("groups", 0) if isinstance(score, dict) else (getattr(score, 'group_points', 0))
+            knockout_points = score.get("knockout", 0) if isinstance(score, dict) else (getattr(score, 'knockout_points', 0))
+            champion_hit = score.get("champion_hit", False) if isinstance(score, dict) else (getattr(score, 'champion_hit', 0))
+            
+            detail_str = f"Mata-mata {knockout_points} · Campeã {'sim' if champion_hit else 'não'}"
+            if "exact_scores" in score if isinstance(score, dict) else hasattr(score, 'exact_scores'):
+                # Live mode properties
+                exacts = score.get("exact_scores") if isinstance(score, dict) else getattr(score, 'exact_scores')
+                detail_str = f"{exacts} exatos · {score.get('predictions_count', 0) if isinstance(score, dict) else 0} jogos"
+                
             cards.append(
                 f"""
 <div class="podium-card {css}">
   <div class="medal">{medal}</div>
   <div class="podium-rank">{pos}º lugar</div>
-  <div class="podium-name">{html.escape(score.participant)}</div>
-  <div class="podium-points">{score.total} pts</div>
-  <div class="podium-note">Mata-mata {score.knockout_points} · Campeã {'sim' if score.champion_hit else 'não'}</div>
+  <div class="podium-name">{html.escape(participant_name)}</div>
+  <div class="podium-points">{total_points} pts</div>
+  <div class="podium-note">{html.escape(detail_str)}</div>
 </div>
                 """
             )
@@ -91,17 +126,14 @@ def podium(scores: list[Any]) -> None:
             cards.append('<div></div>')
     st.markdown(f'<div class="podium">{"".join(cards)}</div>', unsafe_allow_html=True)
 
-
 def badges(labels: list[str]) -> None:
     st.markdown("".join(f'<span class="badge">{html.escape(x)}</span>' for x in labels), unsafe_allow_html=True)
-
 
 def groups_dataframe(groups: dict[str, list[str | None]]) -> pd.DataFrame:
     return pd.DataFrame([
         {"Grupo": g, "1º": values[0], "2º": values[1], "3º": values[2], "4º": values[3]}
         for g, values in groups.items()
     ])
-
 
 def dataframe_to_groups(df: pd.DataFrame) -> dict[str, list[str | None]]:
     groups: dict[str, list[str | None]] = {}
@@ -110,7 +142,6 @@ def dataframe_to_groups(df: pd.DataFrame) -> dict[str, list[str | None]]:
         if g:
             groups[g] = [row.get("1º") or None, row.get("2º") or None, row.get("3º") or None, row.get("4º") or None]
     return groups
-
 
 def render_page_header(kicker: str, title: str, subtitle: str = "", icon: str = "🏆") -> None:
     st.markdown(
@@ -124,11 +155,9 @@ def render_page_header(kicker: str, title: str, subtitle: str = "", icon: str = 
         unsafe_allow_html=True
     )
 
-
 def render_kpi_grid(items: list[dict[str, Any]]) -> None:
     html_items = "".join([f'<div class="kpi"><div class="label">{html.escape(item["label"])}</div><div class="value">{html.escape(str(item["value"]))}</div></div>' for item in items])
     st.markdown(f'<div class="kpi-grid">{html_items}</div>', unsafe_allow_html=True)
-
 
 def render_step_cards(steps: list[dict[str, Any]]) -> None:
     inner = ""
@@ -136,11 +165,9 @@ def render_step_cards(steps: list[dict[str, Any]]) -> None:
         inner += f'<div class="step"><div class="num">{idx}</div><h4>{html.escape(step["title"])}</h4><p>{html.escape(step["description"])}</p></div>'
     st.markdown(f'<div class="step-grid">{inner}</div>', unsafe_allow_html=True)
 
-
 def render_callout(message: str, kind: str = "info", title: str | None = None) -> None:
     title_html = f"<strong>{html.escape(title)}</strong><br>" if title else ""
     st.markdown(f'<div class="callout {kind}">{title_html}{html.escape(message)}</div>', unsafe_allow_html=True)
-
 
 def render_empty_state(title: str, body: str, cta_label: str | None = None, cta_key: str | None = None) -> bool:
     st.markdown(
@@ -157,7 +184,6 @@ def render_empty_state(title: str, body: str, cta_label: str | None = None, cta_
         if st.button(cta_label, key=cta_key, width="stretch", type="primary"):
             return True
     return False
-
 
 def render_progress_status(label: str, current: int, total: int) -> None:
     pct = (current / total) * 100 if total > 0 else 0
@@ -176,10 +202,8 @@ def render_progress_status(label: str, current: int, total: int) -> None:
         unsafe_allow_html=True
     )
 
-
 def render_badge(text: str, kind: str = "neutral") -> str:
     return f'<span class="badge {kind}">{html.escape(text)}</span>'
-
 
 def render_step_indicator(steps: list[str], current_index: int) -> None:
     inner = ""

@@ -321,7 +321,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
             # Sync initial slots to state (only for slots 31 to 62, to prevent overwriting user knockout winners!)
             slots = state["slots"]
             for slot_id in range(31, 63):
-                slots[slot_id] = initial_slots[slot_id]
+                slots[slot_id] = initial_slots.get(slot_id)
             for slot_id in range(31):
                 if slot_id not in slots:
                     slots[slot_id] = None
@@ -337,7 +337,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                 
             # Oitavas
             elif selected_phase == "Oitavas":
-                missing_fase_32 = [w for _, _, w in MAP_FASE_32 if slots[w] is None]
+                missing_fase_32 = [w for _, _, w in MAP_FASE_32 if slots.get(w) is None]
                 if missing_fase_32:
                     st.warning("Preencha todos os vencedores das Décima-sextas para liberar as Oitavas de Final.")
                 else:
@@ -345,7 +345,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                     
             # Quartas
             elif selected_phase == "Quartas":
-                missing_oitavas = [w for _, _, w in MAP_OITAVAS if slots[w] is None]
+                missing_oitavas = [w for _, _, w in MAP_OITAVAS if slots.get(w) is None]
                 if missing_oitavas:
                     st.warning("Preencha todos os vencedores das Oitavas para liberar as Quartas de Final.")
                 else:
@@ -353,7 +353,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                     
             # Semifinais
             elif selected_phase == "Semifinais":
-                missing_quartas = [w for _, _, w in MAP_QUARTAS if slots[w] is None]
+                missing_quartas = [w for _, _, w in MAP_QUARTAS if slots.get(w) is None]
                 if missing_quartas:
                     st.warning("Preencha todos os vencedores das Quartas para liberar as Semifinais.")
                 else:
@@ -361,7 +361,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                     
             # Final & Campeão
             elif selected_phase == "Final & Campeão":
-                missing_semis = [w for _, _, w in MAP_SEMIFINAIS if slots[w] is None]
+                missing_semis = [w for _, _, w in MAP_SEMIFINAIS if slots.get(w) is None]
                 if missing_semis:
                     st.warning("Preencha os vencedores das Semifinais para liberar a grande Final.")
                 else:
@@ -495,26 +495,26 @@ def simulate_knockout_randomly(slots: dict[int, str | None]):
     # We simulate starting from Round of 32 (MAP_FASE_32) up to final
     # 1. Fase de 32 (slots 31-62 -> winner slots 15-30)
     for h, v, w in MAP_FASE_32:
-        winner = random.choice([slots[h], slots[v]])
+        winner = random.choice([slots.get(h), slots.get(v)])
         slots[w] = winner
         
     # 2. Oitavas (slots 15-30 -> winner slots 7-14)
     for h, v, w in MAP_OITAVAS:
-        winner = random.choice([slots[h], slots[v]])
+        winner = random.choice([slots.get(h), slots.get(v)])
         slots[w] = winner
         
     # 3. Quartas (slots 7-14 -> winner slots 3-6)
     for h, v, w in MAP_QUARTAS:
-        winner = random.choice([slots[h], slots[v]])
+        winner = random.choice([slots.get(h), slots.get(v)])
         slots[w] = winner
         
     # 4. Semifinais (slots 3-6 -> winner slots 1-2)
     for h, v, w in MAP_SEMIFINAIS:
-        winner = random.choice([slots[h], slots[v]])
+        winner = random.choice([slots.get(h), slots.get(v)])
         slots[w] = winner
         
     # 5. Final (slots 1-2 -> winner slot 0)
-    winner = random.choice([slots[1], slots[2]])
+    winner = random.choice([slots.get(1), slots.get(2)])
     slots[0] = winner
 
 def render_standings_table(standings: list[GroupStanding]):
@@ -571,9 +571,9 @@ def render_bracket_round(phase_name: str, matches_mapping: list[tuple[int, int, 
         with col:
             st.markdown(f"**Confronto {idx+1}**")
             
-            h_id = slots[h]
-            a_id = slots[v]
-            winner_id = slots[w]
+            h_id = slots.get(h)
+            a_id = slots.get(v)
+            winner_id = slots.get(w)
             
             h_name = TEAMS[h_id]["name"] if h_id else BRACKET_SLOTS[h]["label"]
             a_name = TEAMS[a_id]["name"] if a_id else BRACKET_SLOTS[v]["label"]
@@ -607,9 +607,9 @@ def render_bracket_round(phase_name: str, matches_mapping: list[tuple[int, int, 
 def render_final_and_champion(slots: dict[int, str | None]):
     col_f1, col_vs, col_f2 = st.columns([4, 1, 4])
     
-    h_id = slots[1]
-    a_id = slots[2]
-    winner_id = slots[0]
+    h_id = slots.get(1)
+    a_id = slots.get(2)
+    winner_id = slots.get(0)
     
     h_name = TEAMS[h_id]["name"] if h_id else "Finalista 1"
     a_name = TEAMS[a_id]["name"] if a_id else "Finalista 2"

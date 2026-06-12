@@ -213,7 +213,7 @@ def public_home() -> None:
         )
         if not config.get("is_bolao_locked", False):
             if st.button("🚀 Preencher Cartela Clássica", key="btn_home_classic_guess", type="primary", width="stretch"):
-                st.session_state["nav_page"] = "Fazer palpite"
+                st.session_state["nav_page"] = "Palpite Clássico"
                 st.rerun()
         else:
             if st.button("🔍 Ver Palpites Enviados", key="btn_home_classic_view", width="stretch"):
@@ -273,7 +273,7 @@ def public_home() -> None:
     st.markdown("---")
     col_adm_left, col_adm_mid, col_adm_right = st.columns([2, 1, 2])
     with col_adm_mid:
-        if st.button("🔒 Área Admin", key="home_admin_login_btn", use_container_width=True):
+        if st.button("🔒 Área Admin", key="home_admin_login_btn", width="stretch"):
             st.session_state["nav_page"] = "Admin Login"
             st.rerun()
 
@@ -350,7 +350,7 @@ def public_submission() -> None:
             st.rerun()
         return
 
-    hero("Fazer palpite", "Fluxo do participante", "Monte seu palpite completo da Copa do Mundo 2026 pelo simulador interativo.")
+    hero("Palpite Clássico", "Fluxo do participante", "Monte seu palpite completo da Copa do Mundo 2026 pelo simulador interativo.")
 
     st.markdown("### 1. Identificação")
     name = st.text_input("Seu nome no bolão", placeholder="Ex.: César", key="public_sim_name")
@@ -533,7 +533,7 @@ def admin_dashboard() -> None:
         podium(scores)
     else:
         if render_empty_state("Sem ranking calculado", "O resultado oficial ainda não foi aprovado, por isso as pontuações do ranking não puderam ser calculadas.", "Aprovar Resultado", "cta_dashboard_results"):
-            st.session_state["nav_page"] = "Resultados oficiais"
+            st.session_state["nav_page"] = "Resultados Oficiais"
             st.rerun()
 
     col1, col2 = st.columns(2)
@@ -564,11 +564,11 @@ def admin_dashboard() -> None:
             st.rerun()
     with c3:
         if st.button("⚽ Resultados Oficiais", key="nav_admin_results", width="stretch"):
-            st.session_state["nav_page"] = "Resultados oficiais"
+            st.session_state["nav_page"] = "Resultados Oficiais"
             st.rerun()
     with c4:
-        if st.button("🏆 Ranking Admin", key="nav_admin_ranking", width="stretch"):
-            st.session_state["nav_page"] = "Ranking Admin"
+        if st.button("🏆 Ranking", key="nav_admin_ranking", width="stretch"):
+            st.session_state["nav_page"] = "Ranking"
             st.rerun()
 
     c5, c6, c7, c8 = st.columns(4)
@@ -581,13 +581,12 @@ def admin_dashboard() -> None:
             st.session_state["nav_page"] = "Configurações"
             st.rerun()
     with c7:
-        if st.button("📖 Ajuda Admin", key="nav_admin_help", width="stretch"):
-            st.session_state["nav_page"] = "Ajuda Admin"
+        if st.button("🛡️ Auditoria", key="nav_admin_auditoria", width="stretch"):
+            st.session_state["nav_page"] = "Auditoria"
             st.rerun()
     with c8:
-        if st.button("🌐 Ver Modo Público", key="nav_admin_public", width="stretch"):
-            st.session_state["admin_mode"] = False
-            st.session_state["nav_page"] = "Início"
+        if st.button("📖 Ajuda", key="nav_admin_help", width="stretch"):
+            st.session_state["nav_page"] = "Ajuda"
             st.rerun()
 
     st.markdown("---")
@@ -1213,6 +1212,20 @@ def admin_help() -> None:
     )
 
 
+def admin_auditoria() -> None:
+    if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_auditoria", width="stretch"):
+        st.session_state["nav_page"] = "Dashboard"
+        st.rerun()
+    render_page_header("Admin", "Histórico de Auditoria", "Eventos de auditoria gravados no bolão.", "🛡️")
+    events = load_events(100)
+    if events:
+        for ev in events:
+            ts = ev["timestamp"].replace("T", " ")[:19]
+            st.markdown(f"⏱️ `{ts}` — {ev['message']}")
+    else:
+        st.caption("Nenhum evento registrado ainda.")
+
+
 def main() -> None:
     # Rodar migrações seguras
     try:
@@ -1232,7 +1245,7 @@ def main() -> None:
 
         if st.session_state.get("admin_authenticated", False) and st.session_state.get("admin_mode", False):
             # Admin Menu
-            admin_options = ["Dashboard", "Participantes", "Jogos e Agenda", "Resultados oficiais", "Ranking Admin", "Exportações", "Configurações", "Ajuda Admin"]
+            admin_options = ["Dashboard", "Participantes", "Jogos e Agenda", "Resultados Oficiais", "Ranking", "Exportações", "Configurações", "Auditoria", "Ajuda"]
             current_page = st.session_state["nav_page"]
             if current_page not in admin_options:
                 current_page = "Dashboard"
@@ -1242,18 +1255,22 @@ def main() -> None:
             show_admin = True
         else:
             # Public Menu
-            public_options = ["Início", "Fazer palpite", "Jogos de Hoje", "Minha Cartela", "Ranking"]
+            public_options = ["Início", "Palpite Clássico", "Jogos de Hoje", "Minha Cartela", "Ranking", "Central do Bolão", "Palpites do Grupo", "Análise dos Palpites", "Duelo de Palpites", "Regras"]
             current_page = st.session_state["nav_page"]
             if current_page not in public_options:
                 idx = 0
             else:
                 idx = public_options.index(current_page)
             page = st.radio("Navegação", public_options, index=idx, label_visibility="collapsed")
-            if st.session_state["nav_page"] != "Admin Login":
+            if st.session_state["nav_page"] != "Admin Login" and st.session_state["nav_page"] != "Match Center":
                 st.session_state["nav_page"] = page
             show_admin = False
 
         st.markdown("---")
+        from src.bolao.ui_components import render_theme_selector
+        render_theme_selector()
+        st.markdown("---")
+
         if st.session_state.get("admin_authenticated", False):
             if st.session_state.get("admin_mode", False):
                 if st.button("🌐 Ver Modo Público", width="stretch"):
@@ -1312,21 +1329,23 @@ def main() -> None:
         elif page == "Jogos e Agenda":
             from src.bolao.ui_admin_matches import admin_matches_agenda
             admin_matches_agenda()
-        elif page == "Resultados oficiais":
+        elif page == "Resultados Oficiais":
             admin_official_results()
-        elif page == "Ranking Admin":
+        elif page == "Ranking":
             admin_ranking()
         elif page == "Exportações":
             admin_exports()
         elif page == "Configurações":
             admin_settings()
+        elif page == "Auditoria":
+            admin_auditoria()
         else:
             admin_help()
     else:
         page = st.session_state["nav_page"]
         if page == "Início":
             public_home()
-        elif page == "Fazer palpite":
+        elif page == "Palpite Clássico":
             public_submission()
         elif page == "Jogos de Hoje":
             from src.bolao.ui_live_matches import render_jogos_de_hoje
@@ -1336,6 +1355,24 @@ def main() -> None:
             render_minha_cartela()
         elif page == "Ranking":
             public_ranking()
+        elif page == "Central do Bolão":
+            from src.bolao.ui_social_pages import render_central_do_bolao
+            render_central_do_bolao()
+        elif page == "Palpites do Grupo":
+            from src.bolao.ui_social_pages import render_palpites_do_grupo
+            render_palpites_do_grupo()
+        elif page == "Análise dos Palpites":
+            from src.bolao.ui_social_pages import render_analise_dos_palpites
+            render_analise_dos_palpites()
+        elif page == "Duelo de Palpites":
+            from src.bolao.ui_social_pages import render_duelo_de_palpites
+            render_duelo_de_palpites()
+        elif page == "Regras":
+            from src.bolao.ui_social_pages import render_regras_do_bolao
+            render_regras_do_bolao()
+        elif page == "Match Center":
+            from src.bolao.ui_live_matches import render_match_center
+            render_match_center()
 
 
 if __name__ == "__main__":
