@@ -8,7 +8,9 @@ Este relatório resume todas as ações tomadas durante o processo de uniformiza
 
 Realizamos modificações em diversos componentes do projeto, estruturadas nos seguintes blocos:
 
-- **Centralização de Navegação**: Criado o módulo [navigation.py](file:///C:/dev/BolaoCopaSanca/src/bolao/navigation.py) para coordenar a navegação via session state, resolvendo conflitos entre os menus e botões rápidos da Home e Admin.
+- **Centralização de Navegação (Corrigido)**: Criado o módulo [navigation.py](file:///C:/dev/BolaoCopaSanca/src/bolao/navigation.py) para coordenar a navegação via session state. Corrigimos a exceção de ciclo de vida do Streamlit (`StreamlitAPIException`) removendo a atribuição programática direta das chaves de widgets ativos (`public_nav_radio_key`, etc.) de dentro do método `navigate_to`.
+- **Prevenção contra KeyError na Navegação**: As funções de callback de navegação da barra lateral (`on_public_nav_change`, etc.) foram reescritas defensivamente com o método `.get()` no session state, evitando quebras caso o widget correspondente não esteja desenhado na tela.
+- **Resolução de ImportErrors no Hot-Reload**: Convertemos os imports dinâmicos das páginas de rota (como `render_minha_cartela` e `render_rankings_tabs`) para o escopo global no topo de [app.py](file:///C:/dev/BolaoCopaSanca/app.py). Isso garante que o file watcher do Streamlit recarregue todos os arquivos em ordem estática e estável, eliminando erros como `cannot import name 'render_responsive_table'`.
 - **Whitelist e Limpeza de Participantes**: Implementação de Whitelist ativa (`Baruja`, `Fantato` e `Henrique O Terrível`) e quarentena segura para participantes antigos (`Murilov`, `Lucão` e `Mantovas`), preservando todos os palpites históricos no arquivo local `archived_participants.json`.
 - **Mapeamento de Aliases**: Suporte automático a aliases, mapeando `Henrique` para `Henrique O Terrível` em submissões legadas sem invalidar confirmation codes ou chaves de identificação interna.
 - **Substituição de Depreciações**: Removido o uso de `use_container_width=True` em todas as exibições Streamlit de dataframes e data_editors, substituindo-o por `width="stretch"` conforme o padrão atualizado do Streamlit v1.58+.
@@ -87,6 +89,6 @@ Antes do início da uniformização, um backup completo de segurança foi execut
 3. Garanta que o secret `ADMIN_PASSWORD` esteja devidamente cadastrado nas configurações da nuvem do Streamlit.
 
 ### Rollback
-Caso ocorra alguma anomalia, execute os seguintes passos de restauração:
+Caso ocorra alguma anomalia, execute os seguintes passos de recuperação:
 1. Retorne a branch de produção para o commit imediatamente anterior às alterações.
 2. Caso precise recuperar os dados anteriores, os JSONs originais estão preservados localmente sob a pasta `data/backups/backup_before_uniformizacao_20260612_185802/` e podem ser copiados diretamente de volta para a pasta de produção `data/state/`.
