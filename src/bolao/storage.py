@@ -589,14 +589,22 @@ def load_demo_state() -> None:
 from .events import append_event, load_events
 
 
-@dataclass
 class AppDataContext:
-    submissions: list[Prediction]
-    official: Prediction | None
-    config: dict
-    matches: list[LiveMatch] = field(default_factory=list)
-    live_predictions: list[LivePrediction] = field(default_factory=list)
-    events: list[dict] = field(default_factory=list)
+    def __init__(
+        self,
+        submissions: list[Prediction],
+        official: Prediction | None,
+        config: dict,
+        matches: list[LiveMatch] | None = None,
+        live_predictions: list[LivePrediction] | None = None,
+        events: list[dict] | None = None
+    ) -> None:
+        self.submissions = submissions
+        self.official = official
+        self.config = config
+        self.matches = matches if matches is not None else []
+        self.live_predictions = live_predictions if live_predictions is not None else []
+        self.events = events if events is not None else []
 
 
 @st.cache_data(ttl=15, show_spinner=False)
