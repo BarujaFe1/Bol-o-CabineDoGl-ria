@@ -23,6 +23,7 @@ EVENTS_PATH = STATE_DIR / "events.json"
 MATCHES_PATH = STATE_DIR / "matches_2026.json"
 LIVE_PREDICTIONS_PATH = STATE_DIR / "live_predictions.json"
 MIGRATIONS_PATH = STATE_DIR / "migrations.json"
+REGISTERED_PARTICIPANTS_PATH = STATE_DIR / "registered_participants.json"
 
 
 def get_storage_backend() -> str:
@@ -754,3 +755,56 @@ def load_migrations() -> dict:
 
 def save_migrations(migrations: dict) -> None:
     write_json(MIGRATIONS_PATH, migrations)
+
+
+def load_registered_participants() -> list[str]:
+    ensure_state()
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client:
+            try:
+                result = client.table("bolao_config").select("value").eq("key", "registered_participants").execute()
+                if result.data:
+                    return result.data[0].get("value", [])
+            except Exception:
+                pass
+    if not REGISTERED_PARTICIPANTS_PATH.exists():
+        return []
+    return read_json(REGISTERED_PARTICIPANTS_PATH, [])
+
+
+def save_registered_participants(participants: list[str]) -> None:
+    ensure_state()
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client:
+            try:
+                client.table("bolao_config").upsert({
+                    "key": "registered_participants",
+                    "value": participants
+                }, on_conflict="key").execute()
+                return
+            except Exception:
+                pass
+    write_json(REGISTERED_PARTICIPANTS_PATH, participants)
+
+
+def register_participant(name: str) -> None:
+    name_clean = name.strip()
+    if not name_clean:
+        return
+    current = load_registered_participants()
+    exists = any(p.strip().lower() == name_clean.lower() for p in current)
+    if not exists:
+        current.append(name_clean)
+        save_registered_participants(current)
+
+
+def delete_registered_participant(name: str) -> None:
+    name_clean = name.strip().lower()
+    current = load_registered_participants()
+    updated = [p for p in current if p.strip().lower() != name_clean]
+    if len(updated) != len(current):
+        save_registered_participants(updated)

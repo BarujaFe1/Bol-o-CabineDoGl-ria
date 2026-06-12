@@ -41,6 +41,9 @@ from src.bolao.storage import (
     save_submission,
     load_app_data_cached,
     load_events,
+    register_participant,
+    load_registered_participants,
+    delete_registered_participant,
 )
 from src.bolao.ui_components import (
     badges,
@@ -599,19 +602,34 @@ def admin_participants() -> None:
         st.rerun()
     render_page_header("Admin", "Participantes", "Gerencie os palpites enviados pelos participantes.", "👥")
     submissions = load_app_data_cached().submissions
-    from src.bolao.storage import load_live_predictions, save_live_predictions, load_matches
+    from src.bolao.storage import load_live_predictions, save_live_predictions, load_matches, load_registered_participants, delete_registered_participant, register_participant
     from src.bolao.utils import normalize_participant_key
     from src.bolao.ui_simulator import init_simulator_state
     
     live_preds = load_live_predictions()
+    registered = load_registered_participants()
     
     all_names_set = set()
     for s in submissions:
         all_names_set.add(s.participant)
     for lp in live_preds:
         all_names_set.add(lp.participant_name)
+    for r in registered:
+        all_names_set.add(r)
         
     all_names = sorted(list(all_names_set), key=lambda x: x.lower())
+
+    # Form to register a new participant from admin panel
+    with st.expander("➕ Cadastrar Novo Participante no Bolão"):
+        new_name = st.text_input("Nome do novo participante:", key="admin_register_new_part")
+        if st.button("➕ Cadastrar Participante", key="btn_admin_register_new_part", use_container_width=True):
+            if not new_name.strip():
+                st.error("Por favor, digite um nome válido.")
+            else:
+                register_participant(new_name.strip())
+                st.success(f"Participante '{new_name.strip()}' cadastrado com sucesso!")
+                st.cache_data.clear()
+                st.rerun()
 
     if all_names:
         search_term = st.text_input("🔍 Buscar por nome", placeholder="Digite parte do nome...", key="part_search")
@@ -637,8 +655,8 @@ def admin_participants() -> None:
                 # Load existing classic prediction
                 classic_pred = next((s for s in submissions if s.participant.lower() == selected_name.lower()), None)
                 
+                st.markdown("##### 📋 Palpite Clássico")
                 if classic_pred:
-                    st.markdown("##### 📋 Palpite Clássico")
                     st.json(classic_pred.to_dict(), expanded=False)
                     
                     # Edit Classic button
@@ -658,6 +676,17 @@ def admin_participants() -> None:
                         st.rerun()
                 else:
                     st.info("Este participante não possui palpite clássico cadastrado.")
+                    if st.button("➕ Criar Palpite Clássico", key=f"btn_create_classic_{selected_name}", use_container_width=True):
+                        new_pred = Prediction(
+                            participant=selected_name,
+                            submission_id=stable_id(selected_name, now_iso()),
+                            submitted_at=now_iso(),
+                            status="rascunho"
+                        )
+                        st.session_state["admin_editing_classic_prediction"] = new_pred
+                        init_simulator_state(new_pred, force_reset=True, is_admin=False)
+                        st.session_state["nav_page"] = "Editar Palpite Clássico"
+                        st.rerun()
                     
                 # Edit Jogo a Jogo predictions
                 st.markdown("---")
@@ -665,54 +694,99 @@ def admin_participants() -> None:
                 user_key = normalize_participant_key(selected_name)
                 user_live_preds = [lp for lp in live_preds if lp.participant_key == user_key or normalize_participant_key(lp.participant_name) == user_key]
                 
-                if not user_live_preds:
-                    st.info("Este participante não possui palpites jogo a jogo cadastrados.")
-                else:
-                    st.caption("Selecione um jogo para alterar o palpite de placar:")
-                    matches = load_matches()
-                    match_opts = []
-                    lp_map = {}
-                    for lp in user_live_preds:
-                        m = next((m for m in matches if m.match_id == lp.match_id), None)
-                        if m:
-                            lbl = f"{m.home_team} x {m.away_team} (Palpite: {lp.predicted_home_goals}x{lp.predicted_away_goals})"
-                            match_opts.append(lbl)
-                            lp_map[lbl] = (lp, m)
+                matches = load_matches()
+                match_opts = []
+                lp_by_match_id = {lp.match_id: lp for lp in user_live_preds}
+                match_opts_map = {}
+                
+                for m in matches:
+                    lp = lp_by_match_id.get(m.match_id)
+                    if lp:
+                        lbl = f"✅ Match {m.match_id}: {m.home_team} {int(lp.predicted_home_goals)}x{int(lp.predicted_away_goals)} {m.away_team}"
+                    else:
+                        lbl = f"⚪ Match {m.match_id}: {m.home_team} x {m.away_team} (Sem palpite)"
+                    match_opts.append(lbl)
+                    match_opts_map[lbl] = (lp, m)
+                
+                if match_opts:
+                    selected_lp_lbl = st.selectbox("Escolha a partida para palpitar/editar:", options=match_opts, key=f"lp_select_{selected_name}")
+                    selected_lp, selected_m = match_opts_map[selected_lp_lbl]
                     
-                    if match_opts:
-                        selected_lp_lbl = st.selectbox("Escolha a partida:", options=match_opts, key=f"lp_select_{selected_name}")
-                        selected_lp, selected_m = lp_map[selected_lp_lbl]
-                        
-                        col_edit1, col_edit2 = st.columns(2)
-                        with col_edit1:
-                            new_h = st.number_input(f"Gols {selected_m.home_team}", min_value=0, max_value=20, value=int(selected_lp.predicted_home_goals), step=1, key=f"edit_lp_h_{selected_lp.id}")
-                        with col_edit2:
-                            new_a = st.number_input(f"Gols {selected_m.away_team}", min_value=0, max_value=20, value=int(selected_lp.predicted_away_goals), step=1, key=f"edit_lp_a_{selected_lp.id}")
-                            
-                        if st.button("💾 Atualizar Palpite Jogo a Jogo", key=f"btn_edit_lp_{selected_lp.id}", type="primary", use_container_width=True):
-                            selected_lp.predicted_home_goals = int(new_h)
-                            selected_lp.predicted_away_goals = int(new_a)
-                            selected_lp.updated_at = now_iso()
-                            
-                            # Update points if approved
-                            if selected_m.status == "result_approved":
-                                from src.bolao.live_scoring import calculate_live_prediction_points
-                                config = load_config()
-                                res = calculate_live_prediction_points(selected_lp, selected_m, config)
-                                selected_lp.points = res["points"]
-                                selected_lp.scoring_breakdown = res["breakdown"]
-                                
-                            save_live_predictions(live_preds)
-                            
-                            from src.bolao.events import append_event
-                            append_event(
-                                kind="live_prediction_edited_by_admin",
-                                message=f"O administrador editou o palpite jogo a jogo de {selected_name} no jogo {selected_m.home_team} x {selected_m.away_team} para {new_h}x{new_a}."
-                            )
-                            
-                            st.success(f"Palpite jogo a jogo para {selected_m.home_team} x {selected_m.away_team} atualizado com sucesso!")
-                            st.cache_data.clear()
-                            st.rerun()
+                    val_h = int(selected_lp.predicted_home_goals) if selected_lp else 0
+                    val_a = int(selected_lp.predicted_away_goals) if selected_lp else 0
+                    
+                    col_edit1, col_edit2 = st.columns(2)
+                    with col_edit1:
+                         new_h = st.number_input(f"Gols {selected_m.home_team}", min_value=0, max_value=20, value=val_h, step=1, key=f"edit_lp_h_{selected_m.match_id}_{selected_name}")
+                    with col_edit2:
+                         new_a = st.number_input(f"Gols {selected_m.away_team}", min_value=0, max_value=20, value=val_a, step=1, key=f"edit_lp_a_{selected_m.match_id}_{selected_name}")
+                         
+                    btn_label = "💾 Salvar Alterações Jogo a Jogo" if selected_lp else "➕ Criar Palpite Jogo a Jogo"
+                    if st.button(btn_label, key=f"btn_edit_lp_{selected_m.match_id}_{selected_name}", type="primary", use_container_width=True):
+                         if selected_lp:
+                             selected_lp.predicted_home_goals = int(new_h)
+                             selected_lp.predicted_away_goals = int(new_a)
+                             selected_lp.updated_at = now_iso()
+                             
+                             if selected_m.status == "result_approved":
+                                 from src.bolao.live_scoring import calculate_live_prediction_points
+                                 config = load_config()
+                                 res = calculate_live_prediction_points(selected_lp, selected_m, config)
+                                 selected_lp.points = res["points"]
+                                 selected_lp.scoring_breakdown = res["breakdown"]
+                         else:
+                             from src.bolao.models import LivePrediction
+                             new_lp_id = stable_id(selected_name + str(selected_m.match_id), now_iso())
+                             
+                             new_lp = LivePrediction(
+                                 id=new_lp_id,
+                                 participant_key=user_key,
+                                 participant_name=selected_name,
+                                 match_id=selected_m.match_id,
+                                 predicted_home_goals=int(new_h),
+                                 predicted_away_goals=int(new_a),
+                                 points=0,
+                                 created_at=now_iso(),
+                                 updated_at=now_iso(),
+                                 scoring_breakdown={}
+                             )
+                             
+                             if selected_m.status == "result_approved":
+                                 from src.bolao.live_scoring import calculate_live_prediction_points
+                                 config = load_config()
+                                 res = calculate_live_prediction_points(new_lp, selected_m, config)
+                                 new_lp.points = res["points"]
+                                 new_lp.scoring_breakdown = res["breakdown"]
+                                 
+                             live_preds.append(new_lp)
+                             
+                         save_live_predictions(live_preds)
+                         
+                         from src.bolao.events import append_event
+                         append_event(
+                             kind="live_prediction_edited_by_admin",
+                             message=f"O administrador editou/criou o palpite jogo a jogo de {selected_name} no jogo {selected_m.home_team} x {selected_m.away_team} para {new_h}x{new_a}."
+                         )
+                         
+                         st.success(f"Palpite jogo a jogo para {selected_m.home_team} x {selected_m.away_team} atualizado com sucesso!")
+                         st.cache_data.clear()
+                         st.rerun()
+                
+                # Danger Zone: delete entire participant
+                st.markdown("---")
+                st.markdown("##### 🚨 Zona de Perigo do Participante")
+                st.markdown(f'<div class="error-box"><strong>Atenção:</strong> Excluir o participante <strong>{selected_name}</strong> é definitivo. Todos os seus palpites (Clássico e Jogo a Jogo) serão eliminados e o perfil será descadastrado.</div>', unsafe_allow_html=True)
+                confirm_all_word = st.text_input(f"Digite APAGAR TUDO para confirmar a exclusão definitiva de {selected_name}:", key=f"confirm_all_word_{selected_name}")
+                if st.button("🚨 Excluir Participante Completamente", type="primary", disabled=confirm_all_word != "APAGAR TUDO", key=f"btn_delete_all_{selected_name}", use_container_width=True):
+                    if classic_pred:
+                        delete_submission(classic_pred.submission_id)
+                    remaining_live = [lp for lp in live_preds if not (lp.participant_key == user_key or normalize_participant_key(lp.participant_name) == user_key)]
+                    save_live_predictions(remaining_live)
+                    delete_registered_participant(selected_name)
+                    st.success(f"Participante {selected_name} e todos os seus dados foram excluídos com sucesso.")
+                    st.cache_data.clear()
+                    st.rerun()
+
         else:
             st.info(f"Nenhum participante encontrado para \"{search_term}\".")
     else:
@@ -1439,7 +1513,7 @@ def admin_auditoria() -> None:
 
 
 def render_login_screen() -> None:
-    from src.bolao.storage import load_submissions, load_live_predictions
+    from src.bolao.storage import load_submissions, load_live_predictions, load_registered_participants, register_participant
     from src.bolao.utils import normalize_participant_key
 
     st.markdown(
@@ -1456,6 +1530,7 @@ def render_login_screen() -> None:
     try:
         subs = load_submissions()
         live_preds = load_live_predictions()
+        registered = load_registered_participants()
         
         all_names_set = set()
         for s in subs:
@@ -1464,8 +1539,11 @@ def render_login_screen() -> None:
         for lp in live_preds:
             if lp.participant_name:
                 all_names_set.add(lp.participant_name.strip())
+        for r in registered:
+            if r:
+                all_names_set.add(r.strip())
                 
-        all_names = sorted(list(all_names_set))
+        all_names = sorted(list(all_names_set), key=lambda x: x.lower())
     except Exception:
         all_names = []
 
@@ -1493,6 +1571,9 @@ def render_login_screen() -> None:
         else:
             name_clean = selected_name.strip()
             pkey = normalize_participant_key(name_clean)
+            
+            # Registrar participante no sistema
+            register_participant(name_clean)
             
             # Verificar se já existe palpite clássico para este usuário
             try:
