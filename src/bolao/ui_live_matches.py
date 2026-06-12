@@ -154,72 +154,77 @@ def render_jogos_de_hoje() -> None:
                 except Exception:
                     countdown_str = "Em breve"
 
-                st.markdown(
-                    f"""
-                    <div style="border: 1px solid var(--line); padding: 15px; border-radius: 16px; background-color: var(--panel); margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-weight: bold; margin-bottom: 10px;">
-                            <span>{m.round_label} {f'· Grupo {m.group}' if m.group else ''}</span>
+                default_h = pred.predicted_home_goals if pred else 0
+                default_a = pred.predicted_away_goals if pred else 0
+
+                from .simulator_engine import name_to_id
+                h_id = name_to_id(m.home_team)
+                a_id = name_to_id(m.away_team)
+                h_badge = get_team_badge_path(h_id) if h_id else None
+                a_badge = get_team_badge_path(a_id) if a_id else None
+
+                with st.container(border=True):
+                    # Unified Card Header
+                    st.markdown(
+                        f"""
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid var(--line); padding-bottom: 8px;">
+                            <span>🏆 {m.round_label} {f'· Grupo {m.group}' if m.group else ''}</span>
                             <span style="color: var(--green);">🟢 Aberto ({countdown_str})</span>
                         </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-                
-                col_teams1, col_inputs, col_btn = st.columns([5, 4, 3])
-                
-                with col_teams1:
-                    from .simulator_engine import name_to_id
-                    h_id = name_to_id(m.home_team)
-                    a_id = name_to_id(m.away_team)
-                    h_badge = get_team_badge_path(h_id) if h_id else None
-                    a_badge = get_team_badge_path(a_id) if a_id else None
+                        """,
+                        unsafe_allow_html=True
+                    )
                     
-                    sub1, sub2 = st.columns(2)
-                    with sub1:
-                        if h_badge: st.image(h_badge, width=28)
-                        st.markdown(f"**{m.home_team}**")
-                    with sub2:
-                        if a_badge: st.image(a_badge, width=28)
-                        st.markdown(f"**{m.away_team}**")
-
-                with col_inputs:
-                    default_h = pred.predicted_home_goals if pred else 0
-                    default_a = pred.predicted_away_goals if pred else 0
+                    # Columns for team flags, inputs, and save button
+                    c_team1, c_vs_inputs, c_team2, c_btn = st.columns([3, 4, 3, 2])
                     
-                    sub_i1, sub_vs, sub_i2 = st.columns([2, 1, 2])
-                    with sub_i1:
-                        val_h = st.number_input(f"{m.home_team} gols", min_value=0, max_value=20, value=default_h, step=1, key=f"live_h_{m.match_id}", label_visibility="collapsed")
-                    with sub_vs:
-                        st.markdown("<div style='text-align: center; line-height: 40px; color: var(--ink);'>x</div>", unsafe_allow_html=True)
-                    with sub_i2:
-                        val_a = st.number_input(f"{m.away_team} gols", min_value=0, max_value=20, value=default_a, step=1, key=f"live_a_{m.match_id}", label_visibility="collapsed")
-
-                with col_btn:
-                    if st.button("Salvar Palpite", key=f"save_btn_{m.match_id}", type="primary", width="stretch"):
-                        if pred:
-                            pred.predicted_home_goals = int(val_h)
-                            pred.predicted_away_goals = int(val_a)
-                            pred.updated_at = now_iso()
-                        else:
-                            pred = LivePrediction(
-                                id=pred_id,
-                                participant_name=user_name,
-                                participant_key=user_key,
-                                match_id=m.match_id,
-                                predicted_home_goals=int(val_h),
-                                predicted_away_goals=int(val_a),
-                                submitted_at=now_iso(),
-                                updated_at=now_iso(),
-                                confirmation_code=conf_code,
-                                locked_at=m.lock_at
-                            )
-                            live_preds.append(pred)
+                    with c_team1:
+                        st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
+                        if h_badge: st.image(h_badge, width=32)
+                        st.markdown(f"<div style='font-weight: 700; margin-top: 4px; color: var(--ink);'>{m.home_team}</div>", unsafe_allow_html=True)
+                        st.markdown("</div>", unsafe_allow_html=True)
+                        
+                    with c_vs_inputs:
+                        sub_i1, sub_vs, sub_i2 = st.columns([2, 1, 2])
+                        with sub_i1:
+                            val_h = st.number_input(f"{m.home_team} gols", min_value=0, max_value=20, value=default_h, step=1, key=f"live_h_{m.match_id}", label_visibility="collapsed")
+                        with sub_vs:
+                            st.markdown("<div style='text-align: center; font-size: 18px; font-weight: bold; line-height: 44px; color: var(--muted);'>x</div>", unsafe_allow_html=True)
+                        with sub_i2:
+                            val_a = st.number_input(f"{m.away_team} gols", min_value=0, max_value=20, value=default_a, step=1, key=f"live_a_{m.match_id}", label_visibility="collapsed")
                             
-                        save_live_predictions(live_preds)
-                        append_event("live_guess_saved", f"Palpite de {user_name} para {m.home_team} x {m.away_team} salvo.")
-                        st.toast("Palpite salvo com sucesso!")
-                        st.rerun()
+                    with c_team2:
+                        st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
+                        if a_badge: st.image(a_badge, width=32)
+                        st.markdown(f"<div style='font-weight: 700; margin-top: 4px; color: var(--ink);'>{m.away_team}</div>", unsafe_allow_html=True)
+                        st.markdown("</div>", unsafe_allow_html=True)
+                        
+                    with c_btn:
+                        st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+                        if st.button("💾 Salvar", key=f"save_btn_{m.match_id}", type="primary", use_container_width=True):
+                            if pred:
+                                pred.predicted_home_goals = int(val_h)
+                                pred.predicted_away_goals = int(val_a)
+                                pred.updated_at = now_iso()
+                            else:
+                                pred = LivePrediction(
+                                    id=pred_id,
+                                    participant_name=user_name,
+                                    participant_key=user_key,
+                                    match_id=m.match_id,
+                                    predicted_home_goals=int(val_h),
+                                    predicted_away_goals=int(val_a),
+                                    submitted_at=now_iso(),
+                                    updated_at=now_iso(),
+                                    confirmation_code=conf_code,
+                                    locked_at=m.lock_at
+                                )
+                                live_preds.append(pred)
+                                
+                            save_live_predictions(live_preds)
+                            append_event("live_guess_saved", f"Palpite de {user_name} para {m.home_team} x {m.away_team} salvo.")
+                            st.toast("Palpite salvo com sucesso!")
+                            st.rerun()
 
     # 2. Jogos Fechados / Live
     with m_tabs[1]:
@@ -231,33 +236,62 @@ def render_jogos_de_hoje() -> None:
                 pred_id = f"{user_key}_{m.match_id}"
                 pred = next((p for p in live_preds if p.id == pred_id), None)
                 
-                st.markdown(
-                    f"""
-                    <div style="border: 1px solid var(--line); padding: 15px; border-radius: 16px; background-color: var(--panel); margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-weight: bold; margin-bottom: 10px;">
-                            <span>{m.round_label} {f'· Grupo {m.group}' if m.group else ''}</span>
-                            <span style="color: var(--red);">🔒 Fechado</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 16px; font-weight: bold; color: var(--ink);">{m.home_team} x {m.away_team}</span>
-                            <span style="background-color: var(--gold-bg); padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; color: var(--gold);">
-                                {f'Seu palpite: {pred.predicted_home_goals} x {pred.predicted_away_goals}' if pred else 'Você não palpitou'}
-                            </span>
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-                
-                reveal_enabled = config.get("reveal_live_predictions_after_lock", True)
-                if reveal_enabled:
-                    with st.expander(f"👁️ Ver palpites e estatísticas de {m.home_team} x {m.away_team}"):
-                        if st.button("Abrir Match Center do Jogo", key=f"btn_mc_link_{m.match_id}", width="stretch"):
-                            st.session_state["nav_page"] = "Match Center"
-                            st.session_state["match_center_selected_match_id"] = m.match_id
-                            st.rerun()
-                else:
-                    st.caption("🔒 Revelação de palpites desativada pela organização.")
+                from .simulator_engine import name_to_id
+                h_id = name_to_id(m.home_team)
+                a_id = name_to_id(m.away_team)
+                h_badge = get_team_badge_path(h_id) if h_id else None
+                a_badge = get_team_badge_path(a_id) if a_id else None
+
+                with st.container(border=True):
+                    # Header
+                    col_info, col_status = st.columns([2, 1])
+                    with col_info:
+                        st.markdown(f"🏆 **{m.round_label}** {f'· Grupo {m.group}' if m.group else ''}")
+                    with col_status:
+                        st.markdown(f"<div style='text-align: right; color: var(--red); font-weight: bold;'>🔒 Fechado</div>", unsafe_allow_html=True)
+                    
+                    # Columns for team flags/names and prediction badge
+                    col_match, col_user_pred = st.columns([3, 1])
+                    
+                    with col_match:
+                        c_flag1, c_vs_name, c_flag2 = st.columns([1, 4, 1])
+                        with c_flag1:
+                            if h_badge: st.image(h_badge, width=28)
+                        with c_vs_name:
+                            st.markdown(f"**{m.home_team}** vs **{m.away_team}**")
+                        with c_flag2:
+                            if a_badge: st.image(a_badge, width=28)
+                        
+                    with col_user_pred:
+                        if pred:
+                            st.markdown(
+                                f"""
+                                <div style="background-color: var(--gold-bg); padding: 6px 10px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: bold; color: var(--gold);">
+                                    Seu palpite: {pred.predicted_home_goals} x {pred.predicted_away_goals}
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                        else:
+                            st.markdown(
+                                """
+                                <div style="background-color: var(--red-bg); padding: 6px 10px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: bold; color: var(--red);">
+                                    Sem palpite
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                    
+                    # Match Center expansion
+                    reveal_enabled = config.get("reveal_live_predictions_after_lock", True)
+                    if reveal_enabled:
+                        with st.expander(f"👁️ Ver palpites de outros e estatísticas para {m.home_team} x {m.away_team}"):
+                            if st.button("Abrir Match Center", key=f"btn_mc_link_{m.match_id}", use_container_width=True):
+                                st.session_state["nav_page"] = "Match Center"
+                                st.session_state["match_center_selected_match_id"] = m.match_id
+                                st.rerun()
+                    else:
+                        st.caption("🔒 Revelação de palpites desativada pela organização.")
 
     # 3. Resultados Aprovados
     with m_tabs[2]:
@@ -280,25 +314,43 @@ def render_jogos_de_hoje() -> None:
                 badge_color = "success" if points_gained > 0 else "error"
                 points_badge = render_badge(f"+{points_gained} pts", badge_color)
                 
-                st.markdown(
-                    f"""
-                    <div style="border: 1px solid var(--line); padding: 15px; border-radius: 16px; background-color: var(--panel); margin-bottom: 15px; border-left: 5px solid var(--gold);">
-                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-weight: bold; margin-bottom: 8px;">
-                            <span>{m.round_label} {f'· Grupo {m.group}' if m.group else ''}</span>
-                            <span>🏁 Concluído</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-size: 16px; font-weight: bold; color: var(--ink);">{m.home_team} {m.official_home_goals} x {m.official_away_goals} {m.away_team}</span>
-                            {points_badge}
-                        </div>
-                        <div style="font-size: 13px; color: var(--muted);">
+                from .simulator_engine import name_to_id
+                h_id = name_to_id(m.home_team)
+                a_id = name_to_id(m.away_team)
+                h_badge = get_team_badge_path(h_id) if h_id else None
+                a_badge = get_team_badge_path(a_id) if a_id else None
+
+                with st.container(border=True):
+                    # Header
+                    col_info, col_status = st.columns([2, 1])
+                    with col_info:
+                        st.markdown(f"🏆 **{m.round_label}** {f'· Grupo {m.group}' if m.group else ''}")
+                    with col_status:
+                        st.markdown(f"<div style='text-align: right; color: var(--muted); font-weight: bold;'>🏁 Concluído</div>", unsafe_allow_html=True)
+                    
+                    # Columns
+                    col_match, col_badge = st.columns([3, 1])
+                    with col_match:
+                        # Match scores with flags
+                        c_f1, c_text, c_f2 = st.columns([1, 4, 1])
+                        with c_f1:
+                            if h_badge: st.image(h_badge, width=28)
+                        with c_text:
+                            st.markdown(f"**{m.home_team} {m.official_home_goals} x {m.official_away_goals} {m.away_team}**")
+                        with c_f2:
+                            if a_badge: st.image(a_badge, width=28)
+                    with col_badge:
+                        st.markdown(f"<div style='text-align: right;'>{points_badge}</div>", unsafe_allow_html=True)
+                        
+                    st.markdown(
+                        f"""
+                        <div style="font-size: 13px; color: var(--muted); margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line);">
                             ⚽ <b>Seu palpite:</b> {f'{pred.predicted_home_goals} x {pred.predicted_away_goals}' if pred else 'Não palpitou'} 
-                            <br>💡 <b>Acertos:</b> {breakdown_text}
+                            <br>💡 <b>Pontuação detalhada:</b> {breakdown_text}
                         </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+                        """,
+                        unsafe_allow_html=True
+                    )
 
 
 def render_match_center() -> None:

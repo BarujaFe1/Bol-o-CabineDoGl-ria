@@ -177,11 +177,9 @@ def public_home() -> None:
     if open_today:
         st.markdown(
             f"""
-            <div style="background-color: #E6D2B5; border: 2px solid #D8A94A; border-radius: 16px; padding: 16px 20px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                <div>
-                    <h4 style="margin: 0; color: #0B3328;">🔥 Há jogos abertos hoje!</h4>
-                    <p style="margin: 5px 0 0; color: #72541A; font-size: 14px;">Você tem <b>{len(open_today)}</b> partida(s) para palpitar hoje no Modo Jogo a Jogo.</p>
-                </div>
+            <div class="callout warning" style="margin-bottom: 25px; width: 100%;">
+                <h4 style="margin: 0;">🔥 Há jogos abertos hoje!</h4>
+                <p style="margin: 5px 0 0; font-size: 14px;">Você tem <b>{len(open_today)}</b> partida(s) para palpitar hoje no Modo Jogo a Jogo.</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -196,15 +194,15 @@ def public_home() -> None:
     with col_c1:
         st.markdown(
             f"""
-            <div style="border: 1px solid rgba(11, 51, 40, 0.12); padding: 20px; border-radius: 20px; background-color: #FFFDF8; height: 100%; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 12px rgba(11, 51, 40, 0.03);">
+            <div class="card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                     <div style="font-size: 32px; margin-bottom: 10px;">📋</div>
-                    <h3 style="color: #0B3328; margin: 0 0 10px 0;">Modo Clássico</h3>
-                    <p style="color: #66736D; font-size: 14px; margin-bottom: 15px;">
+                    <h3 style="margin: 0 0 10px 0;">Modo Clássico</h3>
+                    <p style="font-size: 14px; margin-bottom: 15px;">
                         O modo clássico tradicional do bolão. Cada participante preenche o palpite completo da Copa (grupos, chaveamento de mata-mata e campeão) uma única vez antes de a bola rolar.
                     </p>
                     <div style="margin-bottom: 20px;">
-                        <span style="font-weight: bold; color: #0B3328;">Status:</span>
+                        <span style="font-weight: bold;">Status:</span>
                         {'<span class="badge error">🔒 Encerrado</span>' if config.get("is_bolao_locked", False) else '<span class="badge success">🟢 Aberto</span>'}
                     </div>
                 </div>
@@ -224,15 +222,15 @@ def public_home() -> None:
     with col_c2:
         st.markdown(
             f"""
-            <div style="border: 1px solid rgba(11, 51, 40, 0.12); padding: 20px; border-radius: 20px; background-color: #FFFDF8; height: 100%; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 12px rgba(11, 51, 40, 0.03);">
+            <div class="card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                     <div style="font-size: 32px; margin-bottom: 10px;">🎯</div>
-                    <h3 style="color: #0B3328; margin: 0 0 10px 0;">Modo Jogo a Jogo</h3>
-                    <p style="color: #66736D; font-size: 14px; margin-bottom: 15px;">
+                    <h3 style="margin: 0 0 10px 0;">Modo Jogo a Jogo</h3>
+                    <p style="font-size: 14px; margin-bottom: 15px;">
                         A grande novidade! Palpite no placar de cada jogo individualmente ao longo da Copa até 10 minutos antes do início de cada partida. Tem ranking próprio e pontuação independente.
                     </p>
                     <div style="margin-bottom: 20px;">
-                        <span style="font-weight: bold; color: #0B3328;">Status:</span>
+                        <span style="font-weight: bold;">Status:</span>
                         {'<span class="badge success">🟢 Disponível</span>' if config.get("live_mode_enabled", True) else '<span class="badge error">🔒 Suspenso</span>'}
                     </div>
                 </div>
@@ -607,35 +605,97 @@ def admin_participants() -> None:
         st.rerun()
     render_page_header("Admin", "Participantes", "Gerencie os palpites enviados pelos participantes.", "👥")
     submissions = load_app_data_cached().submissions
-    if not submissions:
-        render_empty_state("Nenhum participante", "Não há palpites cadastrados no sistema no momento. Quando alguém enviar um palpite, ele aparecerá aqui.", "Ir para Resultados", "cta_participants_empty")
-        return
+    
+    # Seção para exibir participantes ativos
+    if submissions:
+        search_term = st.text_input("🔍 Buscar por nome", placeholder="Digite parte do nome...", key="part_search")
+        filtered = [p for p in submissions if search_term.lower() in p.participant.lower()] if search_term else submissions
 
-    search_term = st.text_input("🔍 Buscar por nome", placeholder="Digite parte do nome...", key="part_search")
-    filtered = [p for p in submissions if search_term.lower() in p.participant.lower()] if search_term else submissions
+        if filtered:
+            df = pd.DataFrame([
+                {"Nome": p.participant, "Código": p.submission_id[:8] + "...", "Enviado em": p.submitted_at, "Campeã": p.champion or "—"}
+                for p in filtered
+            ])
+            st.dataframe(df, width="stretch", hide_index=True)
 
-    if not filtered:
-        st.info(f"Nenhum participante encontrado para \"{search_term}\".")
-        return
+            with st.expander("Ver/editar um participante"):
+                selected = st.selectbox("Participante", options=[f"{p.participant} · {p.submission_id[:8]}..." for p in filtered], key="part_select")
+                idx = [f"{p.participant} · {p.submission_id[:8]}..." for p in filtered].index(selected)
+                pred = filtered[idx]
+                st.json(pred.to_dict(), expanded=False)
 
-    df = pd.DataFrame([
-        {"Nome": p.participant, "Código": p.submission_id[:8] + "...", "Enviado em": p.submitted_at, "Campeã": p.champion or "—"}
-        for p in filtered
-    ])
-    st.dataframe(df, width="stretch", hide_index=True)
+                st.markdown(f'<div class="error-box" style="margin-top: 15px;"><strong>🚨 Zona de Perigo:</strong> Excluir o palpite de <strong>{pred.participant}</strong> é irreversível. Não há como recuperar os dados depois.</div>', unsafe_allow_html=True)
+                confirm_word = st.text_input(f"Digite EXCLUIR para confirmar a exclusão de {pred.participant}:", key=f"confirm_word_{pred.submission_id}")
+                if st.button("🚨 Excluir permanentemente", type="primary", disabled=confirm_word != "EXCLUIR", width="stretch"):
+                    delete_submission(pred.submission_id)
+                    st.success(f"Palpite de {pred.participant} excluído permanentemente.")
+                    st.rerun()
+        else:
+            st.info(f"Nenhum participante encontrado para \"{search_term}\".")
+    else:
+        render_empty_state("Nenhum participante ativo", "Não há palpites ativos cadastrados no sistema no momento.", "Ir para Resultados", "cta_participants_empty")
 
-    with st.expander("Ver/editar um participante"):
-        selected = st.selectbox("Participante", options=[f"{p.participant} · {p.submission_id[:8]}..." for p in filtered], key="part_select")
-        idx = [f"{p.participant} · {p.submission_id[:8]}..." for p in filtered].index(selected)
-        pred = filtered[idx]
-        st.json(pred.to_dict(), expanded=False)
+    st.markdown("---")
 
-        st.markdown(f'<div class="error-box" style="margin-top: 15px;"><strong>🚨 Zona de Perigo:</strong> Excluir o palpite de <strong>{pred.participant}</strong> é irreversível. Não há como recuperar os dados depois.</div>', unsafe_allow_html=True)
-        confirm_word = st.text_input(f"Digite EXCLUIR para confirmar a exclusão de {pred.participant}:", key=f"confirm_word_{pred.submission_id}")
-        if st.button("🚨 Excluir permanentemente", type="primary", disabled=confirm_word != "EXCLUIR", width="stretch"):
-            delete_submission(pred.submission_id)
-            st.success(f"Palpite de {pred.participant} excluído permanentemente.")
-            st.rerun()
+    # 1. Expander para limpeza de participantes (allowlist)
+    with st.expander("🧹 Limpeza de Participantes Ativos (Allowlist)"):
+        st.markdown(
+            """
+            <div class="callout warning" style="margin-top:0;">
+                ⚠️ <strong>Atenção:</strong> Esta ação removerá do bolão ativo todos os participantes que NÃO pertençam à allowlist de participantes oficiais:
+                <br>• <strong>Baruja</strong>
+                <br>• <strong>Henrique O Terrível</strong>
+                <br>• <strong>Fantato</strong>
+                <br><br>Todos os outros participantes e seus palpites (tanto do Modo Clássico quanto do Jogo a Jogo) serão <strong>arquivados com segurança</strong> antes de serem removidos das exibições ativas.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        
+        confirm_cleanup = st.checkbox("Estou ciente e confirmo que desejo arquivar e limpar os demais participantes", key="confirm_cleanup_checkbox")
+        confirm_text = st.text_input("Digite LIMPAR para confirmar a ação:", key="confirm_cleanup_text")
+        
+        btn_cleanup = st.button("🧹 Executar arquivamento e limpeza", type="primary", disabled=not confirm_cleanup or confirm_text != "LIMPAR", key="btn_run_participants_cleanup", width="stretch")
+        
+        if btn_cleanup:
+            with st.spinner("Executando limpeza e gerando backups..."):
+                from src.bolao.migrations import cleanup_active_participants
+                res = cleanup_active_participants({"baruja", "henrique-o-terrivel", "fantato"})
+                if res["status"] == "success":
+                    st.success(
+                        f"Faxina executada com sucesso! "
+                        f"Removidos: {len(res['removed_participants'])} participante(s). "
+                        f"Backup salvo em: {res['backup_path']}"
+                    )
+                    st.rerun()
+                else:
+                    st.error("Erro desconhecido ao executar a migração de limpeza.")
+
+    # 2. Expander para restaurar participantes arquivados
+    with st.expander("📂 Restaurar Participante Arquivado"):
+        from src.bolao.migrations import load_archived_participants, restore_archived_participant
+        archived = load_archived_participants()
+        if not archived:
+            st.info("Nenhum participante arquivado encontrado nos arquivos históricos.")
+        else:
+            st.caption("Selecione um participante para restaurar todos os seus palpites clássicos e jogo a jogo no sistema ativo:")
+            keys_list = list(archived.keys())
+            selected_restore = st.selectbox(
+                "Escolha o participante a ser restaurado:",
+                options=keys_list,
+                format_func=lambda k: f"{archived[k]['name']} (arquivo: {archived[k]['archive_file']})",
+                key="select_restore_participant_dropdown"
+            )
+            
+            btn_restore = st.button("⏪ Restaurar Participante", type="secondary", key="btn_restore_archived_participant", width="stretch")
+            if btn_restore:
+                with st.spinner("Restaurando dados do participante..."):
+                    if restore_archived_participant(selected_restore):
+                        st.success(f"Participante {archived[selected_restore]['name']} foi restaurado no bolão ativo!")
+                        st.rerun()
+                    else:
+                        st.error(f"Erro ao tentar restaurar {archived[selected_restore]['name']}.")
+
 
 
 def make_prediction_from_text(name: str, text: str) -> Prediction:
@@ -834,104 +894,118 @@ def admin_exports() -> None:
     exp_tabs = st.tabs(["📥 Planilhas e Dados", "🏆 Pódios HTML", "💬 WhatsApp / Social"])
 
     with exp_tabs[0]:
-        st.markdown("### Exportar Planilhas (CSV)")
-        c_cols = st.columns(3)
-        with c_cols[0]:
-            st.download_button(
-                "Baixar Ranking Clássico (CSV)",
-                data=ranking_csv(scores),
-                file_name="ranking_classico.csv",
-                mime="text/csv",
-                disabled=not bool(scores),
-                width="stretch"
-            )
-        with c_cols[1]:
-            st.download_button(
-                "Baixar Ranking Jogo a Jogo (CSV)",
-                data=live_df.to_csv(index=False) if not live_df.empty else "",
-                file_name="ranking_jogo_a_jogo.csv",
-                mime="text/csv",
-                disabled=live_df.empty,
-                width="stretch"
-            )
-        with c_cols[2]:
-            st.download_button(
-                "Baixar Ranking Geral Combinado (CSV)",
-                data=comb_df.to_csv(index=False) if not comb_df.empty else "",
-                file_name="ranking_geral_combinado.csv",
-                mime="text/csv",
-                disabled=comb_df.empty,
-                width="stretch"
-            )
+        with st.container(border=True):
+            st.markdown("### 📊 Exportar Planilhas (CSV)")
+            st.caption("Arquivos formatados para abertura no Excel ou Google Sheets.")
+            st.markdown("<br>", unsafe_allow_html=True)
+            c_cols = st.columns(3)
+            with c_cols[0]:
+                st.download_button(
+                    "Baixar Ranking Clássico (CSV)",
+                    data=ranking_csv(scores),
+                    file_name="ranking_classico.csv",
+                    mime="text/csv",
+                    disabled=not bool(scores),
+                    width="stretch"
+                )
+            with c_cols[1]:
+                st.download_button(
+                    "Baixar Ranking Jogo a Jogo (CSV)",
+                    data=live_df.to_csv(index=False) if not live_df.empty else "",
+                    file_name="ranking_jogo_a_jogo.csv",
+                    mime="text/csv",
+                    disabled=live_df.empty,
+                    width="stretch"
+                )
+            with c_cols[2]:
+                st.download_button(
+                    "Baixar Ranking Geral Combinado (CSV)",
+                    data=comb_df.to_csv(index=False) if not comb_df.empty else "",
+                    file_name="ranking_geral_combinado.csv",
+                    mime="text/csv",
+                    disabled=comb_df.empty,
+                    width="stretch"
+                )
 
-        st.markdown("---")
-        st.markdown("### Backups de Segurança (JSON)")
-        j_cols = st.columns(3)
-        with j_cols[0]:
-            st.download_button(
-                "Baixar Backup Geral Completo (JSON)",
-                data=json.dumps(export_all_state(), ensure_ascii=False, indent=2),
-                file_name="backup_geral_completo.json",
-                mime="application/json",
-                width="stretch"
-            )
-        with j_cols[1]:
-            st.download_button(
-                "Baixar Palpites Jogo a Jogo (JSON)",
-                data=json.dumps([p.to_dict() for p in ctx.live_predictions], ensure_ascii=False, indent=2),
-                file_name="live_predictions.json",
-                mime="application/json",
-                width="stretch"
-            )
-        with j_cols[2]:
-            st.download_button(
-                "Baixar Agenda de Jogos (JSON)",
-                data=json.dumps([m.to_dict() for m in ctx.matches], ensure_ascii=False, indent=2),
-                file_name="matches_agenda.json",
-                mime="application/json",
-                width="stretch"
-            )
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        with st.container(border=True):
+            st.markdown("### 💾 Backups de Segurança (JSON)")
+            st.caption("Arquivos de dados estruturados contendo todo o estado atual para restauração ou migração.")
+            st.markdown("<br>", unsafe_allow_html=True)
+            j_cols = st.columns(3)
+            with j_cols[0]:
+                st.download_button(
+                    "Baixar Backup Geral Completo (JSON)",
+                    data=json.dumps(export_all_state(), ensure_ascii=False, indent=2),
+                    file_name="backup_geral_completo.json",
+                    mime="application/json",
+                    width="stretch"
+                )
+            with j_cols[1]:
+                st.download_button(
+                    "Baixar Palpites Jogo a Jogo (JSON)",
+                    data=json.dumps([p.to_dict() for p in ctx.live_predictions], ensure_ascii=False, indent=2),
+                    file_name="live_predictions.json",
+                    mime="application/json",
+                    width="stretch"
+                )
+            with j_cols[2]:
+                st.download_button(
+                    "Baixar Agenda de Jogos (JSON)",
+                    data=json.dumps([m.to_dict() for m in ctx.matches], ensure_ascii=False, indent=2),
+                    file_name="matches_agenda.json",
+                    mime="application/json",
+                    width="stretch"
+                )
 
     with exp_tabs[1]:
-        st.markdown("### Compartilhar Cartazes de Pódio (HTML)")
-        st.caption("Baixe arquivos HTML com visual moderno e premium para impressão ou print de redes sociais.")
-        p_cols = st.columns(2)
-        with p_cols[0]:
-            status_lbl = ctx.config.get("status_label", "Aprovado")
-            html_classic = podium_html(scores, status_label=status_lbl) if scores else ""
-            st.download_button(
-                "Baixar Pódio Clássico (HTML)",
-                data=html_classic,
-                file_name="podio_classico.html",
-                mime="text/html",
-                disabled=not bool(scores),
-                width="stretch"
-            )
-        with p_cols[1]:
-            html_live = live_podium_html(live_scores, status_label=status_lbl) if live_scores else ""
-            st.download_button(
-                "Baixar Pódio Jogo a Jogo (HTML)",
-                data=html_live,
-                file_name="podio_jogo_a_jogo.html",
-                mime="text/html",
-                disabled=not bool(live_scores),
-                width="stretch"
-            )
+        with st.container(border=True):
+            st.markdown("### 🏆 Compartilhar Cartazes de Pódio (HTML)")
+            st.caption("Baixe arquivos HTML com visual moderno e premium para impressão ou print de redes sociais.")
+            st.markdown("<br>", unsafe_allow_html=True)
+            p_cols = st.columns(2)
+            with p_cols[0]:
+                status_lbl = ctx.config.get("status_label", "Aprovado")
+                html_classic = podium_html(scores, status_label=status_lbl) if scores else ""
+                st.download_button(
+                    "Baixar Pódio Clássico (HTML)",
+                    data=html_classic,
+                    file_name="podio_classico.html",
+                    mime="text/html",
+                    disabled=not bool(scores),
+                    width="stretch"
+                )
+            with p_cols[1]:
+                html_live = live_podium_html(live_scores, status_label=status_lbl) if live_scores else ""
+                st.download_button(
+                    "Baixar Pódio Jogo a Jogo (HTML)",
+                    data=html_live,
+                    file_name="podio_jogo_a_jogo.html",
+                    mime="text/html",
+                    disabled=not bool(live_scores),
+                    width="stretch"
+                )
 
     with exp_tabs[2]:
-        st.markdown("### Textos Prontos para WhatsApp")
-        
-        st.markdown("#### 🏆 Classificação de Rankings")
-        ranking_text = build_ranking_share_text(scores, live_scores)
-        st.text_area("Texto Classificação", value=ranking_text, height=120, key="txt_area_rank_whatsapp")
-        
-        st.markdown("#### 📅 Próximos Jogos de Hoje")
-        import datetime
-        now_str = datetime.datetime.now().isoformat()
-        today_open_matches = [m for m in ctx.matches if m.status != "result_approved" and is_match_open_for_prediction(m, now_str)]
-        today_open_matches.sort(key=lambda m: m.starts_at)
-        daily_text = build_live_daily_share_text(today_open_matches)
-        st.text_area("Texto Jogos do Dia", value=daily_text, height=120, key="txt_area_daily_whatsapp")
+        with st.container(border=True):
+            st.markdown("### 💬 Textos Prontos para WhatsApp")
+            st.caption("Copie e envie nos grupos sociais para atualizar a galera do bolão.")
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            st.markdown("#### 🏆 Classificação de Rankings")
+            ranking_text = build_ranking_share_text(scores, live_scores)
+            st.text_area("Texto Classificação", value=ranking_text, height=150, key="txt_area_rank_whatsapp")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            st.markdown("#### 📅 Próximos Jogos de Hoje")
+            import datetime
+            now_str = datetime.datetime.now().isoformat()
+            today_open_matches = [m for m in ctx.matches if m.status != "result_approved" and is_match_open_for_prediction(m, now_str)]
+            today_open_matches.sort(key=lambda m: m.starts_at)
+            daily_text = build_live_daily_share_text(today_open_matches)
+            st.text_area("Texto Jogos do Dia", value=daily_text, height=150, key="txt_area_daily_whatsapp")
 
 
 def admin_settings() -> None:
@@ -941,205 +1015,212 @@ def admin_settings() -> None:
     render_page_header("Admin", "Configurações", "Controle geral do bolão: status, pontuação e prazos.", "⚙️")
     config = load_app_data_cached().config
     
-    st.markdown("### Status & Acesso")
-    config["is_bolao_locked"] = st.checkbox(
-        "🔒 Bloquear envios e alterações de palpites clássicos",
-        value=config.get("is_bolao_locked", False),
-        help="Se marcado, novos palpites clássicos não poderão ser enviados, e palpites existentes não poderão ser editados ou excluídos."
-    )
-    config["status_label"] = st.text_input("Status público do bolão", value=config.get("status_label", "Recebendo palpites"))
-    config["submission_deadline"] = st.text_input(
-        "Prazo Limite para Envios Clássicos (Opcional)",
-        value=config.get("submission_deadline", ""),
-        help="Exemplo: 11/06/2026 15:00 ou deixe em branco se não houver prazo rígido."
-    )
-    
-    mode_options = ["v2", "ponderado", "uniforme"]
-    current_mode = config.get("scoring_mode", "v2")
-    if current_mode not in mode_options:
-        current_mode = "v2"
-    mode_idx = mode_options.index(current_mode)
-    config["scoring_mode"] = st.radio("Modo de pontuação do Clássico", mode_options, index=mode_idx, horizontal=True)
-
-    st.markdown("### Configurações do Jogo a Jogo")
-    config["classic_enabled"] = st.checkbox("Modo Clássico Ativado", value=config.get("classic_enabled", True))
-    config["live_mode_enabled"] = st.checkbox("Modo Jogo a Jogo Ativado", value=config.get("live_mode_enabled", True))
-    config["combined_ranking_enabled"] = st.checkbox("Ranking Geral Combinado Ativado", value=config.get("combined_ranking_enabled", False))
-    config["live_lock_minutes_before_match"] = st.number_input(
-        "Bloquear palpites jogo a jogo X minutos antes do início do jogo",
-        min_value=0, max_value=1440,
-        value=int(config.get("live_lock_minutes_before_match", 10)),
-        step=1
-    )
-    
-    st.markdown("#### Pontuação Modo Jogo a Jogo")
-    live_scoring = config.get("live_scoring", {})
-    col_l1, col_l2, col_l3 = st.columns(3)
-    with col_l1:
-        exact_score_val = st.number_input("Placar Exato", min_value=0, max_value=50, value=int(live_scoring.get("exact_score", 5)), step=1)
-        outcome_val = st.number_input("Acertar Vencedor/Empate", min_value=0, max_value=50, value=int(live_scoring.get("outcome", 3)), step=1)
-    with col_l2:
-        goal_one_team_val = st.number_input("Acertar Gols de um Time", min_value=0, max_value=50, value=int(live_scoring.get("goal_one_team", 1)), step=1)
-        goal_difference_val = st.number_input("Acertar Saldo de Gols", min_value=0, max_value=50, value=int(live_scoring.get("goal_difference", 1)), step=1)
-    with col_l3:
-        exact_score_mode = st.radio(
-            "Modo do Placar Exato",
-            options=["isolated_max", "additive"],
-            index=0 if config.get("exact_score_mode", "isolated_max") == "isolated_max" else 1,
-            help="isolated_max: ganha apenas os pontos do placar exato se acertar tudo. additive: ganha os pontos de placar exato + todos os outros bônus que coincidam."
+    # Accordion 1: Status & Acesso
+    with st.expander("🔐 Status & Acesso", expanded=True):
+        config["is_bolao_locked"] = st.checkbox(
+            "🔒 Bloquear envios e alterações de palpites clássicos",
+            value=config.get("is_bolao_locked", False),
+            help="Se marcado, novos palpites clássicos não poderão ser enviados, e palpites existentes não poderão ser editados ou excluídos."
         )
-    
-    config["live_scoring"] = {
-        "exact_score": exact_score_val,
-        "outcome": outcome_val,
-        "goal_one_team": goal_one_team_val,
-        "goal_difference": goal_difference_val,
-        "late_prediction": 0
-    }
-    config["exact_score_mode"] = exact_score_mode
-
-    st.markdown("#### Pesos do Ranking Geral Combinado")
-    weights = config.get("combined_ranking_weights", {"classic": 1.0, "live": 1.0})
-    col_w1, col_w2 = st.columns(2)
-    with col_w1:
-        classic_w = st.number_input("Peso do Modo Clássico", min_value=0.0, max_value=10.0, value=float(weights.get("classic", 1.0)), step=0.1)
-    with col_w2:
-        live_w = st.number_input("Peso do Modo Jogo a Jogo", min_value=0.0, max_value=10.0, value=float(weights.get("live", 1.0)), step=0.1)
-    config["combined_ranking_weights"] = {"classic": classic_w, "live": live_w}
-
-    st.markdown("#### Privacidade & Feed")
-    config["reveal_live_predictions_after_lock"] = st.checkbox("Revelar palpites dos outros após o lock do jogo", value=config.get("reveal_live_predictions_after_lock", True))
-    config["allow_live_prediction_edit_until_lock"] = st.checkbox("Permitir editar palpite jogo a jogo até o lock", value=config.get("allow_live_prediction_edit_until_lock", True))
-    config["public_show_activity_feed"] = st.checkbox("Exibir feed de atividades público", value=config.get("public_show_activity_feed", True))
-
-    st.markdown("### Pontuação V2 (Fase de Grupos & Mata-mata) [Modo Clássico]")
-    v2_rules = config.get("v2_rules", dict(DEFAULT_V2_RULES))
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        v2_rules["group_exact"] = st.number_input(
-            "Grupo: Placar Exato",
-            min_value=0,
-            max_value=50,
-            value=int(v2_rules.get("group_exact", DEFAULT_V2_RULES["group_exact"])),
-            step=1,
-            help="Pontos para previsão exata de placar de grupo (ex. palpite 2x1, oficial 2x1)."
-        )
-        v2_rules["group_result_gd"] = st.number_input(
-            "Grupo: Resultado + Saldo",
-            min_value=0,
-            max_value=50,
-            value=int(v2_rules.get("group_result_gd", DEFAULT_V2_RULES["group_result_gd"])),
-            step=1,
-            help="Pontos para acertar vencedor/empate e saldo de gols, mas não o placar exato (ex. palpite 2x0, oficial 3x1)."
-        )
-        v2_rules["group_result"] = st.number_input(
-            "Grupo: Apenas Resultado",
-            min_value=0,
-            max_value=50,
-            value=int(v2_rules.get("group_result", DEFAULT_V2_RULES["group_result"])),
-            step=1,
-            help="Pontos para acertar apenas o vencedor ou empate (ex. palpite 1x0, oficial 3x0)."
-        )
-    with col2:
-        v2_rules["group_team_goals"] = st.number_input(
-            "Grupo: Gols de um Time",
-            min_value=0,
-            max_value=50,
-            value=int(v2_rules.get("group_team_goals", DEFAULT_V2_RULES["group_team_goals"])),
-            step=1,
-            help="Pontos para acertar a quantidade de gols de pelo menos uma das equipes (ex. palpite 1x2, oficial 1x0)."
-        )
-        v2_rules["ko_oitavas"] = st.number_input(
-            "Mata-mata: Classificar Oitavas",
-            min_value=0,
-            max_value=50,
-            value=int(v2_rules.get("ko_oitavas", DEFAULT_V2_RULES["ko_oitavas"])),
-            step=1,
-            help="Pontos por time classificado para as Oitavas de final."
-        )
-        v2_rules["ko_quartas"] = st.number_input(
-            "Mata-mata: Classificar Quartas",
-            min_value=0,
-            max_value=50,
-            value=int(v2_rules.get("ko_quartas", DEFAULT_V2_RULES["ko_quartas"])),
-            step=1,
-            help="Pontos por time classificado para as Quartas de final."
-        )
-    with col3:
-        v2_rules["ko_semifinais"] = st.number_input(
-            "Mata-mata: Classificar Semi",
-            min_value=0,
-            max_value=50,
-            value=int(v2_rules.get("ko_semifinais", DEFAULT_V2_RULES["ko_semifinais"])),
-            step=1,
-            help="Pontos por time classificado para as Semifinais."
-        )
-        v2_rules["ko_final"] = st.number_input(
-            "Mata-mata: Classificar Final",
-            min_value=0,
-            max_value=50,
-            value=int(v2_rules.get("ko_final", DEFAULT_V2_RULES["ko_final"])),
-            step=1,
-            help="Pontos por time classificado para a Final."
-        )
-        v2_rules["ko_champion"] = st.number_input(
-            "Mata-mata: Campeão",
-            min_value=0,
-            max_value=50,
-            value=int(v2_rules.get("ko_champion", DEFAULT_V2_RULES["ko_champion"])),
-            step=1,
-            help="Pontos por acertar o Campeão."
-        )
-
-    st.markdown("#### Regras Criativas (Bônus Cumulativos) [Modo Clássico]")
-    col_cr1, col_cr2, col_cr3 = st.columns(3)
-    with col_cr1:
-        v2_rules["group_sum_goals"] = st.number_input(
-            "Grupo: Soma Total de Gols",
-            min_value=0,
-            max_value=20,
-            value=int(v2_rules.get("group_sum_goals", 0)),
-            step=1,
-            help="Bônus por prever a soma total exata de gols na partida (ex. palpite 2x2 e oficial 3x1; ambos somam 4)."
-        )
-    with col_cr2:
-        v2_rules["group_both_scored"] = st.number_input(
-            "Grupo: Ambas Equipes Marcam",
-            min_value=0,
-            max_value=20,
-            value=int(v2_rules.get("group_both_scored", 0)),
-            step=1,
-            help="Bônus por acertar se ambas as equipes marcaram gol (ambas > 0) ou não."
-        )
-    with col_cr3:
-        v2_rules["group_over_2_5"] = st.number_input(
-            "Grupo: Mais de 2.5 Gols",
-            min_value=0,
-            max_value=20,
-            value=int(v2_rules.get("group_over_2_5", 0)),
-            step=1,
-            help="Bônus por acertar se a partida teve mais de 2.5 gols (soma > 2) ou não."
+        config["status_label"] = st.text_input("Status público do bolão", value=config.get("status_label", "Recebendo palpites"))
+        config["submission_deadline"] = st.text_input(
+            "Prazo Limite para Envios Clássicos (Opcional)",
+            value=config.get("submission_deadline", ""),
+            help="Exemplo: 11/06/2026 15:00 ou deixe em branco se não houver prazo rígido."
         )
         
-    config["v2_rules"] = v2_rules
+        mode_options = ["v2", "ponderado", "uniforme"]
+        current_mode = config.get("scoring_mode", "v2")
+        if current_mode not in mode_options:
+            current_mode = "v2"
+        mode_idx = mode_options.index(current_mode)
+        config["scoring_mode"] = st.radio("Modo de pontuação do Clássico", mode_options, index=mode_idx, horizontal=True)
 
-    st.markdown("### Pontuação ponderada (Legado) [Modo Clássico]")
-    weighted = config.get("weighted_rules", dict(DEFAULT_WEIGHTED_RULES))
-    cols = st.columns(3)
-    for idx, key in enumerate(DEFAULT_WEIGHTED_RULES.keys()):
-        with cols[idx % 3]:
-            weighted[key] = st.number_input(key, min_value=0, max_value=50, value=int(weighted.get(key, DEFAULT_WEIGHTED_RULES[key])), step=1)
-    config["weighted_rules"] = weighted
+    # Accordion 2: Configurações do Jogo a Jogo
+    with st.expander("🎯 Configurações do Jogo a Jogo", expanded=False):
+        config["classic_enabled"] = st.checkbox("Modo Clássico Ativado", value=config.get("classic_enabled", True))
+        config["live_mode_enabled"] = st.checkbox("Modo Jogo a Jogo Ativado", value=config.get("live_mode_enabled", True))
+        config["combined_ranking_enabled"] = st.checkbox("Ranking Geral Combinado Ativado", value=config.get("combined_ranking_enabled", False))
+        config["live_lock_minutes_before_match"] = st.number_input(
+            "Bloquear palpites jogo a jogo X minutos antes do início do jogo",
+            min_value=0, max_value=1440,
+            value=int(config.get("live_lock_minutes_before_match", 10)),
+            step=1
+        )
+        
+        st.markdown("#### Pontuação Modo Jogo a Jogo")
+        live_scoring = config.get("live_scoring", {})
+        col_l1, col_l2, col_l3 = st.columns(3)
+        with col_l1:
+            exact_score_val = st.number_input("Placar Exato", min_value=0, max_value=50, value=int(live_scoring.get("exact_score", 5)), step=1)
+            outcome_val = st.number_input("Acertar Vencedor/Empate", min_value=0, max_value=50, value=int(live_scoring.get("outcome", 3)), step=1)
+        with col_l2:
+            goal_one_team_val = st.number_input("Acertar Gols de um Time", min_value=0, max_value=50, value=int(live_scoring.get("goal_one_team", 1)), step=1)
+            goal_difference_val = st.number_input("Acertar Saldo de Gols", min_value=0, max_value=50, value=int(live_scoring.get("goal_difference", 1)), step=1)
+        with col_l3:
+            exact_score_mode = st.radio(
+                "Modo do Placar Exato",
+                options=["isolated_max", "additive"],
+                index=0 if config.get("exact_score_mode", "isolated_max") == "isolated_max" else 1,
+                help="isolated_max: ganha apenas os pontos do placar exato se acertar tudo. additive: ganha os pontos de placar exato + todos os outros bônus que coincidam."
+            )
+        
+        config["live_scoring"] = {
+            "exact_score": exact_score_val,
+            "outcome": outcome_val,
+            "goal_one_team": goal_one_team_val,
+            "goal_difference": goal_difference_val,
+            "late_prediction": 0
+        }
+        config["exact_score_mode"] = exact_score_mode
 
-    st.markdown("### Pontuação uniforme (Legado) [Modo Clássico]")
-    uniform = config.get("uniform_rules", dict(DEFAULT_UNIFORM_RULES))
-    uniform["decision_points"] = st.number_input("Pontos por decisão", min_value=1, max_value=50, value=int(uniform.get("decision_points", 1)), step=1)
-    uniform["champion_bonus"] = st.number_input("Bônus da campeã", min_value=0, max_value=100, value=int(uniform.get("champion_bonus", 0)), step=1)
-    config["uniform_rules"] = uniform
+        st.markdown("#### Pesos do Ranking Geral Combinado")
+        weights = config.get("combined_ranking_weights", {"classic": 1.0, "live": 1.0})
+        col_w1, col_w2 = st.columns(2)
+        with col_w1:
+            classic_w = st.number_input("Peso do Modo Clássico", min_value=0.0, max_value=10.0, value=float(weights.get("classic", 1.0)), step=0.1)
+        with col_w2:
+            live_w = st.number_input("Peso do Modo Jogo a Jogo", min_value=0.0, max_value=10.0, value=float(weights.get("live", 1.0)), step=0.1)
+        config["combined_ranking_weights"] = {"classic": classic_w, "live": live_w}
 
-    if st.button("Salvar configurações", type="primary", key="btn_save_settings", width="stretch"):
+        st.markdown("#### Privacidade & Feed")
+        config["reveal_live_predictions_after_lock"] = st.checkbox("Revelar palpites dos outros após o lock do jogo", value=config.get("reveal_live_predictions_after_lock", True))
+        config["allow_live_prediction_edit_until_lock"] = st.checkbox("Permitir editar palpite jogo a jogo até o lock", value=config.get("allow_live_prediction_edit_until_lock", True))
+        config["public_show_activity_feed"] = st.checkbox("Exibir feed de atividades público", value=config.get("public_show_activity_feed", True))
+
+    # Accordion 3: Pontuação V2 (Fase de Grupos & Mata-mata) [Modo Clássico]
+    with st.expander("🏆 Pontuação Modo Clássico (V2)", expanded=False):
+        v2_rules = config.get("v2_rules", dict(DEFAULT_V2_RULES))
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            v2_rules["group_exact"] = st.number_input(
+                "Grupo: Placar Exato",
+                min_value=0,
+                max_value=50,
+                value=int(v2_rules.get("group_exact", DEFAULT_V2_RULES["group_exact"])),
+                step=1,
+                help="Pontos para previsão exata de placar de grupo (ex. palpite 2x1, oficial 2x1)."
+            )
+            v2_rules["group_result_gd"] = st.number_input(
+                "Grupo: Resultado + Saldo",
+                min_value=0,
+                max_value=50,
+                value=int(v2_rules.get("group_result_gd", DEFAULT_V2_RULES["group_result_gd"])),
+                step=1,
+                help="Pontos para acertar vencedor/empate e saldo de gols, mas não o placar exato (ex. palpite 2x0, oficial 3x1)."
+            )
+            v2_rules["group_result"] = st.number_input(
+                "Grupo: Apenas Resultado",
+                min_value=0,
+                max_value=50,
+                value=int(v2_rules.get("group_result", DEFAULT_V2_RULES["group_result"])),
+                step=1,
+                help="Pontos para acertar apenas o vencedor ou empate (ex. palpite 1x0, oficial 3x0)."
+            )
+        with col2:
+            v2_rules["group_team_goals"] = st.number_input(
+                "Grupo: Gols de um Time",
+                min_value=0,
+                max_value=50,
+                value=int(v2_rules.get("group_team_goals", DEFAULT_V2_RULES["group_team_goals"])),
+                step=1,
+                help="Pontos para acertar a quantidade de gols de pelo menos uma das equipes (ex. palpite 1x2, oficial 1x0)."
+            )
+            v2_rules["ko_oitavas"] = st.number_input(
+                "Mata-mata: Classificar Oitavas",
+                min_value=0,
+                max_value=50,
+                value=int(v2_rules.get("ko_oitavas", DEFAULT_V2_RULES["ko_oitavas"])),
+                step=1,
+                help="Pontos por time classificado para as Oitavas de final."
+            )
+            v2_rules["ko_quartas"] = st.number_input(
+                "Mata-mata: Classificar Quartas",
+                min_value=0,
+                max_value=50,
+                value=int(v2_rules.get("ko_quartas", DEFAULT_V2_RULES["ko_quartas"])),
+                step=1,
+                help="Pontos por time classificado para as Quartas de final."
+            )
+        with col3:
+            v2_rules["ko_semifinais"] = st.number_input(
+                "Mata-mata: Classificar Semi",
+                min_value=0,
+                max_value=50,
+                value=int(v2_rules.get("ko_semifinais", DEFAULT_V2_RULES["ko_semifinais"])),
+                step=1,
+                help="Pontos por time classificado para as Semifinais."
+            )
+            v2_rules["ko_final"] = st.number_input(
+                "Mata-mata: Classificar Final",
+                min_value=0,
+                max_value=50,
+                value=int(v2_rules.get("ko_final", DEFAULT_V2_RULES["ko_final"])),
+                step=1,
+                help="Pontos por time classificado para a Final."
+            )
+            v2_rules["ko_champion"] = st.number_input(
+                "Mata-mata: Campeão",
+                min_value=0,
+                max_value=50,
+                value=int(v2_rules.get("ko_champion", DEFAULT_V2_RULES["ko_champion"])),
+                step=1,
+                help="Pontos por acertar o Campeão."
+            )
+
+        st.markdown("#### Regras Criativas (Bônus Cumulativos) [Modo Clássico]")
+        col_cr1, col_cr2, col_cr3 = st.columns(3)
+        with col_cr1:
+            v2_rules["group_sum_goals"] = st.number_input(
+                "Grupo: Soma Total de Gols",
+                min_value=0,
+                max_value=20,
+                value=int(v2_rules.get("group_sum_goals", 0)),
+                step=1,
+                help="Bônus por prever a soma total exata de gols na partida (ex. palpite 2x2 e oficial 3x1; ambos somam 4)."
+            )
+        with col_cr2:
+            v2_rules["group_both_scored"] = st.number_input(
+                "Grupo: Ambas Equipes Marcam",
+                min_value=0,
+                max_value=20,
+                value=int(v2_rules.get("group_both_scored", 0)),
+                step=1,
+                help="Bônus por acertar se ambas as equipes marcaram gol (ambas > 0) ou não."
+            )
+        with col_cr3:
+            v2_rules["group_over_2_5"] = st.number_input(
+                "Grupo: Mais de 2.5 Gols",
+                min_value=0,
+                max_value=20,
+                value=int(v2_rules.get("group_over_2_5", 0)),
+                step=1,
+                help="Bônus por acertar se a partida teve mais de 2.5 gols (soma > 2) ou não."
+            )
+            
+        config["v2_rules"] = v2_rules
+
+    # Accordion 4: Pontuações Legadas (Ponderado e Uniforme)
+    with st.expander("⏳ Pontuações Legadas (Ponderado e Uniforme)", expanded=False):
+        st.markdown("#### Pontuação ponderada (Legado) [Modo Clássico]")
+        weighted = config.get("weighted_rules", dict(DEFAULT_WEIGHTED_RULES))
+        cols = st.columns(3)
+        for idx, key in enumerate(DEFAULT_WEIGHTED_RULES.keys()):
+            with cols[idx % 3]:
+                weighted[key] = st.number_input(key, min_value=0, max_value=50, value=int(weighted.get(key, DEFAULT_WEIGHTED_RULES[key])), step=1)
+        config["weighted_rules"] = weighted
+
+        st.markdown("---")
+        st.markdown("#### Pontuação uniforme (Legado) [Modo Clássico]")
+        uniform = config.get("uniform_rules", dict(DEFAULT_UNIFORM_RULES))
+        uniform["decision_points"] = st.number_input("Pontos por decisão", min_value=1, max_value=50, value=int(uniform.get("decision_points", 1)), step=1)
+        uniform["champion_bonus"] = st.number_input("Bônus da campeã", min_value=0, max_value=100, value=int(uniform.get("champion_bonus", 0)), step=1)
+        config["uniform_rules"] = uniform
+
+    # Botão de salvar fora dos expanders
+    if st.button("💾 Salvar todas as configurações", type="primary", key="btn_save_settings", width="stretch"):
         save_config(config)
-        st.success("Configurações salvas.")
+        st.success("Configurações salvas com sucesso.")
 
     st.markdown("---")
     st.markdown("### ⚠️ Zona de Perigo")
@@ -1466,6 +1547,28 @@ def main() -> None:
             st.session_state["nav_page"] = "Início"
             st.rerun()
         return
+
+    # Renderizar menu de navegação móvel rápida (apenas para celular)
+    if st.session_state["nav_page"] != "Admin Login":
+        m_opts = [
+            "Dashboard", "Participantes", "Jogos e Agenda", "Resultados Oficiais", 
+            "Ranking", "Exportações", "Configurações", "Auditoria", "Ajuda"
+        ] if show_admin else [
+            "Início", "Palpite Clássico", "Jogos de Hoje", "Minha Cartela", 
+            "Ranking", "Central do Bolão", "Palpites do Grupo", 
+            "Análise dos Palpites", "Duelo de Palpites", "Regras"
+        ]
+        current_p = st.session_state["nav_page"]
+        if current_p in m_opts:
+            idx_m = m_opts.index(current_p)
+        else:
+            idx_m = 0
+            
+        st.markdown('<div class="mobile-only-nav-trigger"></div>', unsafe_allow_html=True)
+        selected_mobile = st.selectbox("🧭 Navegação Rápida", m_opts, index=idx_m, key="mobile_nav_selectbox")
+        if selected_mobile != current_p:
+            st.session_state["nav_page"] = selected_mobile
+            st.rerun()
 
     if show_admin:
         page = st.session_state["nav_page"]

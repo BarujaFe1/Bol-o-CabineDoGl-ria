@@ -216,7 +216,30 @@ def render_minha_cartela() -> None:
                     "3º Lugar": teams[2] or "—",
                     "4º Lugar": teams[3] or "—"
                 })
+            
+            # Desktop view
+            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
             st.dataframe(pd.DataFrame(grp_data), width="stretch", hide_index=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # Mobile view
+            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
+            for item in grp_data:
+                st.markdown(
+                    f"""
+                    <div class="card" style="margin-bottom: 12px; padding: 16px;">
+                        <div style="font-weight: bold; font-size: 15px; color: var(--green); margin-bottom: 6px;">{item['Grupo']}</div>
+                        <div style="font-size: 13px; color: var(--ink); line-height: 1.4;">
+                            🥇 1º Lugar: <b>{item['1º Lugar']}</b>
+                            <br>🥈 2º Lugar: <b>{item['2º Lugar']}</b>
+                            <br>🥉 3º Lugar: <b>{item['3º Lugar']}</b>
+                            <br>🎗️ 4º Lugar: <b>{item['4º Lugar']}</b>
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            st.markdown('</div>', unsafe_allow_html=True)
 
             # Show best thirds
             st.markdown(f"##### 🥉 Melhores terceiros classificados: `{', '.join(classic_pred.best_thirds) if classic_pred.best_thirds else '—'}`")
@@ -241,7 +264,27 @@ def render_minha_cartela() -> None:
                         })
                 if gm_rows:
                     with st.expander("Ver Todos os Palpites de Placares da Fase de Grupos", expanded=False):
+                        # Desktop view
+                        st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
                         st.dataframe(pd.DataFrame(gm_rows), width="stretch", hide_index=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
+
+                        # Mobile view
+                        st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
+                        for r in gm_rows:
+                            st.markdown(
+                                f"""
+                                <div class="card" style="margin-bottom: 8px; padding: 12px; border-left: 3px solid var(--green);">
+                                    <div style="font-weight: bold; font-size: 14px; color: var(--ink);">{r['Jogo']}</div>
+                                    <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">
+                                        {r['Grupo']} · {r['Rodada']}
+                                        <br>🎯 Palpite: <strong style="color:var(--green); font-size:13px;">{r['Palpite']}</strong>
+                                    </div>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                        st.markdown('</div>', unsafe_allow_html=True)
 
             # Show knockout path
             st.markdown("##### ⚔️ Chave de Mata-Mata")
@@ -254,7 +297,27 @@ def render_minha_cartela() -> None:
                             "Confronto": f"{m.a or '—'} x {m.b or '—'}",
                             "Vencedor Escolhido": m.winner or "—"
                         })
+                    
+                    # Desktop view
+                    st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
                     st.dataframe(pd.DataFrame(phase_rows), width="stretch", hide_index=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+                    # Mobile view
+                    st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
+                    for r in phase_rows:
+                        st.markdown(
+                            f"""
+                            <div class="card" style="margin-bottom: 8px; padding: 12px;">
+                                <div style="font-weight: bold; font-size: 14px; color: var(--ink);">Jogo {r['Jogo']}: {r['Confronto']}</div>
+                                <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">
+                                    🏆 Classifica: <strong style="color:var(--green);">{r['Vencedor Escolhido']}</strong>
+                                </div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                    st.markdown('</div>', unsafe_allow_html=True)
 
     # Tab 3: Jogo a Jogo
     with c_tabs[2]:
@@ -276,7 +339,33 @@ def render_minha_cartela() -> None:
                         "Pontos": res["points"] if m.status == "result_approved" else "Pendente",
                         "Critério": " · ".join(res["breakdown"]) if m.status == "result_approved" else "—"
                     })
+            
+            # Desktop view
+            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
             st.dataframe(pd.DataFrame(live_rows), width="stretch", hide_index=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # Mobile view
+            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
+            for r in live_rows:
+                badge_points = f"<span class='badge success'>{r['Pontos']} pts</span>" if isinstance(r['Pontos'], int) or str(r['Pontos']).isdigit() or 'pts' in str(r['Pontos']) else f"<span class='badge info'>{r['Pontos']}</span>"
+                st.markdown(
+                    f"""
+                    <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-weight: bold; font-size: 15px; color: var(--ink);">{r['Jogo']}</span>
+                            {badge_points}
+                        </div>
+                        <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
+                            🕒 Fase: {r['Fase']}
+                            <br>⚽ Palpite: <b>{r['Seu Palpite']}</b> | Placar Oficial: <b>{r['Placar Oficial']}</b>
+                            <br>💡 Detalhe: {r['Critério']}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # Tab 4: Pontos
     with c_tabs[3]:
@@ -344,7 +433,28 @@ def render_minha_cartela() -> None:
                 {"Modo / Critério": "Pontuação Clássico", selected_name: f"{classic_points} pts", friend_name: f"{next((s.total for s in classic_scores if normalize_participant_key(s.participant) == friend_key), 0)} pts" if official else "—"},
                 {"Modo / Critério": "Pontuação Jogo a Jogo", selected_name: f"{live_points} pts", friend_name: f"{next((s['total'] for s in live_scores if s['participant_key'] == friend_key), 0)} pts"}
             ]
+            
+            # Desktop view
+            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
             st.dataframe(pd.DataFrame(comp_general), width="stretch", hide_index=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # Mobile view
+            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
+            for r in comp_general:
+                st.markdown(
+                    f"""
+                    <div class="card" style="margin-bottom: 12px; padding: 16px; border-top: 4px solid var(--green);">
+                        <div style="font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px;">{r['Modo / Critério']}</div>
+                        <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--ink);">
+                            <div>👤 <b>{selected_name}:</b> {r[selected_name]}</div>
+                            <div>👥 <b>{friend_name}:</b> {r[friend_name]}</div>
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            st.markdown('</div>', unsafe_allow_html=True)
 
             # Compare Jogo a Jogo
             st.markdown("##### 🔒 Comparativo Jogo a Jogo (Apenas Jogos Bloqueados)")
@@ -367,6 +477,27 @@ def render_minha_cartela() -> None:
                             "Resultado Oficial": f"{m.official_home_goals} x {m.official_away_goals}" if m.status == "result_approved" else "Pendente"
                         })
             if compare_rows:
+                # Desktop view
+                st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
                 st.dataframe(pd.DataFrame(compare_rows), width="stretch", hide_index=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # Mobile view
+                st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
+                for r in compare_rows:
+                    st.markdown(
+                        f"""
+                        <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--gold);">
+                            <div style="font-weight: bold; font-size: 15px; color: var(--ink); margin-bottom: 6px;">{r['Jogo']}</div>
+                            <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
+                                👤 <b>{selected_name}:</b> {r[selected_name]}
+                                <br>👥 <b>{friend_name}:</b> {r[friend_name]}
+                                <br>🏁 Placar Oficial: <b>{r['Resultado Oficial']}</b>
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.caption("Nenhum palpite jogo a jogo em jogos já encerrados ou bloqueados.")

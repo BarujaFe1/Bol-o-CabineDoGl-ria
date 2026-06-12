@@ -168,6 +168,10 @@ def _ensure_supabase_tables(client) -> None:
         client.execute_sql("ALTER TABLE bolao_official ADD COLUMN IF NOT EXISTS meta JSONB;")
         client.execute_sql("ALTER TABLE bolao_official ADD COLUMN IF NOT EXISTS mode TEXT;")
         client.execute_sql("ALTER TABLE bolao_official ADD COLUMN IF NOT EXISTS schema_version TEXT;")
+        client.execute_sql("ALTER TABLE bolao_submissions ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;")
+        client.execute_sql("ALTER TABLE bolao_submissions ADD COLUMN IF NOT EXISTS archived_reason TEXT;")
+        client.execute_sql("ALTER TABLE bolao_live_predictions ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;")
+        client.execute_sql("ALTER TABLE bolao_live_predictions ADD COLUMN IF NOT EXISTS archived_reason TEXT;")
     except Exception:
         pass
 
@@ -361,7 +365,7 @@ def load_submissions() -> list[Prediction]:
         if client:
             try:
                 result = client.table("bolao_submissions").select("*").execute()
-                return [Prediction.from_dict(row) for row in result.data]
+                return [Prediction.from_dict(row) for row in result.data if row.get("active") is not False]
             except Exception:
                 pass
 
@@ -701,7 +705,7 @@ def load_live_predictions() -> list[LivePrediction]:
         if client and _supabase_table_exists(client, "bolao_live_predictions"):
             try:
                 result = client.table("bolao_live_predictions").select("*").execute()
-                return [LivePrediction.from_dict(row) for row in result.data]
+                return [LivePrediction.from_dict(row) for row in result.data if row.get("active") is not False]
             except Exception:
                 pass
 

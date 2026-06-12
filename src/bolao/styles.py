@@ -86,6 +86,66 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {{
   transition: background 0.3s ease, color 0.3s ease;
 }}
 
+/* Forçar cores de texto legíveis globalmente na área principal */
+[data-testid="stAppViewContainer"] h1, 
+[data-testid="stAppViewContainer"] h2, 
+[data-testid="stAppViewContainer"] h3, 
+[data-testid="stAppViewContainer"] h4, 
+[data-testid="stAppViewContainer"] h5, 
+[data-testid="stAppViewContainer"] h6,
+[data-testid="stAppViewContainer"] p, 
+[data-testid="stAppViewContainer"] span, 
+[data-testid="stAppViewContainer"] li,
+[data-testid="stAppViewContainer"] label,
+[data-testid="stAppViewContainer"] [data-testid="stMarkdownContainer"],
+[data-testid="stAppViewContainer"] [data-testid="stWidgetLabel"] p,
+[data-testid="stAppViewContainer"] [data-testid="stMetricValue"],
+[data-testid="stAppViewContainer"] div[data-baseweb="select"] span,
+[data-testid="stAppViewContainer"] div[data-baseweb="select"] [role="button"],
+[data-testid="stAppViewContainer"] button[data-baseweb="tab"] p,
+[data-testid="stAppViewContainer"] button[data-baseweb="tab"],
+[data-testid="stAppViewContainer"] [data-testid="stExpander"] summary p,
+[data-testid="stAppViewContainer"] [data-testid="stExpander"] summary,
+[data-testid="stAppViewContainer"] [data-testid="stExpander"] summary svg,
+[data-testid="stAppViewContainer"] [data-testid="stCheckbox"] label,
+[data-testid="stAppViewContainer"] [data-testid="stCheckbox"] label p,
+[data-testid="stAppViewContainer"] [data-testid="stRadio"] label,
+[data-testid="stAppViewContainer"] [data-testid="stRadio"] label p,
+[data-testid="stAppViewContainer"] [data-testid="stRadio"] p {{
+  color: var(--ink) !important;
+  fill: var(--ink) !important;
+}}
+
+/* Muted labels e captions */
+[data-testid="stAppViewContainer"] .stCaption,
+[data-testid="stAppViewContainer"] .stCaption p,
+[data-testid="stAppViewContainer"] small,
+[data-testid="stAppViewContainer"] .small-muted,
+[data-testid="stAppViewContainer"] [data-testid="stMetricLabel"] p {{
+  color: var(--muted) !important;
+}}
+
+/* Abas selecionadas */
+[data-testid="stAppViewContainer"] button[data-baseweb="tab"][aria-selected="true"] p, 
+[data-testid="stAppViewContainer"] button[data-baseweb="tab"][aria-selected="true"] {{
+  color: var(--green) !important;
+  border-bottom-color: var(--green) !important;
+}}
+
+/* Forçar cores no menu popup de selectbox abertos (dropdowns) */
+div[role="listbox"] li, 
+div[role="listbox"] div,
+div[role="listbox"] span {{
+  background-color: var(--panel-strong) !important;
+  color: var(--ink) !important;
+}}
+div[role="listbox"] li:hover,
+div[role="listbox"] li:hover div,
+div[role="listbox"] li:hover span {{
+  background-color: var(--green) !important;
+  color: white !important;
+}}
+
 [data-testid="stHeader"] {{ 
   background: transparent !important; 
 }}
@@ -384,12 +444,23 @@ header {{ visibility: hidden; }}
   box-shadow: var(--shadow);
 }}
 
+@keyframes gold-pulse {{
+  0% {{
+    border-color: rgba(216, 169, 74, 0.4);
+    box-shadow: 0 0 15px rgba(216, 169, 74, 0.2), 0 20px 50px rgba(0, 0, 0, 0.3);
+  }}
+  100% {{
+    border-color: rgba(216, 169, 74, 0.8);
+    box-shadow: 0 0 25px rgba(216, 169, 74, 0.6), 0 20px 50px rgba(216, 169, 74, 0.15);
+  }}
+}}
+
 .podium-card.first {{
   padding: 32px 24px;
   transform: translateY(-12px);
-  border-color: rgba(216, 169, 74, 0.5);
   background: linear-gradient(180deg, var(--panel-strong), var(--gold-bg));
-  box-shadow: 0 20px 50px rgba(216,169,74,0.18);
+  animation: gold-pulse 3s infinite alternate;
+  border: 2px solid rgba(216, 169, 74, 0.5) !important;
 }}
 
 .podium-card.second {{
@@ -518,15 +589,15 @@ header {{ visibility: hidden; }}
 }}
 
 /* Button & Scroll for Mobile & Premium Tables */
-div[data-testid="stDataFrame"] {
+div[data-testid="stDataFrame"] {{
   border: 1px solid var(--line) !important;
   border-radius: 16px !important;
   overflow: hidden !important;
   background-color: var(--panel) !important;
   box-shadow: var(--shadow) !important;
-}
+}}
 
-.match-card {
+.match-card {{
   border: 1px solid var(--line);
   background: linear-gradient(135deg, var(--panel-strong) 0%, var(--panel) 100%);
   border-radius: 20px;
@@ -534,13 +605,110 @@ div[data-testid="stDataFrame"] {
   box-shadow: var(--shadow);
   margin-bottom: 16px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.match-card:hover {
+}}
+.match-card:hover {{
   transform: translateY(-2px);
   box-shadow: var(--shadow-hover);
-}
+}}
+
+/* Forçar cores de inputs para evitar campos brancos no modo escuro */
+div[data-baseweb="input"] input, 
+div[data-baseweb="input"] {{
+  background-color: var(--panel-strong) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}}
+
+div[data-baseweb="select"] {{
+  background-color: var(--panel-strong) !important;
+  color: var(--ink) !important;
+}}
+
+div[data-baseweb="select"] > div {{
+  background-color: var(--panel-strong) !important;
+  color: var(--ink) !important;
+}}
+
+.stNumberInput input, .stTextInput input, .stTextArea textarea {{
+  background-color: var(--panel-strong) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+}}
+
+/* Estilo para botões de incremento/decremento no Streamlit */
+div[data-testid="stNumberInput"] button {{
+  background-color: var(--panel) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}}
+
+/* Botões do Streamlit (contraste e hover) */
+.stButton > button {{
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  min-height: 44px !important; /* Touch target size for mobile */
+}}
+
+.stButton > button[kind="secondary"] {{
+  background-color: var(--panel) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+}}
+.stButton > button[kind="secondary"]:hover {{
+  background-color: var(--panel-strong) !important;
+  border-color: var(--green) !important;
+}}
+
+.stButton > button[kind="primary"] {{
+  background-color: var(--green) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 4px 12px var(--green-bg) !important;
+}}
+.stButton > button[kind="primary"]:hover {{
+  background-color: var(--green-hover) !important;
+  transform: translateY(-1px) !important;
+}}
+
+/* Classes helper para responsividade */
+.desktop-only {{
+  display: block !important;
+}}
+.mobile-only {{
+  display: none !important;
+}}
+.mobile-card-grid {{
+  display: none;
+}}
+
+/* Esconder selectbox de navegação móvel no desktop */
+@media (min-width: 769px) {{
+  div[data-testid="element-container"]:has(.mobile-only-nav-trigger),
+  div[data-testid="element-container"]:has(.mobile-only-nav-trigger) + div[data-testid="element-container"] {{
+    display: none !important;
+  }}
+}}
 
 @media (max-width: 768px) {{
+  .desktop-only {{
+    display: none !important;
+  }}
+  .mobile-only {{
+    display: block !important;
+  }}
+  .mobile-card-grid {{
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }}
+  
+  /* Ocultar dataframes gigantes em telas pequenas */
+  div[data-testid="stDataFrame"] {{
+    display: none !important;
+  }}
+
   .kpi-grid, .step-grid, .podium {{ 
     grid-template-columns: 1fr; 
   }}
@@ -555,9 +723,9 @@ div[data-testid="stDataFrame"] {
     padding-left: 10px;
     padding-right: 10px;
   }}
-  .stButton > button {
+  .stButton > button {{
     width: 100% !important;
-  }
+  }}
 }}
 
 /* Step Indicator */

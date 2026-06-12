@@ -72,7 +72,28 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         "Código": p.submission_id[:8] if p.submission_id else "—",
                         "Conquistas": badge_str
                     })
+                
+                # Desktop view
+                st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
                 st.dataframe(pd.DataFrame(classic_list), width="stretch", hide_index=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # Mobile view
+                st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
+                for item in classic_list:
+                    st.markdown(
+                        f"""
+                        <div class="card" style="margin-bottom: 12px; padding: 16px;">
+                            <div style="font-weight: bold; font-size: 15px; color: var(--ink);">{item['Participante']}</div>
+                            <div style="font-size: 13px; color: var(--muted); margin-top: 4px;">
+                                ⏱️ Enviado: {item['Enviado em']} | 🔑 Código: {item['Código']}
+                                <br>🎖️ Conquistas: {item['Conquistas']}
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.info("Nenhum palpite clássico enviado ainda.")
         else:
@@ -98,7 +119,32 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     "Placares Exatos": s.exact_scores,
                     "Conquistas": badge_str
                 })
+            
+            # Desktop view
+            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
             st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # Mobile view
+            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
+            for r in rows:
+                st.markdown(
+                    f"""
+                    <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Posição']}º. {r['Participante']}</span>
+                            <span class="badge success" style="font-size:12px; font-weight: bold; padding: 4px 8px;">{r['Pontos']} pts</span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
+                            📋 Grupos: {r['Fase de Grupos']} pts | ⚔️ Mata-Mata: {r['Mata-Mata']} pts
+                            <br>🏆 Campeã Correta: {r['Campeão correto']} | 🎯 Exatos: {r['Placares Exatos']}
+                            <br>🎖️ Conquistas: {r['Conquistas']}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # 2. Match Day Tab
     with ranking_tabs[1]:
@@ -136,7 +182,32 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     "Conquistas": badge_str
                 })
             
+            # Desktop view
+            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
             st.dataframe(pd.DataFrame(live_rows), width="stretch", hide_index=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # Mobile view
+            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
+            for r in live_rows:
+                st.markdown(
+                    f"""
+                    <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Posição']}º. {r['Participante']}</span>
+                            <span class="badge success" style="font-size:12px; font-weight: bold; padding: 4px 8px;">{r['Pontos']} pts</span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
+                            🎯 Placares Exatos: {r['Placares Exatos']} | 🏁 Acertos Vencedor: {r['Acertos Vencedor']}
+                            <br>📊 Palpites: {r['Palpites Salvos']} salvos / {r['Palpites Perdidos']} perdidos
+                            <br>📈 Aproveitamento: {r['Aproveitamento']}
+                            <br>🎖️ Conquistas: {r['Conquistas']}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            st.markdown('</div>', unsafe_allow_html=True)
 
             # Details expansion
             st.markdown("<br>", unsafe_allow_html=True)
@@ -238,7 +309,30 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     "Conquistas": badge_str
                 })
             
+            # Desktop view
+            st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
             st.dataframe(pd.DataFrame(comb_rows), width="stretch", hide_index=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # Mobile view
+            st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
+            for r in comb_rows:
+                st.markdown(
+                    f"""
+                    <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--gold);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Posição']}º. {r['Participante']}</span>
+                            <span class="badge success" style="font-size:12px; font-weight: bold; padding: 4px 8px;">{r['Pontos Combinados']} pts</span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
+                            📋 Pontos Clássico: {r['Pontos Clássico']} pts | 🎯 Pontos Jogo a Jogo: {r['Pontos Jogo a Jogo']} pts
+                            <br>🎖️ Conquistas: {r['Conquistas']}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # 4. Por Rodada / Fase Tab
     with ranking_tabs[3]:
@@ -294,7 +388,31 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         "Placares Exatos": s["exact_scores"],
                         "Conquistas": badge_str
                     })
+                
+                # Desktop view
+                st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
                 st.dataframe(pd.DataFrame(sub_rows), width="stretch", hide_index=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # Mobile view
+                st.markdown('<div class="mobile-only mobile-card-grid">', unsafe_allow_html=True)
+                for r in sub_rows:
+                    st.markdown(
+                        f"""
+                        <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Posição']}º. {r['Participante']}</span>
+                                <span class="badge success" style="font-size:12px; font-weight: bold; padding: 4px 8px;">{r['Pontos']} pts</span>
+                            </div>
+                            <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
+                                🎯 Placares Exatos: {r['Placares Exatos']}
+                                <br>🎖️ Conquistas: {r['Conquistas']}
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                st.markdown('</div>', unsafe_allow_html=True)
 
     # 5. Estatísticas Tab
     with ranking_tabs[4]:

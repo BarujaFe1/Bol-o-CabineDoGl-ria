@@ -63,6 +63,7 @@ class MockStreamlit:
         self.form_submit_button = MagicMock(return_value=False)
         self.button = MagicMock(return_value=False)
         self.expander = MagicMock(return_value=MockStreamlitContext())
+        self.container = MagicMock(return_value=MockStreamlitContext())
         self.dataframe = MagicMock()
         self.image = MagicMock()
         
@@ -118,6 +119,7 @@ def run_before_and_after_tests():
     mock_st.form_submit_button.reset_mock()
     mock_st.button.reset_mock()
     mock_st.expander.reset_mock()
+    mock_st.container.reset_mock()
     mock_st.dataframe.reset_mock()
     mock_st.image.reset_mock()
     mock_st.columns.reset_mock()
