@@ -599,7 +599,7 @@ def admin_participants() -> None:
         st.rerun()
     render_page_header("Admin", "Participantes", "Gerencie os palpites enviados pelos participantes.", "👥")
     submissions = load_app_data_cached().submissions
-    from src.bolao.storage import load_live_predictions, save_live_predictions
+    from src.bolao.storage import load_live_predictions, save_live_predictions, load_matches
     from src.bolao.utils import normalize_participant_key
     from src.bolao.ui_simulator import init_simulator_state
     
