@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 import pandas as pd
-from .storage import load_matches, load_live_predictions, load_submissions, load_official, load_config, load_app_data_cached
+from .storage import load_matches, load_live_predictions, load_submissions, load_official, load_config, load_app_data_cached, sync_official_results_to_matches
 from .scoring import rank_predictions
 from .live_scoring import calculate_live_ranking, calculate_live_prediction_points
 from .ui_components import podium, render_badge, render_empty_state
@@ -10,12 +10,19 @@ from .utils import normalize_participant_key
 from .achievements import calculate_achievements
 
 def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
+    synced = sync_official_results_to_matches()
+    if synced > 0:
+        st.cache_data.clear()
+
     config = load_config()
     ctx = load_app_data_cached()
     submissions = ctx.submissions
     official = ctx.official
     matches = ctx.matches
     live_preds = ctx.live_predictions
+    
+    if synced > 0:
+        st.toast(f"✅ Resultados oficiais sincronizados: {synced} jogos atualizados!", icon="⚽")
     
     # Calcular conquistas sociais em tempo real
     achievements = calculate_achievements(ctx)
@@ -150,7 +157,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
     with ranking_tabs[1]:
         st.markdown("#### 🎯 Match Day — Jogo a Jogo")
         st.caption("Ranking baseado no acerto individual de placares rodada a rodada.")
-        
+
         live_scores = calculate_live_ranking(live_preds, matches, config)
         if not live_scores:
             st.info("Nenhum palpite computado ou jogos ainda não foram encerrados no Modo Jogo a Jogo.")

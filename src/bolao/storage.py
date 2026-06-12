@@ -882,3 +882,64 @@ def delete_registered_participant(name: str) -> None:
     updated = [p for p in current if p.strip().lower() != name_clean]
     if len(updated) != len(current):
         save_registered_participants(updated)
+
+
+def sync_official_results_to_matches() -> int:
+    """
+    Sincroniza os resultados oficiais do Modo Clássico (official_result.json)
+    para os objetos LiveMatch, permitindo que o ranking Jogo a Jogo pontue.
+    Retorna quantos matches foram atualizados.
+    """
+    official = load_official()
+    if not official:
+        return 0
+
+    group_matches = official.meta.get("group_matches", {})
+    if not group_matches:
+        return 0
+
+    matches = load_matches()
+    config = load_config()
+    live_preds = load_live_predictions()
+    updated = 0
+
+    matches_by_id = {m.match_id: m for m in matches}
+
+    for m_id, scores in group_matches.items():
+        if m_id not in matches_by_id:
+            continue
+        m = matches_by_id[m_id]
+        if m.status == "result_approved":
+            continue
+        if not scores or len(scores) < 2:
+            continue
+        h, a = scores
+        if h is None or a is None:
+            continue
+
+        m.official_home_goals = int(h)
+        m.official_away_goals = int(a)
+        m.status = "result_approved"
+        if int(h) > int(a):
+            m.winner = m.home_team
+        elif int(h) < int(a):
+            m.winner = m.away_team
+        else:
+            m.winner = "draw"
+        updated += 1
+
+    if updated == 0:
+        return 0
+
+    # Recalcular pontos dos palpites para os matches atualizados
+    from .live_scoring import calculate_live_prediction_points
+    for lp in live_preds:
+        if lp.match_id in matches_by_id and matches_by_id[lp.match_id].status == "result_approved":
+            m = matches_by_id[lp.match_id]
+            res = calculate_live_prediction_points(lp, m, config)
+            lp.points = res["points"]
+            lp.scoring_breakdown = res["breakdown"]
+
+    save_matches(matches)
+    save_live_predictions(live_preds)
+    return updated
