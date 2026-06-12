@@ -192,58 +192,52 @@ def public_home() -> None:
     col_c1, col_c2 = st.columns(2)
 
     with col_c1:
-        st.markdown(
-            f"""
-            <div class="card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <div style="font-size: 32px; margin-bottom: 10px;">📋</div>
-                    <h3 style="margin: 0 0 10px 0;">Modo Clássico</h3>
-                    <p style="font-size: 14px; margin-bottom: 15px;">
-                        O modo clássico tradicional do bolão. Cada participante preenche o palpite completo da Copa (grupos, chaveamento de mata-mata e campeão) uma única vez antes de a bola rolar.
-                    </p>
-                    <div style="margin-bottom: 20px;">
-                        <span style="font-weight: bold;">Status:</span>
-                        {'<span class="badge error">🔒 Encerrado</span>' if config.get("is_bolao_locked", False) else '<span class="badge success">🟢 Aberto</span>'}
-                    </div>
+        with st.container(border=True):
+            st.markdown(
+                f"""
+                <div style="font-size: 32px; margin-bottom: 10px;">📋</div>
+                <h3 style="margin: 0 0 10px 0; color: var(--ink);">Modo Clássico</h3>
+                <p style="font-size: 14px; margin-bottom: 15px; color: var(--muted);">
+                    O modo clássico tradicional do bolão. Cada participante preenche o palpite completo da Copa (grupos, chaveamento de mata-mata e campeão) uma única vez antes de a bola rolar.
+                </p>
+                <div style="margin-bottom: 20px; color: var(--ink);">
+                    <span style="font-weight: bold;">Status:</span>
+                    {'<span class="badge error">🔒 Encerrado</span>' if config.get("is_bolao_locked", False) else '<span class="badge success">🟢 Aberto</span>'}
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        if not config.get("is_bolao_locked", False):
-            if st.button("🚀 Preencher Cartela Clássica", key="btn_home_classic_guess", type="primary", width="stretch"):
-                st.session_state["nav_page"] = "Palpite Clássico"
-                st.rerun()
-        else:
-            if st.button("🔍 Ver Palpites Enviados", key="btn_home_classic_view", width="stretch"):
-                st.session_state["nav_page"] = "Ranking"
-                st.rerun()
+                """,
+                unsafe_allow_html=True
+            )
+            if not config.get("is_bolao_locked", False):
+                if st.button("🚀 Preencher Cartela Clássica", key="btn_home_classic_guess", type="primary", use_container_width=True):
+                    st.session_state["nav_page"] = "Palpite Clássico"
+                    st.rerun()
+            else:
+                if st.button("🔍 Ver Palpites Enviados", key="btn_home_classic_view", use_container_width=True):
+                    st.session_state["nav_page"] = "Ranking"
+                    st.rerun()
 
     with col_c2:
-        st.markdown(
-            f"""
-            <div class="card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <div style="font-size: 32px; margin-bottom: 10px;">🎯</div>
-                    <h3 style="margin: 0 0 10px 0;">Modo Jogo a Jogo</h3>
-                    <p style="font-size: 14px; margin-bottom: 15px;">
-                        A grande novidade! Palpite no placar de cada jogo individualmente ao longo da Copa até 10 minutos antes do início de cada partida. Tem ranking próprio e pontuação independente.
-                    </p>
-                    <div style="margin-bottom: 20px;">
-                        <span style="font-weight: bold;">Status:</span>
-                        {'<span class="badge success">🟢 Disponível</span>' if config.get("live_mode_enabled", True) else '<span class="badge error">🔒 Suspenso</span>'}
-                    </div>
+        with st.container(border=True):
+            st.markdown(
+                f"""
+                <div style="font-size: 32px; margin-bottom: 10px;">🎯</div>
+                <h3 style="margin: 0 0 10px 0; color: var(--ink);">Modo Jogo a Jogo</h3>
+                <p style="font-size: 14px; margin-bottom: 15px; color: var(--muted);">
+                    A grande novidade! Palpite no placar de cada jogo individualmente ao longo da Copa até 10 minutos antes do início de cada partida. Tem ranking próprio e pontuação independente.
+                </p>
+                <div style="margin-bottom: 20px; color: var(--ink);">
+                    <span style="font-weight: bold;">Status:</span>
+                    {'<span class="badge success">🟢 Disponível</span>' if config.get("live_mode_enabled", True) else '<span class="badge error">🔒 Suspenso</span>'}
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        if config.get("live_mode_enabled", True):
-            if st.button("⚡ Ir para Jogos de Hoje", key="btn_home_live_guess", type="primary", width="stretch"):
-                st.session_state["nav_page"] = "Jogos de Hoje"
-                st.rerun()
-        else:
-            st.info("O Modo Jogo a Jogo está suspenso no momento.")
+                """,
+                unsafe_allow_html=True
+            )
+            if config.get("live_mode_enabled", True):
+                if st.button("⚡ Ir para Jogos de Hoje", key="btn_home_live_guess", type="primary", use_container_width=True):
+                    st.session_state["nav_page"] = "Jogos de Hoje"
+                    st.rerun()
+            else:
+                st.info("O Modo Jogo a Jogo está suspenso no momento.")
 
     st.markdown("<br>", unsafe_allow_html=True)
     col_h1, col_h2 = st.columns(2)
@@ -298,23 +292,23 @@ def public_submission() -> None:
         
         st.markdown(
             f"""
-            <div class="success-card" style="margin-bottom: 25px; padding: 25px; border-radius: 12px; background-color: #FFFDF8; border: 2px solid #D8A94A;">
+            <div class="success-card" style="margin-bottom: 25px; padding: 25px; border-radius: 12px; background-color: var(--panel); border: 2px solid var(--gold); color: var(--ink);">
                 <div style="font-size: 48px; text-align: center;">🏆</div>
-                <h3 style="text-align: center; color: #0B3328; margin-top: 10px;">Palpite Enviado com Sucesso!</h3>
-                <p style="text-align: center; color: #66736D;">Seu palpite foi registrado no sistema. O ranking será atualizado quando a organização aprovar os resultados oficiais.</p>
-                <hr style="border: 0; border-top: 1px solid #E6E6E6; margin: 20px 0;">
+                <h3 style="text-align: center; color: var(--ink); margin-top: 10px;">Palpite Enviado com Sucesso!</h3>
+                <p style="text-align: center; color: var(--muted);">Seu palpite foi registrado no sistema. O ranking será atualizado quando a organização aprovar os resultados oficiais.</p>
+                <hr style="border: 0; border-top: 1px solid var(--line); margin: 20px 0;">
                 <div style="text-align: center; margin-bottom: 15px;">
-                    <span style="font-size: 14px; color: #66736D; text-transform: uppercase; letter-spacing: 1px;">Código de Confirmação</span>
-                    <h2 style="color: #D8A94A; margin: 5px 0; font-family: monospace; letter-spacing: 2px; font-size: 28px;">{pred.submission_id}</h2>
+                    <span style="font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Código de Confirmação</span>
+                    <h2 style="color: var(--gold); margin: 5px 0; font-family: monospace; letter-spacing: 2px; font-size: 28px;">{pred.submission_id}</h2>
                 </div>
-                <div style="display: flex; justify-content: space-around; background: #F5EBDD; padding: 15px; border-radius: 8px; border: 1px dashed #D8A94A; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-around; background: var(--bg); padding: 15px; border-radius: 8px; border: 1px dashed var(--gold); margin-bottom: 20px; color: var(--ink);">
                     <div style="text-align: center; flex: 1;">
-                        <span style="font-size: 12px; color: #66736D;">Campeão</span>
-                        <div style="font-weight: bold; color: #0B3328;">{champion}</div>
+                        <span style="font-size: 12px; color: var(--muted);">Campeão</span>
+                        <div style="font-weight: bold; color: var(--ink);">{champion}</div>
                     </div>
-                    <div style="text-align: center; border-left: 1px solid #D8A94A; padding-left: 20px; flex: 1;">
-                        <span style="font-size: 12px; color: #66736D;">Grande Final</span>
-                        <div style="font-weight: bold; color: #0B3328;">{finalist_1} x {finalist_2}</div>
+                    <div style="text-align: center; border-left: 1px solid var(--line); padding-left: 20px; flex: 1;">
+                        <span style="font-size: 12px; color: var(--muted);">Grande Final</span>
+                        <div style="font-weight: bold; color: var(--ink);">{finalist_1} x {finalist_2}</div>
                     </div>
                 </div>
             </div>
@@ -543,7 +537,7 @@ def admin_dashboard() -> None:
             st.rerun()
     with col2:
         if st.checkbox("⚠️ Desbloquear limpeza de estado", key="confirm_reset_state_chk"):
-            st.markdown('<div class="warn-box" style="background-color:#FDE7E3; color:#B42318; padding:10px; border-radius:4px; margin-bottom:10px;"><strong>Atenção:</strong> Isso apagará permanentemente todos os palpites, resultado oficial e configurações. Esta ação é irreversível!</div>', unsafe_allow_html=True)
+            st.markdown('<div class="error-box"><strong>Atenção:</strong> Isso apagará permanentemente todos os palpites, resultado oficial e configurações. Esta ação é irreversível!</div>', unsafe_allow_html=True)
             confirm_word = st.text_input("Digite LIMPAR para confirmar:", key="confirm_reset_state_word")
             if st.button("🚨 Apagar todos os dados", type="primary", disabled=confirm_word != "LIMPAR", width="stretch"):
                 reset_state()
@@ -1387,10 +1381,14 @@ def render_login_screen() -> None:
     
     st.markdown("<br><br>", unsafe_allow_html=True)
     col_login_spacer1, col_login_btn, col_login_spacer2 = st.columns([2, 1.2, 2])
-    with col_login_btn:
-        if st.button("🔒 Área Organizador", key="login_admin_btn", width="stretch"):
-            st.session_state["nav_page"] = "Admin Login"
-            st.rerun()
+def on_public_nav_change() -> None:
+    st.session_state["nav_page"] = st.session_state["public_nav_radio_key"]
+
+def on_admin_nav_change() -> None:
+    st.session_state["nav_page"] = st.session_state["admin_nav_radio_key"]
+
+def on_mobile_nav_change() -> None:
+    st.session_state["nav_page"] = st.session_state["mobile_nav_selectbox_key"]
 
 
 def main() -> None:
@@ -1478,24 +1476,18 @@ def main() -> None:
             current_page = st.session_state["nav_page"]
             if current_page not in admin_options:
                 current_page = "Dashboard"
-            idx = admin_options.index(current_page)
-            page = st.radio("Admin Menu", admin_options, index=idx, label_visibility="collapsed")
-            if page != current_page and current_page in admin_options:
-                st.session_state["nav_page"] = page
-                st.rerun()
+            st.session_state["admin_nav_radio_key"] = current_page
+            st.radio("Admin Menu", admin_options, key="admin_nav_radio_key", on_change=on_admin_nav_change, label_visibility="collapsed")
             show_admin = True
         else:
             # Public Menu
             public_options = ["Início", "Palpite Clássico", "Jogos de Hoje", "Minha Cartela", "Ranking", "Central do Bolão", "Palpites do Grupo", "Análise dos Palpites", "Duelo de Palpites", "Regras"]
             current_page = st.session_state["nav_page"]
             if current_page not in public_options:
-                idx = 0
+                st.session_state["public_nav_radio_key"] = "Início"
             else:
-                idx = public_options.index(current_page)
-            page = st.radio("Navegação", public_options, index=idx, label_visibility="collapsed")
-            if page != current_page and current_page in public_options:
-                st.session_state["nav_page"] = page
-                st.rerun()
+                st.session_state["public_nav_radio_key"] = current_page
+            st.radio("Navegação", public_options, key="public_nav_radio_key", on_change=on_public_nav_change, label_visibility="collapsed")
             show_admin = False
 
         st.markdown("---")
@@ -1563,15 +1555,12 @@ def main() -> None:
         ]
         current_p = st.session_state["nav_page"]
         if current_p in m_opts:
-            idx_m = m_opts.index(current_p)
+            st.session_state["mobile_nav_selectbox_key"] = current_p
         else:
-            idx_m = 0
+            st.session_state["mobile_nav_selectbox_key"] = m_opts[0]
             
         st.markdown('<div class="mobile-only-nav-trigger"></div>', unsafe_allow_html=True)
-        selected_mobile = st.selectbox("🧭 Navegação Rápida", m_opts, index=idx_m, key="mobile_nav_selectbox")
-        if selected_mobile != current_p:
-            st.session_state["nav_page"] = selected_mobile
-            st.rerun()
+        st.selectbox("🧭 Navegação Rápida", m_opts, key="mobile_nav_selectbox_key", on_change=on_mobile_nav_change)
 
     if show_admin:
         page = st.session_state["nav_page"]

@@ -282,6 +282,21 @@ header {{ visibility: hidden; }}
   box-shadow: var(--shadow-hover);
 }}
 
+div[data-testid="stVerticalBlockBorderWrapper"] {{
+  border: 1px solid var(--line) !important;
+  background-color: var(--panel) !important;
+  border-radius: 20px !important;
+  padding: 24px !important;
+  box-shadow: var(--shadow) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 20px;
+}}
+
+div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover) !important;
+}}
+
 .kpi-grid {{
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
