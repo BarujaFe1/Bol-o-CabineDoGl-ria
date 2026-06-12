@@ -249,6 +249,7 @@ def ensure_state() -> None:
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     if not CONFIG_PATH.exists():
         write_json(CONFIG_PATH, default_config())
+    _seed_initial_state()
 
     backend = get_storage_backend()
     if backend == "supabase":
@@ -258,6 +259,56 @@ def ensure_state() -> None:
             if not _submissions_synced:
                 _sync_local_to_supabase(client)
                 _submissions_synced = True
+
+
+def _seed_initial_state() -> None:
+    INITIAL_PARTICIPANTS = ["Baruja", "Fantato", "Henrique", "Murilov", "Lucão", "Mantovas"]
+
+    if REGISTERED_PARTICIPANTS_PATH.exists():
+        parts = read_json(REGISTERED_PARTICIPANTS_PATH, [])
+        missing = [p for p in INITIAL_PARTICIPANTS if p.lower() not in {x.lower() for x in parts}]
+        if missing:
+            parts.extend(missing)
+            write_json(REGISTERED_PARTICIPANTS_PATH, parts)
+    else:
+        write_json(REGISTERED_PARTICIPANTS_PATH, list(INITIAL_PARTICIPANTS))
+
+    if not LIVE_PREDICTIONS_PATH.exists():
+        _seed_initial_live_predictions()
+
+
+def _seed_initial_live_predictions() -> None:
+    from .utils import normalize_participant_key
+    now = now_iso()
+    preds = []
+
+    def add(name, match_id, h, a):
+        key = normalize_participant_key(name)
+        preds.append({
+            "id": f"{key}_{match_id}",
+            "participant_name": name,
+            "participant_key": key,
+            "match_id": match_id,
+            "predicted_home_goals": h,
+            "predicted_away_goals": a,
+            "submitted_at": now,
+            "updated_at": now,
+            "confirmation_code": None,
+            "locked_at": None,
+            "is_locked": False,
+            "is_late": False,
+            "points": None,
+            "scoring_breakdown": [],
+            "schema_version": "live-v1"
+        })
+
+    add("Murilov", "13381", 2, 0)
+    add("Murilov", "13382", 1, 1)
+    add("Mantovas", "13382", 0, 1)
+    add("Lucão", "13381", 2, 0)
+    add("Lucão", "13382", 1, 0)
+
+    write_json(LIVE_PREDICTIONS_PATH, preds)
 
 
 def default_config() -> dict:

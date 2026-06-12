@@ -738,18 +738,18 @@ def admin_participants() -> None:
                              from src.bolao.models import LivePrediction
                              new_lp_id = stable_id(selected_name + str(selected_m.match_id), now_iso())
                              
-                             new_lp = LivePrediction(
-                                 id=new_lp_id,
-                                 participant_key=user_key,
-                                 participant_name=selected_name,
-                                 match_id=selected_m.match_id,
-                                 predicted_home_goals=int(new_h),
-                                 predicted_away_goals=int(new_a),
-                                 points=0,
-                                 created_at=now_iso(),
-                                 updated_at=now_iso(),
-                                 scoring_breakdown={}
-                             )
+                              new_lp = LivePrediction(
+                                  id=new_lp_id,
+                                  participant_key=user_key,
+                                  participant_name=selected_name,
+                                  match_id=selected_m.match_id,
+                                  predicted_home_goals=int(new_h),
+                                  predicted_away_goals=int(new_a),
+                                  points=0,
+                                  submitted_at=now_iso(),
+                                  updated_at=now_iso(),
+                                  scoring_breakdown=[]
+                              )
                              
                              if selected_m.status == "result_approved":
                                  from src.bolao.live_scoring import calculate_live_prediction_points
