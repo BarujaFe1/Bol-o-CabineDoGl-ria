@@ -69,7 +69,7 @@ from src.bolao.migrations import migrate_existing_submissions_to_classic_schema
 
 # Static UI modules imports to prevent Streamlit hot-reload ImportErrors
 from src.bolao.ui_cartela import render_minha_cartela
-from src.bolao.ui_live_matches import render_jogos_de_hoje, render_match_center, is_match_open_for_prediction
+from src.bolao.ui_live_matches import render_jogos_de_hoje, render_match_center, is_match_open_for_prediction, render_jogos_do_brasil
 from src.bolao.ui_ranking import render_rankings_tabs
 from src.bolao.ui_social_pages import (
     render_central_do_bolao,
@@ -170,15 +170,152 @@ def public_home() -> None:
     import html
     import re
 
+    ctx = load_app_data_cached()
+    config = ctx.config
+    matches = ctx.matches
+
+    # F20 — Animated Podium Pós-Copa
+    if config.get("copa_encerrada", False):
+        from src.bolao.live_scoring import calculate_live_ranking
+        from src.bolao.utils import avatar_url
+        import urllib.parse
+        import streamlit.components.v1 as components
+        
+        # Confetes nas cores do Brasil
+        components.html("""
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+        <script>
+        (function(){
+            var end = Date.now() + 4000;
+            var colors = ['#009c3b', '#ffdf00', '#002776', '#ffffff'];
+            (function frame(){
+                confetti({particleCount:3, angle:60, spread:55, origin:{x:0}, colors:colors});
+                confetti({particleCount:3, angle:120, spread:55, origin:{x:1}, colors:colors});
+                if (Date.now() < end) requestAnimationFrame(frame);
+            })();
+        })();
+        </script>
+        """, height=0)
+
+        st.markdown("<h1 style='text-align: center; color: var(--gold);'>🏆 A Copa Acabou!</h1>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align: center; color: var(--ink); text-align: center;'>Parabéns ao bolão da Cabine do Glória!</h3>", unsafe_allow_html=True)
+        
+        top3 = []
+        combined_enabled = config.get("combined_ranking_enabled", False)
+        official = ctx.official
+        submissions = ctx.submissions
+        live_preds = ctx.live_predictions
+        
+        if combined_enabled and official:
+            from src.bolao.scoring import rank_predictions, ScoreConfig
+            from src.bolao.constants import DEFAULT_WEIGHTED_RULES, DEFAULT_UNIFORM_RULES, DEFAULT_V2_RULES
+            from src.bolao.utils import normalize_participant_key
+            score_config = ScoreConfig(
+                mode=config.get("scoring_mode", "v2"),
+                weighted_rules=config.get("weighted_rules", dict(DEFAULT_WEIGHTED_RULES)),
+                uniform_rules=config.get("uniform_rules", dict(DEFAULT_UNIFORM_RULES)),
+                v2_rules=config.get("v2_rules", dict(DEFAULT_V2_RULES)),
+            )
+            classic_scores = rank_predictions(submissions, official, score_config)
+            live_scores = calculate_live_ranking(live_preds, matches, config)
+            
+            combined_rules = config.get("combined_ranking", {})
+            classic_weight = combined_rules.get("classic_weight", 1.0)
+            live_weight = combined_rules.get("live_weight", 1.0)
+            include_classic_only = combined_rules.get("include_classic_only_players", True)
+            include_live_only = combined_rules.get("include_live_only_players", True)
+            
+            classic_dict = {normalize_participant_key(s.participant): s for s in classic_scores}
+            live_dict = {s["participant_key"]: s for s in live_scores}
+            
+            all_keys = set(classic_dict.keys()).union(live_dict.keys())
+            combined_list = []
+            for pk in all_keys:
+                c_score = classic_dict.get(pk)
+                l_score = live_dict.get(pk)
+                
+                if c_score and not l_score and not include_classic_only:
+                    continue
+                if l_score and not c_score and not include_live_only:
+                    continue
+                    
+                p_name = c_score.participant if c_score else (l_score["participant"] if l_score else "—")
+                c_pts = c_score.total if c_score else 0
+                l_pts = l_score["total"] if l_score else 0
+                combined_pts = c_pts * classic_weight + l_pts * live_weight
+                
+                combined_list.append({
+                    "nome": p_name,
+                    "pontos": combined_pts,
+                    "classic_points": c_pts,
+                    "live_points": l_pts
+                })
+            combined_list.sort(key=lambda s: (
+                -s["pontos"],
+                -s["classic_points"],
+                -s["live_points"],
+                s["nome"].lower()
+            ))
+            top3 = combined_list[:3]
+        else:
+            live_scores = calculate_live_ranking(live_preds, matches, config)
+            for row in live_scores[:3]:
+                top3.append({
+                    "nome": row["participant"],
+                    "pontos": row["total"]
+                })
+                
+        if top3:
+            st.markdown("<br>", unsafe_allow_html=True)
+            cols = st.columns(3)
+            emojis = ["🥇", "🥈", "🥉"]
+            
+            if len(top3) == 3:
+                with cols[0]:
+                    p = top3[1]
+                    st.markdown(f"<div style='text-align: center;'>", unsafe_allow_html=True)
+                    st.image(avatar_url(p["nome"]), width=80)
+                    st.markdown(f"### 🥈 {p['nome']}")
+                    st.markdown(f"**{p['pontos']} pts**")
+                    st.markdown(f"</div>", unsafe_allow_html=True)
+                with cols[1]:
+                    p = top3[0]
+                    st.markdown(f"<div style='text-align: center; border: 2px solid var(--gold); border-radius: 12px; padding: 10px; background-color: rgba(255,215,0,0.05);'>", unsafe_allow_html=True)
+                    st.image(avatar_url(p["nome"]), width=110)
+                    st.markdown(f"## 🥇 {p['nome']}")
+                    st.markdown(f"**{p['pontos']} pts**")
+                    st.markdown(f"</div>", unsafe_allow_html=True)
+                with cols[2]:
+                    p = top3[2]
+                    st.markdown(f"<div style='text-align: center;'>", unsafe_allow_html=True)
+                    st.image(avatar_url(p["nome"]), width=80)
+                    st.markdown(f"### 🥉 {p['nome']}")
+                    st.markdown(f"**{p['pontos']} pts**")
+                    st.markdown(f"</div>", unsafe_allow_html=True)
+            else:
+                for i, p in enumerate(top3):
+                    with cols[i]:
+                        st.markdown(f"<div style='text-align: center;'>", unsafe_allow_html=True)
+                        st.image(avatar_url(p["nome"]), width=90)
+                        st.markdown(f"### {emojis[i]} {p['nome']}")
+                        st.markdown(f"**{p['pontos']} pts**")
+                        st.markdown(f"</div>", unsafe_allow_html=True)
+
+            p_text = f"🏆 *Bolão da Cabine do Glória — Copa 2026 encerrado!*\n\n"
+            for i, p in enumerate(top3):
+                p_text += f"{emojis[i]} {p['nome']} — {p['pontos']} pts\n"
+            p_text += f"\nParabéns aos campeões! 🎉"
+            
+            st.markdown("<br><br>", unsafe_allow_html=True)
+            st.link_button("📲 Compartilhar no WhatsApp", f"https://wa.me/?text={urllib.parse.quote(p_text)}", width="stretch")
+            
+        return
+
     hero(
         title="Bolão da Copa 2026",
         subtitle="Cabine do Glória",
         description="Palpite jogo a jogo, acompanhe o ranking em tempo real e provoque a galera."
     )
-
-    ctx = load_app_data_cached()
-    config = ctx.config
-    matches = ctx.matches
 
     # Banner principal com CTAs rápidos
     col_hero_cta1, col_hero_cta2 = st.columns(2)
@@ -535,12 +672,251 @@ def public_submission() -> None:
         init_simulator_state(new_pred, force_reset=True)
         st.session_state["edit_mode"] = "new"
 
+def render_player_single_select(key_prefix: str, squad: list, selected_name: str | None, disabled: bool = False) -> str | None:
+    from src.bolao.utils import avatar_url
+    
+    filter_key = f"{key_prefix}_active_filter"
+    if filter_key not in st.session_state:
+        st.session_state[filter_key] = "Todos"
+        
+    cols_filt = st.columns(5)
+    positions_list = ["Todos", "GOL", "DEF", "MEI", "ATA"]
+    emojis_pos = {"Todos": "🌍", "GOL": "🧤", "DEF": "🛡️", "MEI": "⚙️", "ATA": "⚡"}
+    
+    for c_idx, pos in enumerate(positions_list):
+        with cols_filt[c_idx]:
+            if st.button(f"{emojis_pos[pos]} {pos}", key=f"btn_filt_{pos}_{key_prefix}", type="primary" if st.session_state[filter_key] == pos else "secondary", width="stretch"):
+                st.session_state[filter_key] = pos
+                st.rerun()
+                
+    p_filtered = [p for p in squad if st.session_state[filter_key] == "Todos" or p["posicao"] == st.session_state[filter_key]]
+    
+    st.markdown('<div class="player-grid-container">', unsafe_allow_html=True)
+    p_cols = st.columns(4)
+    choice = selected_name
+    
+    st.markdown(
+        """
+        <style>
+        @media (max-width: 640px) {
+          .player-grid-container [data-testid="stHorizontalBlock"] {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .player-grid-container [data-testid="stHorizontalBlock"] > div {
+            width: 100% !important;
+          }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    for p_idx, p in enumerate(p_filtered):
+        p_col = p_cols[p_idx % 4]
+        with p_col:
+            is_selected = (choice == p["nome"])
+            p_avatar = avatar_url(p["nome"])
+            border_color = "var(--green)" if is_selected else "var(--line)"
+            bg_color = "var(--panel)" if not is_selected else "var(--bg-soft)"
+            
+            st.markdown(
+                f"""
+                <div style="border: 2px solid {border_color}; border-radius: 12px; padding: 8px; text-align: center; background-color: {bg_color}; position: relative; margin-bottom: 10px;">
+                    <span style="position: absolute; top: 4px; right: 4px; background-color: var(--gold); color: black; font-weight: bold; font-size: 10px; padding: 2px 5px; border-radius: 4px;">#{p['camisa']}</span>
+                    <img src="{p_avatar}" style="width: 44px; height: 44px; border-radius: 50%; margin-bottom: 4px;" />
+                    <div style="font-weight: bold; font-size: 11px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{p['nome']}</div>
+                    <div style="font-size: 9px; color: var(--muted);">{p['posicao']}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            
+            if not disabled:
+                if st.button("Selecionar", key=f"btn_sel_{p['nome']}_{key_prefix}", type="primary" if is_selected else "secondary", width="stretch"):
+                    choice = p["nome"]
+                    st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+    return choice
+
+
+def public_submission() -> None:
+    if st.button("⬅️ Voltar ao Início", key="back_to_home_submission", width="stretch"):
+        navigate_to("Início")
+    if st.session_state.get("last_submitted_prediction"):
+        pred = st.session_state["last_submitted_prediction"]
+        champion = pred.champion or "Indefinido"
+        
+        finalists = []
+        ko_final = pred.knockout.get("final", [])
+        if ko_final and len(ko_final) > 0:
+            if ko_final[0].a:
+                finalists.append(ko_final[0].a)
+            if ko_final[0].b:
+                finalists.append(ko_final[0].b)
+        
+        finalist_1 = finalists[0] if len(finalists) > 0 else "Indefinido"
+        finalist_2 = finalists[1] if len(finalists) > 1 else "Indefinido"
+        
+        st.markdown(
+            f"""
+            <div class="success-card" style="margin-bottom: 25px; padding: 25px; border-radius: 12px; background-color: var(--panel); border: 2px solid var(--gold); color: var(--ink);">
+                <div style="font-size: 48px; text-align: center;">🏆</div>
+                <h3 style="text-align: center; color: var(--ink); margin-top: 10px;">Palpite Enviado com Sucesso!</h3>
+                <p style="text-align: center; color: var(--muted);">Seu palpite foi registrado no sistema. O ranking será atualizado quando a organização aprovar os resultados oficiais.</p>
+                <hr style="border: 0; border-top: 1px solid var(--line); margin: 20px 0;">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <span style="font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Código de Confirmação</span>
+                    <h2 style="color: var(--gold); margin: 5px 0; font-family: monospace; letter-spacing: 2px; font-size: 28px;">{pred.submission_id}</h2>
+                </div>
+                <div style="display: flex; justify-content: space-around; background: var(--bg); padding: 15px; border-radius: 8px; border: 1px dashed var(--gold); margin-bottom: 20px; color: var(--ink);">
+                    <div style="text-align: center; flex: 1;">
+                        <span style="font-size: 12px; color: var(--muted);">Campeão</span>
+                        <div style="font-weight: bold; color: var(--ink);">{champion}</div>
+                    </div>
+                    <div style="text-align: center; border-left: 1px solid var(--line); padding-left: 20px; flex: 1;">
+                        <span style="font-size: 12px; color: var(--muted);">Grande Final</span>
+                        <div style="font-weight: bold; color: var(--ink);">{finalist_1} x {finalist_2}</div>
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        
+        share_text = f"🏆 Meu palpite no Bolão da Cabine do Glória está feito!\nCampeão: {champion}\nFinal: {finalist_1} x {finalist_2}\nCódigo: {pred.submission_id}\nAcompanhe o ranking no app."
+        
+        st.markdown("#### 📱 Compartilhar no WhatsApp")
+        st.text_area("Texto de compartilhamento", value=share_text, height=120, key="share_text_area", disabled=True)
+        
+        import urllib.parse
+        encoded_text = urllib.parse.quote(share_text)
+        whatsapp_url = f"https://api.whatsapp.com/send?text={encoded_text}"
+        
+        col_sh1, col_sh2, col_sh3 = st.columns(3)
+        with col_sh1:
+            st.link_button("💬 Enviar no WhatsApp", whatsapp_url, width="stretch", type="primary")
+        with col_sh2:
+            st.code(share_text, language="text", line_numbers=False)
+            
+        with col_sh3:
+            if st.button("📊 Ir para o Ranking", width="stretch"):
+                st.session_state.pop("last_submitted_prediction", None)
+                navigate_to("Ranking")
+                
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🆕 Fazer outro palpite", width="stretch"):
+            st.session_state.pop("last_submitted_prediction", None)
+            st.rerun()
+        return
+
+    hero("Palpite Clássico", "Fluxo do participante", "Monte seu palpite completo da Copa do Mundo 2026 pelo simulador interativo.")
+
+    st.markdown("### 1. Identificação")
+    name = st.text_input("Seu nome no bolão", placeholder="Ex.: César", key="public_sim_name")
+    
+    if not name.strip():
+        st.info("Informe seu nome para começar a simulação.")
+        st.session_state.pop("sim_prediction", None)
+        st.session_state.pop("sim_public", None)
+        st.session_state.pop("edit_mode", None)
+        st.session_state.pop("show_delete_confirm", None)
+        return
+
+    name_clean = name.strip()
+    ctx = load_app_data_cached()
+    config = ctx.config
+    is_locked = config.get("is_bolao_locked", False)
+    
+    submissions = ctx.submissions
+    existing = [p for p in submissions if p.participant.strip().lower() == name_clean.lower()]
+    
+    if existing and "edit_mode" not in st.session_state:
+        existing_pred = existing[0]
+        
+        if is_locked:
+            st.warning(f"🔒 Os palpites estão bloqueados. Existe um palpite cadastrado para **{existing_pred.participant}**, mas novas submissões ou edições estão desabilitadas.")
+            if st.button(f"🔍 Visualizar o palpite de {existing_pred.participant}", width="stretch"):
+                st.session_state["sim_prediction"] = existing_pred
+                init_simulator_state(existing_pred, force_reset=True)
+                st.session_state["edit_mode"] = "view"
+                st.rerun()
+        else:
+            st.info(f"💡 Encontramos um palpite já enviado para **{existing_pred.participant}**.")
+            col_btn1, col_btn2, col_btn3 = st.columns(3)
+            with col_btn1:
+                if st.button("✏️ Editar palpite existente", type="primary", width="stretch"):
+                    st.session_state["sim_prediction"] = existing_pred
+                    init_simulator_state(existing_pred, force_reset=True)
+                    st.session_state["edit_mode"] = "edit"
+                    st.rerun()
+            with col_btn2:
+                if st.button("❌ Excluir meu palpite", width="stretch"):
+                    st.session_state["show_delete_confirm"] = True
+                    st.rerun()
+            with col_btn3:
+                if st.button("🆕 Iniciar novo do zero", width="stretch"):
+                    new_pred = Prediction(
+                        participant=existing_pred.participant,
+                        submission_id=existing_pred.submission_id,
+                        submitted_at=existing_pred.submitted_at,
+                        status="rascunho"
+                    )
+                    st.session_state["sim_prediction"] = new_pred
+                    init_simulator_state(new_pred, force_reset=True)
+                    st.session_state["edit_mode"] = "edit"
+                    st.rerun()
+                    
+        if st.session_state.get("show_delete_confirm", False):
+            st.markdown("---")
+            st.warning(f"⚠️ Tem certeza que deseja excluir permanentemente o palpite de **{existing_pred.participant}**? Esta ação não pode ser desfeita.")
+            c_del1, c_del2 = st.columns(2)
+            with c_del1:
+                if st.button("Sim, excluir permanentemente", type="primary", width="stretch"):
+                    delete_submission(existing_pred.submission_id)
+                    st.success("Seu palpite foi excluído do sistema.")
+                    st.session_state.pop("sim_prediction", None)
+                    st.session_state.pop("sim_public", None)
+                    st.session_state.pop("edit_mode", None)
+                    st.session_state.pop("show_delete_confirm", None)
+                    st.balloons()
+                    st.rerun()
+            with c_del2:
+                if st.button("Cancelar", width="stretch"):
+                    st.session_state.pop("show_delete_confirm", None)
+                    st.rerun()
+        return
+
+    if not existing and is_locked:
+        st.error("🔒 Os palpites estão encerrados pelo administrador. Não é possível enviar novos palpites.")
+        return
+
+    if "sim_prediction" not in st.session_state or st.session_state["sim_prediction"].participant.lower() != name_clean.lower():
+        new_pred = Prediction(
+            participant=name_clean,
+            submission_id=stable_id(name_clean, now_iso()),
+            submitted_at=now_iso(),
+            status="rascunho"
+        )
+        st.session_state["sim_prediction"] = new_pred
+        init_simulator_state(new_pred, force_reset=True)
+        st.session_state["edit_mode"] = "new"
+
     pred = st.session_state["sim_prediction"]
     edit_mode = st.session_state.get("edit_mode", "new")
 
     if edit_mode == "view":
         st.info("👁️ Você está visualizando o palpite enviado. Alterações não serão salvas.")
         render_simulator(pred)
+        from src.bolao.storage import load_brasil_palpites_classicos
+        classic_brasil_guesses = load_brasil_palpites_classicos()
+        my_brasil_guess = next((g for g in classic_brasil_guesses if g["participante_nome"].lower() == name_clean.lower()), None)
+        if my_brasil_guess:
+            st.markdown("### 🇧🇷 Palpites do Módulo Brasil")
+            st.write(f"⚽ **Artilheiro do Brasil:** {my_brasil_guess.get('artilheiro_brasil_copa') or 'Nenhum'}")
+            st.write(f"🌍 **Artilheiro Geral:** {my_brasil_guess.get('artilheiro_geral_copa') or 'Nenhum'}")
+            st.write(f"🥇 **Gol de Ouro (1º gol do BR):** {my_brasil_guess.get('gol_de_ouro') or 'Nenhum'}")
         if st.button("Voltar", width="stretch"):
             st.session_state.pop("sim_prediction", None)
             st.session_state.pop("sim_public", None)
@@ -552,8 +928,115 @@ def public_submission() -> None:
             
         updated_pred = render_simulator(pred)
         
+        # Load or initialize Módulo Brasil selections
+        if "selected_artilheiro_brasil" not in st.session_state or "selected_artilheiro_geral" not in st.session_state or "selected_gol_de_ouro" not in st.session_state or st.session_state.get("last_checked_participant_name") != name_clean:
+            st.session_state["last_checked_participant_name"] = name_clean
+            from src.bolao.storage import load_brasil_palpites_classicos
+            classic_brasil_guesses = load_brasil_palpites_classicos()
+            my_brasil_guess = next((g for g in classic_brasil_guesses if g["participante_nome"].lower() == name_clean.lower()), None)
+            if my_brasil_guess:
+                st.session_state["selected_artilheiro_brasil"] = my_brasil_guess.get("artilheiro_brasil_copa")
+                st.session_state["selected_artilheiro_geral"] = my_brasil_guess.get("artilheiro_geral_copa")
+                st.session_state["selected_gol_de_ouro"] = my_brasil_guess.get("gol_de_ouro")
+            else:
+                st.session_state["selected_artilheiro_brasil"] = None
+                st.session_state["selected_artilheiro_geral"] = None
+                st.session_state["selected_gol_de_ouro"] = None
+        
         if updated_pred:
-            st.markdown("### 5. Enviar palpite")
+            st.markdown("---")
+            st.markdown("### 5. Palpites Extras (Artilharia e Gol de Ouro) 🇧🇷")
+            st.caption("Responda estas 3 perguntas especiais do Módulo Brasil para finalizar o preenchimento.")
+            
+            from src.bolao.constants import ELENCO_BRASIL_2026
+            from src.bolao.utils import buscar_jogador_copa
+            
+            tab_art_br, tab_art_ge, tab_gold = st.tabs(["🇧🇷 Artilheiro do Brasil", "🌍 Artilheiro Geral", "🥇 Gol de Ouro"])
+            
+            with tab_art_br:
+                st.write("Quem será o maior artilheiro do Brasil na Copa inteira?")
+                if is_locked:
+                    from src.bolao.storage import load_brasil_palpites_classicos
+                    classic_brasil_guesses = load_brasil_palpites_classicos()
+                    votes = [g.get("artilheiro_brasil_copa") for g in classic_brasil_guesses if g.get("artilheiro_brasil_copa")]
+                    from collections import Counter
+                    counts = Counter(votes)
+                    top_votes = counts.most_common(3)
+                    medals = ["🥇", "🥈", "🥉"]
+                    vote_strs = []
+                    for i, (player, cnt) in enumerate(top_votes):
+                        vote_strs.append(f"{medals[i]} {player} — {cnt} {'voto' if cnt == 1 else 'votos'}")
+                    if vote_strs:
+                        st.markdown(f"📊 **O grupo apostou:** {' · '.join(vote_strs)}")
+                
+                curr_sel = st.session_state.get("selected_artilheiro_brasil")
+                st.write(f"Selecionado atualmente: **{curr_sel or 'Nenhum'}**")
+                new_sel = render_player_single_select("art_br", ELENCO_BRASIL_2026, curr_sel, disabled=is_locked)
+                if new_sel != curr_sel:
+                    st.session_state["selected_artilheiro_brasil"] = new_sel
+                    st.rerun()
+                    
+            with tab_art_ge:
+                st.write("Quem será o Artilheiro Geral de toda a Copa 2026?")
+                curr_sel_ge = st.session_state.get("selected_artilheiro_geral")
+                st.write(f"Selecionado atualmente: **{curr_sel_ge or 'Nenhum'}**")
+                
+                if not is_locked:
+                    query = st.text_input("Digite o nome do jogador para buscar:", key="artilheiro_geral_query")
+                    if query:
+                        results = buscar_jogador_copa(query)
+                        if results:
+                            st.write("🔍 Resultados da busca (clique para escolher):")
+                            cols_sug = st.columns(min(len(results), 4))
+                            for r_idx, r in enumerate(results):
+                                col_suggestion = cols_sug[r_idx % len(cols_sug)]
+                                with col_suggestion:
+                                    if st.button(f"{r['nome']} ({r['selecao']})", key=f"sug_ge_{r['nome']}_{r_idx}", width="stretch"):
+                                        st.session_state["selected_artilheiro_geral"] = f"{r['nome']} ({r['selecao']})"
+                                        st.rerun()
+                        else:
+                            st.info("Nenhum jogador encontrado.")
+                    else:
+                        st.write("🔥 Sugestões de Favoritos (clique para escolher):")
+                        favorites = [
+                            {"nome": "Mbappé", "selecao": "França"},
+                            {"nome": "Haaland", "selecao": "Noruega"},
+                            {"nome": "Salah", "selecao": "Egito"},
+                            {"nome": "Kane", "selecao": "Inglaterra"},
+                            {"nome": "Lewandowski", "selecao": "Polônia"},
+                            {"nome": "Lamine Yamal", "selecao": "Espanha"},
+                            {"nome": "Vini Jr.", "selecao": "Brasil"},
+                            {"nome": "Messi", "selecao": "Argentina"},
+                            {"nome": "Osimhen", "selecao": "Nigéria"},
+                            {"nome": "Bellingham", "selecao": "Inglaterra"}
+                        ]
+                        cols_fav = st.columns(5)
+                        for f_idx, fav in enumerate(favorites):
+                            col_fav = cols_fav[f_idx % 5]
+                            with col_fav:
+                                if st.button(f"{fav['nome']}\n({fav['selecao']})", key=f"fav_{fav['nome']}", width="stretch"):
+                                    st.session_state["selected_artilheiro_geral"] = f"{fav['nome']} ({fav['selecao']})"
+                                    st.rerun()
+                else:
+                    st.info("Palpites bloqueados.")
+                    
+            with tab_gold:
+                st.write("Qual jogador marcará o primeiro gol do Brasil na Copa inteira?")
+                curr_sel_gold = st.session_state.get("selected_gol_de_ouro")
+                st.write(f"Selecionado atualmente: **{curr_sel_gold or 'Nenhum'}**")
+                new_sel_gold = render_player_single_select("gold_de_ouro", ELENCO_BRASIL_2026, curr_sel_gold, disabled=is_locked)
+                if new_sel_gold != curr_sel_gold:
+                    st.session_state["selected_gol_de_ouro"] = new_sel_gold
+                    st.rerun()
+
+            brasil_complete = (
+                st.session_state.get("selected_artilheiro_brasil") is not None and
+                st.session_state.get("selected_artilheiro_geral") is not None and
+                st.session_state.get("selected_gol_de_ouro") is not None
+            )
+            
+            st.markdown("---")
+            st.markdown("### 6. Confirmar e enviar")
             if edit_mode == "edit":
                 st.caption("Ao confirmar, o palpite existente será atualizado com os novos resultados.")
                 save_btn_text = "Salvar alterações no meu palpite"
@@ -561,9 +1044,12 @@ def public_submission() -> None:
                 st.caption("Ao confirmar, o palpite será salvo no sistema.")
                 save_btn_text = "Confirmar e salvar meu palpite"
                 
+            if not brasil_complete:
+                st.warning("⚠️ Selecione o Artilheiro do Brasil, o Artilheiro Geral e o Gol de Ouro nas abas acima para habilitar o envio.")
+                
             col_save1, col_save2 = st.columns(2)
             with col_save1:
-                if st.button(save_btn_text, type="primary", key="btn_save_sim_prediction", width="stretch"):
+                if st.button(save_btn_text, type="primary", key="btn_save_sim_prediction", width="stretch", disabled=not brasil_complete):
                     # Final check for locking status
                     config = load_config()
                     if config.get("is_bolao_locked", False):
@@ -581,6 +1067,18 @@ def public_submission() -> None:
                     updated_pred.status = "confirmado"
                     updated_pred.submitted_at = now_iso()
                     save_submission(updated_pred)
+                    
+                    # Save Módulo Brasil classic predictions
+                    from src.bolao.storage import save_brasil_palpite_classico
+                    save_brasil_palpite_classico({
+                        "participante_nome": updated_pred.participant,
+                        "artilheiro_brasil_copa": st.session_state.get("selected_artilheiro_brasil"),
+                        "artilheiro_geral_copa": st.session_state.get("selected_artilheiro_geral"),
+                        "gol_de_ouro": st.session_state.get("selected_gol_de_ouro"),
+                        "pontos_artilheiro_brasil": 0,
+                        "pontos_artilheiro_geral": 0,
+                        "pontos_gol_de_ouro": 0
+                    })
                     
                     st.session_state["last_submitted_prediction"] = updated_pred
                     
@@ -1235,6 +1733,29 @@ def admin_exports() -> None:
                     width="stretch"
                 )
 
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        with st.container(border=True):
+            st.markdown("### 📥 Restaurar Backup Geral (JSON)")
+            st.caption("Faça upload de um arquivo de backup geral completo para restaurar todas as configurações, palpites e perfis cadastrados.")
+            uploaded_backup = st.file_uploader("Selecione o arquivo de backup (.json)", type=["json"], key="uploader_backup_geral")
+            if uploaded_backup is not None:
+                st.warning("⚠️ Atenção: A restauração irá substituir todos os dados atuais (configurações, palpites clássicos, palpites jogo a jogo, perfis cadastrados) pelos dados contidos no backup.")
+                word_confirm = st.text_input("Digite RESTAURAR para confirmar a ação:", key="word_restore_confirm")
+                if st.button("Executar Restauração de Dados", type="primary", key="btn_run_restore_backup", disabled=word_confirm != "RESTAURAR", width="stretch"):
+                    try:
+                        import json
+                        backup_data = json.load(uploaded_backup)
+                        from src.bolao.storage import import_all_state
+                        import_all_state(backup_data)
+                        st.success("Backup restaurado com sucesso! Recarregando aplicação...")
+                        import time
+                        time.sleep(1.0)
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro ao restaurar backup: {e}")
+
+
     with exp_tabs[1]:
         with st.container(border=True):
             st.markdown("### 🏆 Compartilhar Cartazes de Pódio (HTML)")
@@ -1492,6 +2013,47 @@ def admin_settings() -> None:
         uniform["champion_bonus"] = st.number_input("Bônus da campeã", min_value=0, max_value=100, value=int(uniform.get("champion_bonus", 0)), step=1)
         config["uniform_rules"] = uniform
 
+    # Accordion: Módulo Brasil & Modo Relâmpago (F05-F08, F19, F20)
+    with st.expander("🇧🇷 Configurações do Módulo Brasil & Modo Relâmpago", expanded=False):
+        st.markdown("#### Pontuação do Módulo Brasil (Copa 2026)")
+        config["copa_encerrada"] = st.checkbox("🏆 Marcar Copa como Encerrada (Exibe Pódio e Confetes na Home)", value=config.get("copa_encerrada", False))
+        
+        col_b1, col_b2, col_b3 = st.columns(3)
+        with col_b1:
+            pts_acertar_goleador = st.number_input("Pts por goleador acertado", min_value=0, max_value=50, value=int(config.get("pts_acertar_goleador", 4)), step=1)
+            pts_acertar_assistente = st.number_input("Pts por assistente acertado", min_value=0, max_value=50, value=int(config.get("pts_acertar_assistente", 2)), step=1)
+            pts_goleador_mais_assist = st.number_input("Pts goleador + assist mesmo gol", min_value=0, max_value=50, value=int(config.get("pts_goleador_mais_assist", 8)), step=1)
+        with col_b2:
+            pts_todos_goleadores = st.number_input("Pts acertar todos os goleadores", min_value=0, max_value=50, value=int(config.get("pts_todos_goleadores", 5)), step=1)
+            pts_artilheiro_brasil = st.number_input("Pts artilheiro Brasil (clássico)", min_value=0, max_value=50, value=int(config.get("pts_artilheiro_brasil", 15)), step=1)
+            pts_top3_artilheiros_brasil = st.number_input("Pts top 3 artilheiros Brasil", min_value=0, max_value=50, value=int(config.get("pts_top3_artilheiros_brasil", 5)), step=1)
+        with col_b3:
+            pts_artilheiro_geral = st.number_input("Pts artilheiro geral (clássico)", min_value=0, max_value=50, value=int(config.get("pts_artilheiro_geral", 20)), step=1)
+            pts_top3_artilheiros_geral = st.number_input("Pts top 3 artilheiros gerais", min_value=0, max_value=50, value=int(config.get("pts_top3_artilheiros_geral", 7)), step=1)
+            pts_gol_de_ouro = st.number_input("Pts Gol de Ouro (1º gol Brasil)", min_value=0, max_value=50, value=int(config.get("pts_gol_de_ouro", 10)), step=1)
+            
+        config["pts_acertar_goleador"] = pts_acertar_goleador
+        config["pts_acertar_assistente"] = pts_acertar_assistente
+        config["pts_goleador_mais_assist"] = pts_goleador_mais_assist
+        config["pts_todos_goleadores"] = pts_todos_goleadores
+        config["pts_artilheiro_brasil"] = pts_artilheiro_brasil
+        config["pts_top3_artilheiros_brasil"] = pts_top3_artilheiros_brasil
+        config["pts_artilheiro_geral"] = pts_artilheiro_geral
+        config["pts_top3_artilheiros_geral"] = pts_top3_artilheiros_geral
+        config["pts_gol_de_ouro"] = pts_gol_de_ouro
+
+        st.markdown("#### Pontuação do Modo Relâmpago (2º Tempo)")
+        live_scoring = config.get("live_scoring", {})
+        col_r1, col_r2 = st.columns(2)
+        with col_r1:
+            pts_relampago_exato = st.number_input("Pts Modo Relâmpago Placar Exato", min_value=0, max_value=50, value=int(live_scoring.get("pts_relampago_exato", 4)), step=1)
+        with col_r2:
+            pts_relampago_resultado = st.number_input("Pts Modo Relâmpago Apenas Resultado", min_value=0, max_value=50, value=int(live_scoring.get("pts_relampago_resultado", 2)), step=1)
+            
+        live_scoring["pts_relampago_exato"] = pts_relampago_exato
+        live_scoring["pts_relampago_resultado"] = pts_relampago_resultado
+        config["live_scoring"] = live_scoring
+
     # Botão de salvar fora dos expanders
     if st.button("💾 Salvar todas as configurações", type="primary", key="btn_save_settings", width="stretch"):
         save_config(config)
@@ -1728,6 +2290,119 @@ def on_mobile_nav_change() -> None:
         st.session_state["nav_page"] = val
 
 
+def render_global_countdown() -> None:
+    from datetime import datetime, timezone, timedelta
+    from src.bolao.storage import load_matches
+    from src.bolao.ui_live_matches import is_match_open_for_prediction
+    
+    tz_sp = timezone(timedelta(hours=-3))
+    now_sp = datetime.now(tz_sp).replace(tzinfo=None)
+    
+    matches = load_matches()
+    open_future_matches = []
+    
+    for m in matches:
+        if m.starts_at:
+            try:
+                m_dt = datetime.fromisoformat(m.starts_at)
+                if m_dt > now_sp and is_match_open_for_prediction(m):
+                    open_future_matches.append((m, m_dt))
+            except Exception:
+                pass
+                
+    open_future_matches.sort(key=lambda x: x[1])
+    
+    try:
+        from streamlit_autorefresh import st_autorefresh
+        st_autorefresh(interval=10000, key="global_timer_refresh")
+    except Exception:
+        pass
+        
+    st.markdown(
+        f"""
+        <style>
+        @keyframes pulse-glow {{
+            0% {{ box-shadow: 0 8px 16px rgba(0,0,0,0.3), 0 0 2px rgba(255, 215, 0, 0.2); }}
+            50% {{ box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 10px rgba(255, 215, 0, 0.6); }}
+            100% {{ box-shadow: 0 8px 16px rgba(0,0,0,0.3), 0 0 2px rgba(255, 215, 0, 0.2); }}
+        }}
+        @keyframes pulse-green {{
+            0% {{ transform: scale(0.9); opacity: 0.7; }}
+            50% {{ transform: scale(1.15); opacity: 1; }}
+            100% {{ transform: scale(0.9); opacity: 0.7; }}
+        }}
+        .premium-clock {{
+            background: linear-gradient(135deg, #1b4d22 0%, #0c2612 100%);
+            border: 2px solid #ffd700;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ffffff;
+            animation: pulse-glow 4s infinite ease-in-out;
+        }}
+        .live-dot {{
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            margin-right: 4px;
+            box-shadow: 0 0 8px #22c55e;
+            animation: pulse-green 2s infinite ease-in-out;
+            vertical-align: middle;
+        }}
+        </style>
+        <div class="premium-clock">
+            <div style="font-size: 11px; color: #ffd700; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span class="live-dot"></span> HORA OFICIAL DE BRASÍLIA
+            </div>
+            <div style="font-size: 28px; font-weight: 900; color: #ffffff; letter-spacing: 1px; font-family: 'Courier New', Courier, monospace; margin-bottom: 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+                {now_sp.strftime('%H:%M:%S')}
+            </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    if open_future_matches:
+        next_m, next_dt = open_future_matches[0]
+        delta = next_dt - now_sp
+        tot_sec = int(delta.total_seconds())
+        h, rem = divmod(tot_sec, 3600)
+        m, s = divmod(rem, 60)
+        
+        if h > 24:
+            days = h // 24
+            time_str = f"⌛ {days} dia(s)"
+            color = "#ffd700"
+        else:
+            time_str = f"⏰ {h:02d}:{m:02d}:{s:02d}"
+            color = "#ff4b4b" if h < 1 else "#ffbd03"
+            
+        st.markdown(
+            f"""
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(255,255,255,0.15);" />
+            <div style="font-size: 10px; color: #b2cbb6; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">⏳ PRÓXIMO BLOQUEIO</div>
+            <div style="font-size: 14px; font-weight: 800; margin-top: 4px; color: #ffffff;">{next_m.home_team} × {next_m.away_team}</div>
+            <div style="font-size: 10px; color: #b2cbb6; margin-top: 1px;">{next_dt.strftime('%d/%m às %H:%M')}</div>
+            <div style="margin-top: 10px; font-size: 18px; font-weight: 900; color: {color}; text-shadow: 0 1px 2px rgba(0,0,0,0.3); font-family: monospace;">{time_str}</div>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            f"""
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(255,255,255,0.15);" />
+            <div style="font-size: 10px; color: #b2cbb6; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">⏳ PRÓXIMO BLOQUEIO</div>
+            <div style="margin-top: 8px; font-size: 13px; font-weight: bold; color: #b2cbb6;">Sem jogos abertos</div>
+            """,
+            unsafe_allow_html=True
+        )
+        
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+
 def main() -> None:
     # Rodar migrações seguras
     try:
@@ -1767,6 +2442,7 @@ def main() -> None:
 
     if not is_logged_in and not is_admin_flow:
         with st.sidebar:
+            render_global_countdown()
             st.markdown(f"## 🏆 {APP_NAME}")
             st.caption(APP_SUBTITLE)
             st.markdown("---")
@@ -1781,6 +2457,7 @@ def main() -> None:
         return
 
     with st.sidebar:
+        render_global_countdown()
         st.markdown(f"## 🏆 {APP_NAME}")
         st.caption(APP_SUBTITLE)
         st.markdown("---")
@@ -1817,14 +2494,89 @@ def main() -> None:
             st.radio("Admin Menu", admin_options, key="admin_nav_radio_key", on_change=on_admin_nav_change, label_visibility="collapsed")
             show_admin = True
         else:
-            # Public Menu
-            public_options = ["Início", "Palpite Clássico", "Jogos de Hoje", "Minha Cartela", "Ranking", "Central do Bolão", "Palpites do Grupo", "Análise dos Palpites", "Duelo de Palpites", "Regras"]
-            current_page = st.session_state["nav_page"]
-            if current_page not in public_options:
-                st.session_state["public_nav_radio_key"] = "Início"
-            else:
-                st.session_state["public_nav_radio_key"] = current_page
-            st.radio("Navegação", public_options, key="public_nav_radio_key", on_change=on_public_nav_change, label_visibility="collapsed")
+            # Acesso Rápido
+            st.markdown("### ⚡ Acesso Rápido")
+            col_q1, col_q2 = st.columns(2)
+            with col_q1:
+                if st.button("⚽ Palpitar", key="quick_palpites_btn", width="stretch"):
+                    navigate_to("Jogos de Hoje")
+                if st.button("📋 Minha Cartela", key="quick_cartela_btn", width="stretch"):
+                    navigate_to("Minha Cartela")
+            with col_q2:
+                if st.button("🏆 Ranking", key="quick_ranking_btn", width="stretch"):
+                    navigate_to("Ranking")
+                if st.button("🏟️ Match Center", key="quick_match_center_btn", width="stretch"):
+                    navigate_to("Match Center")
+            st.markdown("---")
+
+            # Grouped Public Menu
+            st.markdown("### 📂 Seções do Bolão")
+            
+            GROUPS = {
+                "🏠 Início & Regras": ["Início", "Regras"],
+                "⚽ Enviar Palpites": ["Palpite Clássico", "Jogos de Hoje", "🇧🇷 Jogos do Brasil", "Match Center"],
+                "🏆 Rankings & Estatísticas": ["Ranking", "Minha Cartela"],
+                "💬 Social & Comunidade": ["Central do Bolão", "Palpites do Grupo", "Análise dos Palpites", "Duelo de Palpites"]
+            }
+            
+            def get_page_group(page: str) -> str:
+                for grp, pgs in GROUPS.items():
+                    if page in pgs:
+                        return grp
+                return "🏠 Início & Regras"
+            
+            current_page = st.session_state.get("nav_page", "Início")
+            active_group = get_page_group(current_page)
+            
+            # Initialize selectbox key to prevent default value warnings
+            if "active_navigation_group_selectbox" not in st.session_state:
+                st.session_state["active_navigation_group_selectbox"] = active_group
+            
+            # Programmatic navigation synchronization:
+            if "last_nav_page" not in st.session_state:
+                st.session_state["last_nav_page"] = current_page
+                
+            if current_page != st.session_state["last_nav_page"]:
+                current_selected_group = st.session_state.get("active_navigation_group_selectbox")
+                pages_in_sel_group = GROUPS.get(current_selected_group, [])
+                if current_page not in pages_in_sel_group:
+                    st.session_state["active_navigation_group_selectbox"] = active_group
+                    current_selected_group = active_group
+                
+                # Safeguard public_nav_radio_key
+                pages_in_active_grp = GROUPS.get(current_selected_group, [])
+                if current_page in pages_in_active_grp:
+                    st.session_state["public_nav_radio_key"] = current_page
+                else:
+                    st.session_state["public_nav_radio_key"] = pages_in_active_grp[0]
+                    
+                st.session_state["last_nav_page"] = current_page
+            
+            # Omit index parameter to avoid Streamlit policy warnings
+            group_selected = st.selectbox(
+                "Escolha a Seção", 
+                list(GROUPS.keys()), 
+                key="active_navigation_group_selectbox"
+            )
+            
+            pages_in_group = GROUPS[group_selected]
+            pages_for_radio = pages_in_group
+            
+            if current_page != "Admin Login" and current_page not in pages_in_group:
+                st.session_state["nav_page"] = pages_in_group[0]
+                st.rerun()
+                
+            if st.session_state.get("public_nav_radio_key") not in pages_for_radio:
+                st.session_state["public_nav_radio_key"] = pages_for_radio[0]
+                
+            st.radio(
+                "Páginas",
+                pages_for_radio,
+                key="public_nav_radio_key",
+                on_change=on_public_nav_change,
+                label_visibility="collapsed",
+                format_func=lambda x: "🏟️ Match Center" if x == "Match Center" else x
+            )
             show_admin = False
 
         st.markdown("---")
@@ -1886,7 +2638,7 @@ def main() -> None:
             "Dashboard", "Participantes", "Jogos e Agenda", "Resultados Oficiais", 
             "Ranking", "Exportações", "Configurações", "Auditoria", "Ajuda"
         ] if show_admin else [
-            "Início", "Palpite Clássico", "Jogos de Hoje", "Minha Cartela", 
+            "Início", "Palpite Clássico", "Jogos de Hoje", "🇧🇷 Jogos do Brasil", "Minha Cartela", 
             "Ranking", "Central do Bolão", "Palpites do Grupo", 
             "Análise dos Palpites", "Duelo de Palpites", "Regras"
         ]
@@ -1922,6 +2674,18 @@ def main() -> None:
         else:
             admin_help()
     else:
+        user_name = st.session_state.get("live_user_name")
+        if user_name:
+            try:
+                from src.bolao.ui_ranking import verificar_mudanca_posicao
+                mudanca = verificar_mudanca_posicao(user_name)
+                if mudanca:
+                    if mudanca["delta"] > 0:
+                        st.success(f"📈 Você subiu {mudanca['delta']} posição(ões)! Agora é {mudanca['posicao_atual']}º.")
+                    else:
+                        st.warning(f"📉 Você caiu {abs(mudanca['delta'])} posição(ões). Agora é {mudanca['posicao_atual']}º.")
+            except Exception:
+                pass
         page = st.session_state["nav_page"]
         if page == "Início":
             public_home()
@@ -1929,6 +2693,8 @@ def main() -> None:
             public_submission()
         elif page == "Jogos de Hoje":
             render_jogos_de_hoje()
+        elif page == "🇧🇷 Jogos do Brasil":
+            render_jogos_do_brasil()
         elif page == "Minha Cartela":
             render_minha_cartela()
         elif page == "Ranking":
