@@ -1098,6 +1098,19 @@ def load_matches() -> list[LiveMatch]:
 
     # Seed matches from worldcup_2026_data.py if none exist in Supabase or locally
     if not MATCHES_PATH.exists():
+        # Defensive check: if Supabase already has match data, read from there instead of seeding
+        sb_client = _get_supabase_client()
+        if sb_client:
+            try:
+                sb_result = sb_client.table("bolao_matches").select("match_id").limit(1).execute()
+                if sb_result.data:
+                    # Supabase has matches — read from there to avoid overwriting
+                    full = sb_client.table("bolao_matches").select("*").execute()
+                    if full.data:
+                        return _override_first_match_lock([LiveMatch.from_dict(row) for row in full.data])
+            except Exception:
+                pass
+
         from .worldcup_2026_data import GROUP_MATCHES, TEAMS
         matches = []
         for idx, gm in enumerate(GROUP_MATCHES):
@@ -1181,6 +1194,26 @@ def load_live_predictions(include_archived: bool = False) -> list[LivePrediction
                 pass
 
     if not LIVE_PREDICTIONS_PATH.exists():
+        # Defensive: try Supabase one more time before returning empty
+        sb_client = _get_supabase_client()
+        if sb_client:
+            try:
+                sb_result = sb_client.table("bolao_live_predictions").select("*").execute()
+                if sb_result.data:
+                    preds = [LivePrediction.from_dict(row) for row in sb_result.data if row.get("active") is not False]
+                    from .utils import normalize_participant_key
+                    seen = {}
+                    for p in preds:
+                        pkey = p.participant_key or normalize_participant_key(p.participant_name)
+                        key = (pkey, str(p.match_id))
+                        if key not in seen or (p.updated_at or p.submitted_at or "") >= (seen[key].updated_at or seen[key].submitted_at or ""):
+                            seen[key] = p
+                    preds = list(seen.values())
+                    if not include_archived:
+                        preds = [p for p in preds if p.participant_key not in archived_keys]
+                    return preds
+            except Exception:
+                pass
         return []
     data = read_json(LIVE_PREDICTIONS_PATH, [])
     preds = [LivePrediction.from_dict(p) for p in data]
