@@ -64,3 +64,16 @@ CREATE TABLE IF NOT EXISTS bolao_events (
 
 CREATE INDEX IF NOT EXISTS idx_bolao_events_timestamp ON bolao_events(timestamp);
 CREATE INDEX IF NOT EXISTS idx_bolao_events_visibility ON bolao_events(visibility);
+
+-- 4. Enable Row Level Security on all tables
+-- Note: The app uses service_role_key which bypasses RLS.
+-- RLS protects data from direct anon key access via Supabase dashboard/API.
+ALTER TABLE bolao_matches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bolao_live_predictions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bolao_events ENABLE ROW LEVEL SECURITY;
+
+-- Allow anon read for matches and events (public data)
+CREATE POLICY IF NOT EXISTS anon_read_matches ON bolao_matches FOR SELECT USING (true);
+CREATE POLICY IF NOT EXISTS anon_read_events ON bolao_events FOR SELECT USING (visibility = 'public');
+-- Live predictions are private — no anon access
+-- All write operations use service_role_key (bypasses RLS)

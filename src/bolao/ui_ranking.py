@@ -814,7 +814,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
 
         approved_by_date = sorted(
             [m for m in matches if m.status == "result_approved"],
-            key=lambda m: (m.match_date or "", m.match_id or 0)
+            key=lambda m: (m.starts_at or "", m.match_id or 0)
         )
 
         if not approved_by_date:
