@@ -673,31 +673,39 @@ def load_submissions(include_archived: bool = False) -> list[Prediction]:
     backend = get_storage_backend()
     archived_keys = set() if include_archived else get_archived_keys()
 
+    def _from_files():
+        from .utils import normalize_participant_key
+        subs = []
+        for path in sorted(SUBMISSIONS_DIR.glob("*.json")):
+            try:
+                subs.append(Prediction.from_dict(read_json(path, {})))
+            except Exception:
+                continue
+        if not include_archived:
+            subs = [p for p in subs if normalize_participant_key(p.participant) not in archived_keys]
+        return subs
+
     if backend == "supabase":
         client = _get_supabase_client()
         if client:
             try:
                 result = client.table("bolao_submissions").select("*").execute()
-                preds = [Prediction.from_dict(row) for row in result.data if row.get("active") is not False]
-                if not include_archived:
+                if result.data:
                     from .utils import normalize_participant_key
-                    preds = [p for p in preds if normalize_participant_key(p.participant) not in archived_keys]
-                return preds
+                    preds = [Prediction.from_dict(row) for row in result.data if row.get("active") is not False]
+                    # Merge with local files — keep participants that Supabase doesn't have
+                    local_by_key = {normalize_participant_key(p.participant): p for p in _from_files()}
+                    sb_keys = {normalize_participant_key(p.participant) for p in preds}
+                    for lk, lp in local_by_key.items():
+                        if lk not in sb_keys:
+                            preds.append(lp)
+                    if not include_archived:
+                        preds = [p for p in preds if normalize_participant_key(p.participant) not in archived_keys]
+                    return preds
             except Exception:
                 pass
 
-    submissions = []
-    for path in sorted(SUBMISSIONS_DIR.glob("*.json")):
-        try:
-            submissions.append(Prediction.from_dict(read_json(path, {})))
-        except Exception:
-            continue
-            
-    if not include_archived:
-        from .utils import normalize_participant_key
-        submissions = [p for p in submissions if normalize_participant_key(p.participant) not in archived_keys]
-        
-    return submissions
+    return _from_files()
 
 
 def save_submission(prediction: Prediction, overwrite: bool = True) -> Path:
