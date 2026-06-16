@@ -1,0 +1,37 @@
+[
+  {
+    "participante_nome": "TestUser",
+    "data": "2026-06-20",
+    "jogador": "Kylian Mbappé",
+    "selecao": "França",
+    "atualizado_em": "2026-06-16T14:50:45"
+  },
+  {
+    "participante_nome": "TestUser",
+    "data": "2026-06-21",
+    "jogador": "Erling Haaland",
+    "selecao": "Noruega",
+    "atualizado_em": "2026-06-16T14:50:45"
+  },
+  {
+    "participante_nome": "Alice",
+    "data": "2026-06-22",
+    "jogador": "Jude Bellingham",
+    "selecao": "Inglaterra",
+    "atualizado_em": "2026-06-16T14:50:45"
+  },
+  {
+    "participante_nome": "Bob",
+    "data": "2026-06-22",
+    "jogador": "Kylian Mbappé",
+    "selecao": "França",
+    "atualizado_em": "2026-06-16T14:50:45"
+  },
+  {
+    "participante_nome": "",
+    "data": "2026-06-30",
+    "jogador": "Test Player",
+    "selecao": "Test Team",
+    "atualizado_em": "2026-06-16T14:50:45"
+  }
+]

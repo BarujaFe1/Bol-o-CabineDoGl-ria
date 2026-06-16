@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Murilov",
+    "participant_key": "murilov",
+    "archived_at": "2026-06-16T14:40:02",
+    "reason": "cleanup_requested_by_admin",
+    "had_classic_prediction": false,
+    "live_predictions_count": 2,
+    "backup_reference": "backup_before_uniformizacao_20260616_144002"
+  },
+  {
+    "name": "Lucão",
+    "participant_key": "lucao",
+    "archived_at": "2026-06-16T14:40:02",
+    "reason": "cleanup_requested_by_admin",
+    "had_classic_prediction": false,
+    "live_predictions_count": 2,
+    "backup_reference": "backup_before_uniformizacao_20260616_144002"
+  },
+  {
+    "name": "Mantovas",
+    "participant_key": "mantovas",
+    "archived_at": "2026-06-16T14:40:02",
+    "reason": "cleanup_requested_by_admin",
+    "had_classic_prediction": false,
+    "live_predictions_count": 1,
+    "backup_reference": "backup_before_uniformizacao_20260616_144002"
+  }
+]

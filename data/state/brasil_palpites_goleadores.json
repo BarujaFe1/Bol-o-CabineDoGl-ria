@@ -1,0 +1,90 @@
+[
+  {
+    "participante_nome": "Fantato",
+    "jogo_id": "13384",
+    "gols_brasil_apostados": 2,
+    "goleadores": [
+      "Vini Jr.",
+      "Endrick"
+    ],
+    "assistentes": [],
+    "reservas": [
+      "Nenhum",
+      "Nenhum"
+    ],
+    "pontos_ganhos": 4
+  },
+  {
+    "participante_nome": "Murilov",
+    "jogo_id": "13384",
+    "gols_brasil_apostados": 2,
+    "goleadores": [
+      "Vini Jr.",
+      "Raphinha"
+    ],
+    "assistentes": [],
+    "reservas": [
+      "Nenhum",
+      "Nenhum"
+    ],
+    "pontos_ganhos": 4
+  },
+  {
+    "participante_nome": "Jonaldo, o Fenômeno",
+    "jogo_id": "13384",
+    "gols_brasil_apostados": 1,
+    "goleadores": [
+      "Endrick"
+    ],
+    "assistentes": [],
+    "reservas": [
+      "Nenhum"
+    ],
+    "pontos_ganhos": 0
+  },
+  {
+    "participante_nome": "Henrique O Terrível",
+    "jogo_id": "13384",
+    "gols_brasil_apostados": 3,
+    "goleadores": [
+      "Endrick",
+      "Danilo Santos",
+      "Endrick"
+    ],
+    "assistentes": [],
+    "reservas": [
+      "Nenhum",
+      "Nenhum",
+      "Nenhum"
+    ],
+    "pontos_ganhos": 0
+  },
+  {
+    "participante_nome": "Mantovas",
+    "jogo_id": "13384",
+    "gols_brasil_apostados": 2,
+    "goleadores": [
+      "Endrick",
+      "Rayan"
+    ],
+    "assistentes": [],
+    "reservas": [
+      "Nenhum",
+      "Nenhum"
+    ],
+    "pontos_ganhos": 0
+  },
+  {
+    "participante_nome": "Baruja",
+    "jogo_id": "13384",
+    "gols_brasil_apostados": 1,
+    "goleadores": [
+      "Vini Jr."
+    ],
+    "assistentes": [],
+    "reservas": [
+      "Nenhum"
+    ],
+    "pontos_ganhos": 4
+  }
+]
