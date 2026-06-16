@@ -6,6 +6,10 @@ __pycache__/
 data/state/*.json
 data/state/submissions/*.json
 data/state/uploads/*
+data/backups/
+data/runtime_*.json
+data/state_*.json
+backup_pre_migration*.json
 .DS_Store
 bolao_cabine_gloria_public_ocr/
 data/backups/
