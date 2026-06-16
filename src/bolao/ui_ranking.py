@@ -352,6 +352,104 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     })
             if det_rows:
                 st.dataframe(pd.DataFrame(det_rows), width="stretch", hide_index=True)
+
+                # ── Radar chart: per-participant profile ──
+                if _HAS_PLOTLY:
+                    user_score = next((s for s in live_scores if s["participant_key"] == user_key), None)
+                    if user_score:
+                        radar_vals = {
+                            "Placares Exatos": user_score["exact_scores"],
+                            "Vencedores": user_score["outcomes"],
+                            "Gols Mandante": gols_mandante_certos,
+                            "Gols Visitante": gols_visitante_certos,
+                            "Saldo de Gols": diff_certos,
+                        }
+                        max_val = max(radar_vals.values()) if any(radar_vals.values()) else 1
+                        fig_radar = go.Figure()
+                        fig_radar.add_trace(go.Scatterpolar(
+                            r=list(radar_vals.values()),
+                            theta=list(radar_vals.keys()),
+                            fill="toself",
+                            name=selected_user,
+                            line_color="#22c55e",
+                        ))
+                        fig_radar.update_layout(
+                            polar=dict(
+                                radialaxis=dict(visible=True, range=[0, max_val + 1]),
+                                bgcolor="rgba(0,0,0,0)",
+                            ),
+                            plot_bgcolor="rgba(0,0,0,0)",
+                            paper_bgcolor="rgba(0,0,0,0)",
+                            font_color="#e0e0e0",
+                            height=350,
+                            margin=dict(t=10, b=10),
+                        )
+                        st.plotly_chart(fig_radar, use_container_width=True)
+
+                # ── Strengths & Weaknesses analysis ──
+                st.markdown("###### 💪 Forças & Fraquezas")
+                if user_score:
+                    metrics = {
+                        "Placares Exatos": user_score["exact_scores"],
+                        "Acertar Vencedor": user_score["outcomes"],
+                        "Gols do Mandante": gols_mandante_certos,
+                        "Gols do Visitante": gols_visitante_certos,
+                        "Saldo de Gols": diff_certos,
+                    }
+                    avg_metrics = {}
+                    all_live = list(live_scores)
+                    for key, _ in metrics.items():
+                        vals = []
+                        for s in all_live:
+                            sk = s["participant_key"]
+                            sp = [p for p in live_preds if (p.participant_key or normalize_participant_key(p.participant_name)) == sk]
+                            gm = sum(
+                                1 for p in sp
+                                if (m := next((mm for mm in matches if mm.match_id == p.match_id), None))
+                                and m.status == "result_approved" and m.official_home_goals is not None
+                                and p.predicted_home_goals == m.official_home_goals
+                            )
+                            gv = sum(
+                                1 for p in sp
+                                if (m := next((mm for mm in matches if mm.match_id == p.match_id), None))
+                                and m.status == "result_approved" and m.official_away_goals is not None
+                                and p.predicted_away_goals == m.official_away_goals
+                            )
+                            sd = sum(
+                                1 for p in sp
+                                if (m := next((mm for mm in matches if mm.match_id == p.match_id), None))
+                                and m.status == "result_approved" and m.official_home_goals is not None
+                                and (p.predicted_home_goals - p.predicted_away_goals) == (m.official_home_goals - m.official_away_goals)
+                            )
+                            if key == "Placares Exatos":
+                                vals.append(s["exact_scores"])
+                            elif key == "Acertar Vencedor":
+                                vals.append(s["outcomes"])
+                            elif key == "Gols do Mandante":
+                                vals.append(gm)
+                            elif key == "Gols do Visitante":
+                                vals.append(gv)
+                            elif key == "Saldo de Gols":
+                                vals.append(sd)
+                        avg_metrics[key] = sum(vals) / len(vals) if vals else 0
+
+                    strengths = []
+                    weaknesses = []
+                    for cat, val in metrics.items():
+                        avg = avg_metrics.get(cat, 0)
+                        if avg > 0 and val > avg * 1.2:
+                            strengths.append(cat)
+                        elif avg > 0 and val < avg * 0.8:
+                            weaknesses.append(cat)
+                        elif avg == 0 and val > 0:
+                            strengths.append(cat)
+
+                    if strengths:
+                        st.success(f"💪 **Forças:** {' · '.join(strengths)}")
+                    if weaknesses:
+                        st.warning(f"⚠️ **Fraquezas:** {' · '.join(weaknesses)}")
+                    if not strengths and not weaknesses:
+                        st.info("📊 Desempenho próximo da média do grupo em todas as categorias.")
             else:
                 st.info("Nenhum palpite enviado por este participante ainda.")
 
@@ -698,32 +796,124 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
 
     # 6. Evolução Tab
     with ranking_tabs[5]:
-        st.markdown("#### 📈 Evolução do Ranking por Rodada")
-        st.caption("Gráfico de linhas mostrando a trajetória de cada participante nas posições por rodada.")
-        
-        from src.bolao.storage import load_ranking_snapshots
-        df_snapshots = pd.DataFrame(load_ranking_snapshots())
-        if df_snapshots.empty:
-            st.info("Nenhum snapshot de ranking salvo ainda. Peça para o admin salvar após o fim de uma rodada.")
+        st.markdown("#### 📈 Evolução da Pontuação")
+        st.caption("Gráfico mostrando o acúmulo de pontos ao longo dos jogos concluídos.")
+
+        approved_by_date = sorted(
+            [m for m in matches if m.status == "result_approved"],
+            key=lambda m: (m.match_date or "", m.match_id or 0)
+        )
+
+        if not approved_by_date:
+            st.info("Nenhum jogo concluído com resultado aprovado ainda.")
         elif not _HAS_PLOTLY:
             st.info("Gráfico de evolução requer Plotly (pip install plotly).")
         else:
+            pkeys_in_ranking = {s["participant_key"] for s in live_scores}
+            evolution = {}
+            for pkey in pkeys_in_ranking:
+                p_preds = [p for p in live_preds if (p.participant_key or normalize_participant_key(p.participant_name)) == pkey]
+                p_name = next((s["participant"] for s in live_scores if s["participant_key"] == pkey), pkey)
+                cumulative = 0
+                points_per_match = []
+                for m in approved_by_date:
+                    lp = next((p for p in p_preds if p.match_id == m.match_id), None)
+                    if lp:
+                        res = calculate_live_prediction_points(lp, m, config)
+                        cumulative += res["points"]
+                    points_per_match.append({"match": f"{m.home_team[:3]}x{m.away_team[:3]}", "points": cumulative, "participant": p_name})
+                evolution[pkey] = points_per_match
+
+            df_evo = pd.DataFrame(
+                [item for pts_list in evolution.values() for item in pts_list]
+            )
+            if not df_evo.empty:
+                fig_evo = px.line(
+                    df_evo, x="match", y="points", color="participant",
+                    markers=True,
+                    labels={"match": "Jogo", "points": "Pontos Acumulados", "participant": ""},
+                    color_discrete_sequence=px.colors.qualitative.Set2,
+                )
+                fig_evo.update_layout(
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    font_color="#e0e0e0",
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02),
+                    xaxis_tickangle=-45,
+                    hovermode="x unified",
+                )
+                st.plotly_chart(fig_evo, use_container_width=True)
+
+            st.markdown("##### 📋 Evolução do Ranking (Posições por Jogo)")
+            approved_count = len(approved_by_date)
+            if approved_count >= 2:
+                pos_evolution = {}
+                for game_idx in range(approved_count):
+                    games_so_far = approved_by_date[:game_idx + 1]
+                    game_ids_so_far = {g.match_id for g in games_so_far}
+
+                    round_scores = []
+                    for pkey in pkeys_in_ranking:
+                        p_preds = [p for p in live_preds if (p.participant_key or normalize_participant_key(p.participant_name)) == pkey]
+                        p_name = next((s["participant"] for s in live_scores if s["participant_key"] == pkey), pkey)
+                        total = 0
+                        for lp in p_preds:
+                            if lp.match_id in game_ids_so_far:
+                                m = next((mm for mm in games_so_far if mm.match_id == lp.match_id), None)
+                                if m:
+                                    total += calculate_live_prediction_points(lp, m, config)["points"]
+                        round_scores.append({"participant": p_name, "participant_key": pkey, "total": total})
+
+                    round_scores.sort(key=lambda r: (-r["total"], r["participant"].lower()))
+                    for pos, rs in enumerate(round_scores, 1):
+                        label = f"Jogo {game_idx + 1}"
+                        if pkey not in pos_evolution:
+                            pos_evolution[pkey] = {"participant": rs["participant"]}
+                        pos_evolution[pkey][label] = pos
+
+                pos_df = pd.DataFrame.from_dict(pos_evolution, orient="index").reset_index(drop=True)
+                pos_cols = [c for c in pos_df.columns if c.startswith("Jogo")]
+                if not pos_df.empty and len(pos_cols) >= 2:
+                    fig_pos = go.Figure()
+                    for _, row in pos_df.iterrows():
+                        fig_pos.add_trace(go.Scatter(
+                            x=pos_cols, y=[row[c] for c in pos_cols],
+                            mode="lines+markers",
+                            name=row["participant"],
+                            connectgaps=False,
+                        ))
+                    fig_pos.update_yaxes(autorange="reversed", dtick=1)
+                    fig_pos.update_layout(
+                        plot_bgcolor="rgba(0,0,0,0)",
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        font_color="#e0e0e0",
+                        legend=dict(orientation="h", yanchor="bottom", y=1.02),
+                        height=400,
+                        hovermode="x unified",
+                    )
+                    st.plotly_chart(fig_pos, use_container_width=True)
+
+        # Still load snapshots if they exist
+        from src.bolao.storage import load_ranking_snapshots
+        df_snapshots = pd.DataFrame(load_ranking_snapshots())
+        if not df_snapshots.empty:
+            st.markdown("##### 📸 Snapshots Salvos")
+            st.caption("Registros manuais salvos pelo administrador ao final de cada rodada.")
             df_snapshots = df_snapshots.sort_values(by=["rodada", "posicao"])
-            
-            fig = px.line(
+            fig_snap = px.line(
                 df_snapshots, x="rodada", y="posicao",
                 color="participante_nome", markers=True,
                 labels={"posicao": "Posição", "rodada": "Rodada", "participante_nome": ""},
                 color_discrete_sequence=px.colors.qualitative.Set2
             )
-            fig.update_yaxes(autorange="reversed", dtick=1)
-            fig.update_layout(
+            fig_snap.update_yaxes(autorange="reversed", dtick=1)
+            fig_snap.update_layout(
                 plot_bgcolor="rgba(0,0,0,0)",
                 paper_bgcolor="rgba(0,0,0,0)",
                 font_color="#e0e0e0",
                 legend=dict(orientation="h", yanchor="bottom", y=1.02)
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig_snap, use_container_width=True)
 
     # 7. Estatísticas Tab
     with ranking_tabs[6]:
