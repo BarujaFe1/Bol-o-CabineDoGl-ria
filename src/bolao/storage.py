@@ -1097,27 +1097,31 @@ def load_matches() -> list[LiveMatch]:
                 pass
 
     # Seed matches from worldcup_2026_data.py if none exist in Supabase or locally
-    from .worldcup_2026_data import GROUP_MATCHES, TEAMS
-    matches = []
-    for idx, gm in enumerate(GROUP_MATCHES):
-        starts_at = f"{gm['date'].split('/')[2]}-{gm['date'].split('/')[1]}-{gm['date'].split('/')[0]}T{gm['hour']}:00"
-        m = LiveMatch(
-            match_id=str(gm["id"]),
-            phase="grupos",
-            group=gm["group"],
-            round_label=f"Rodada {gm['round']}",
-            home_team=TEAMS.get(gm["home_id"], {}).get("name", "Mandante"),
-            away_team=TEAMS.get(gm["away_id"], {}).get("name", "Visitante"),
-            starts_at=starts_at,
-            starts_at_timezone="America/Sao_Paulo",
-            lock_at=None,
-            status="scheduled",
-            sort_order=idx
-        )
-        matches.append(m)
-    _override_first_match_lock(matches)
-    save_matches(matches)
-    return matches
+    if not MATCHES_PATH.exists():
+        from .worldcup_2026_data import GROUP_MATCHES, TEAMS
+        matches = []
+        for idx, gm in enumerate(GROUP_MATCHES):
+            starts_at = f"{gm['date'].split('/')[2]}-{gm['date'].split('/')[1]}-{gm['date'].split('/')[0]}T{gm['hour']}:00"
+            m = LiveMatch(
+                match_id=str(gm["id"]),
+                phase="grupos",
+                group=gm["group"],
+                round_label=f"Rodada {gm['round']}",
+                home_team=TEAMS.get(gm["home_id"], {}).get("name", "Mandante"),
+                away_team=TEAMS.get(gm["away_id"], {}).get("name", "Visitante"),
+                starts_at=starts_at,
+                starts_at_timezone="America/Sao_Paulo",
+                lock_at=None,
+                status="scheduled",
+                sort_order=idx
+            )
+            matches.append(m)
+        _override_first_match_lock(matches)
+        save_matches(matches)
+        return matches
+
+    data = read_json(MATCHES_PATH, [])
+    return [LiveMatch.from_dict(m) for m in data]
 
 
 def save_matches(matches: list[LiveMatch]) -> None:
