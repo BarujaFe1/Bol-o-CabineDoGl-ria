@@ -353,38 +353,51 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             if det_rows:
                 st.dataframe(pd.DataFrame(det_rows), width="stretch", hide_index=True)
 
+                # Compute per-participant metrics for the selected user
+                user_score = next((s for s in live_scores if s["participant_key"] == user_key), None)
+                u_gm = 0
+                u_gv = 0
+                u_sd = 0
+                for p in user_preds:
+                    m = next((mm for mm in matches if mm.match_id == p.match_id), None)
+                    if m and m.status == "result_approved" and m.official_home_goals is not None:
+                        if p.predicted_home_goals == m.official_home_goals:
+                            u_gm += 1
+                        if p.predicted_away_goals == m.official_away_goals:
+                            u_gv += 1
+                        if (p.predicted_home_goals - p.predicted_away_goals) == (m.official_home_goals - m.official_away_goals):
+                            u_sd += 1
+
                 # ── Radar chart: per-participant profile ──
-                if _HAS_PLOTLY:
-                    user_score = next((s for s in live_scores if s["participant_key"] == user_key), None)
-                    if user_score:
-                        radar_vals = {
-                            "Placares Exatos": user_score["exact_scores"],
-                            "Vencedores": user_score["outcomes"],
-                            "Gols Mandante": gols_mandante_certos,
-                            "Gols Visitante": gols_visitante_certos,
-                            "Saldo de Gols": diff_certos,
-                        }
-                        max_val = max(radar_vals.values()) if any(radar_vals.values()) else 1
-                        fig_radar = go.Figure()
-                        fig_radar.add_trace(go.Scatterpolar(
-                            r=list(radar_vals.values()),
-                            theta=list(radar_vals.keys()),
-                            fill="toself",
-                            name=selected_user,
-                            line_color="#22c55e",
-                        ))
-                        fig_radar.update_layout(
-                            polar=dict(
-                                radialaxis=dict(visible=True, range=[0, max_val + 1]),
-                                bgcolor="rgba(0,0,0,0)",
-                            ),
-                            plot_bgcolor="rgba(0,0,0,0)",
-                            paper_bgcolor="rgba(0,0,0,0)",
-                            font_color="#e0e0e0",
-                            height=350,
-                            margin=dict(t=10, b=10),
-                        )
-                        st.plotly_chart(fig_radar, use_container_width=True)
+                if _HAS_PLOTLY and user_score:
+                    radar_vals = {
+                        "Placares Exatos": user_score["exact_scores"],
+                        "Vencedores": user_score["outcomes"],
+                        "Gols Mandante": u_gm,
+                        "Gols Visitante": u_gv,
+                        "Saldo de Gols": u_sd,
+                    }
+                    max_val = max(radar_vals.values()) if any(radar_vals.values()) else 1
+                    fig_radar = go.Figure()
+                    fig_radar.add_trace(go.Scatterpolar(
+                        r=list(radar_vals.values()),
+                        theta=list(radar_vals.keys()),
+                        fill="toself",
+                        name=selected_user,
+                        line_color="#22c55e",
+                    ))
+                    fig_radar.update_layout(
+                        polar=dict(
+                            radialaxis=dict(visible=True, range=[0, max_val + 1]),
+                            bgcolor="rgba(0,0,0,0)",
+                        ),
+                        plot_bgcolor="rgba(0,0,0,0)",
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        font_color="#e0e0e0",
+                        height=350,
+                        margin=dict(t=10, b=10),
+                    )
+                    st.plotly_chart(fig_radar, use_container_width=True)
 
                 # ── Strengths & Weaknesses analysis ──
                 st.markdown("###### 💪 Forças & Fraquezas")
@@ -392,13 +405,13 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     metrics = {
                         "Placares Exatos": user_score["exact_scores"],
                         "Acertar Vencedor": user_score["outcomes"],
-                        "Gols do Mandante": gols_mandante_certos,
-                        "Gols do Visitante": gols_visitante_certos,
-                        "Saldo de Gols": diff_certos,
+                        "Gols do Mandante": u_gm,
+                        "Gols do Visitante": u_gv,
+                        "Saldo de Gols": u_sd,
                     }
                     avg_metrics = {}
                     all_live = list(live_scores)
-                    for key, _ in metrics.items():
+                    for key in metrics:
                         vals = []
                         for s in all_live:
                             sk = s["participant_key"]
