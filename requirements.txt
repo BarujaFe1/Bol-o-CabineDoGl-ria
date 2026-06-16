@@ -1,7 +1,6 @@
-streamlit==1.58.0
-pandas==3.0.3
-requests==2.33.1
-pillow==12.2.0
-pytesseract==0.3.13
-supabase==2.30.1
-psycopg2-binary==2.9.10
+streamlit>=1.35.0
+pandas>=2.2.0
+requests>=2.31.0
+pillow>=10.0.0
+pytesseract>=0.3.10
+supabase>=2.6.0
