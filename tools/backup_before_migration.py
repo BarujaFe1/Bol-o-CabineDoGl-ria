@@ -50,9 +50,9 @@ for table in tables:
     try:
         result = sb.table(table).select("*").execute()
         backup[table] = result.data
-        print(f"✅ {table}: {len(result.data)} registros")
+        print(f"[OK] {table}: {len(result.data)} registros")
     except Exception as e:
-        print(f"⚠️  {table}: {e}")
+        print(f"[WARN] {table}: {e}")
         backup[table] = []
 
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -61,5 +61,5 @@ filename = f"backup_pre_migration_{timestamp}.json"
 with open(filename, "w", encoding="utf-8") as f:
     json.dump(backup, f, ensure_ascii=False, indent=2, default=str)
 
-print(f"\n✅ Backup salvo em: {filename}")
+print(f"\n[OK] Backup salvo em: {filename}")
 print(f"   Total de registros: {sum(len(v) for v in backup.values())}")
