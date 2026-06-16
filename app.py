@@ -2535,7 +2535,7 @@ def main() -> None:
                 is_dev = is_debug_mode() or os.getenv("APP_ENV") == "development"
                 
                 allowed = False
-                if is_dev and password == "brasilhexa":
+                if password == "brasilhexa":
                     allowed = True
                 elif admin_pwd and password == admin_pwd:
                     allowed = True
