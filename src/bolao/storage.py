@@ -1074,6 +1074,13 @@ def load_app_context(include_events: bool = False) -> AppDataContext:
     return ctx
 
 
+def _override_first_match_lock(matches_list: list[LiveMatch]) -> list[LiveMatch]:
+    for m in matches_list:
+        if m.match_id == "13379":
+            m.lock_at = "2026-06-11T17:00:00"
+    return matches_list
+
+
 @st.cache_data(ttl=15, show_spinner=False)
 def load_matches() -> list[LiveMatch]:
     ensure_state()
