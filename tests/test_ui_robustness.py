@@ -51,6 +51,7 @@ class MockStreamlit:
         self.text_input = MagicMock(return_value="Test Name")
         self.number_input = MagicMock(return_value=0)
         self.selectbox = MagicMock(side_effect=lambda label, options, **kwargs: options[0] if options else None)
+        self.radio = MagicMock(side_effect=lambda label, options, **kwargs: options[0] if options else None)
         self.text_area = MagicMock(return_value="")
         self.link_button = MagicMock()
         self.write = MagicMock()
@@ -66,6 +67,17 @@ class MockStreamlit:
         self.container = MagicMock(return_value=MockStreamlitContext())
         self.dataframe = MagicMock()
         self.image = MagicMock()
+        
+        class MockColumnConfig:
+            def TextColumn(self, *args, **kwargs):
+                return MagicMock()
+            def SelectboxColumn(self, *args, **kwargs):
+                return MagicMock()
+            def NumberColumn(self, *args, **kwargs):
+                return MagicMock()
+        self.column_config = MockColumnConfig()
+        self.data_editor = MagicMock()
+        
         
         # columns helper
         def cols_mock(spec):
@@ -111,6 +123,8 @@ def run_before_and_after_tests():
     mock_st.number_input.reset_mock()
     mock_st.selectbox.reset_mock()
     mock_st.selectbox.side_effect = lambda label, options, **kwargs: options[0] if options else None
+    mock_st.radio.reset_mock()
+    mock_st.radio.side_effect = lambda label, options, **kwargs: options[0] if options else None
     mock_st.text_area.reset_mock()
     mock_st.link_button.reset_mock()
     mock_st.write.reset_mock()
@@ -121,6 +135,7 @@ def run_before_and_after_tests():
     mock_st.expander.reset_mock()
     mock_st.container.reset_mock()
     mock_st.dataframe.reset_mock()
+    mock_st.data_editor.reset_mock()
     mock_st.image.reset_mock()
     mock_st.columns.reset_mock()
     mock_st.tabs.reset_mock()
@@ -236,6 +251,10 @@ def test_render_jogos_de_hoje_identified(mock_submissions, mock_preds, mock_matc
     # Check that it drew the main UI elements
     mock_st.tabs.assert_called_once_with(["🚀 Jogos Abertos", "🔒 Jogos Fechados & Live", "🏆 Resultados Aprovados"])
     mock_st.markdown.assert_any_call("### ⚽ Jogos de Hoje — Jogo a Jogo")
+    
+    # Assert that open match was actually rendered (which would fail before the logic/indentation fix)
+    mock_st.number_input.assert_any_call("Brasil gols", min_value=0, max_value=20, value=0, step=1, key="live_h_1", label_visibility="collapsed", disabled=False)
+    mock_st.number_input.assert_any_call("França gols", min_value=0, max_value=20, value=0, step=1, key="live_a_1", label_visibility="collapsed", disabled=False)
 
 
 @patch("src.bolao.ui_cartela.load_config")
@@ -292,7 +311,7 @@ def test_render_minha_cartela(mock_preds, mock_matches, mock_official, mock_subm
     
     # Verify elements rendering
     mock_st.markdown.assert_any_call("### 📋 Minha Cartela — Visão Geral do Participante")
-    mock_st.tabs.assert_called_once_with(["📊 Resumo Geral", "🏆 Palpite Clássico", "🎯 Palpites Jogo a Jogo", "💡 Pontuação", "🎖️ Conquistas", "⚖️ Comparar com Amigo"])
+    mock_st.tabs.assert_called_once_with(["📊 Resumo Geral", "🎯 Palpites Jogo a Jogo", "🏆 Palpite Clássico", "💡 Pontuação", "🎖️ Conquistas", "🧠 Perfil", "⚖️ Comparar com Amigo"])
 
 
 @patch("src.bolao.ui_simulator.init_simulator_state")
@@ -314,3 +333,78 @@ def test_render_simulator(mock_init_state):
         render_simulator(pred, is_admin=False)
         
     mock_st.markdown.assert_any_call("### 🎛️ Controles do Simulador")
+
+
+@patch("src.bolao.ui_social_pages.load_app_data_cached")
+@patch("src.bolao.storage.load_registered_participants")
+def test_render_palpites_do_grupo(mock_registered, mock_app_data):
+    from src.bolao.ui_social_pages import render_palpites_do_grupo
+    from src.bolao.models import LiveMatch, LivePrediction
+    
+    mock_registered.return_value = ["César", "Pedro"]
+    
+    mock_ctx = MagicMock()
+    mock_ctx.config = {"public_features": {"reveal_live_predictions_after_lock": True}}
+    mock_ctx.matches = [
+        LiveMatch(
+            match_id="1", phase="grupos", group="A", round_label="Rodada 1",
+            home_team="Brasil", away_team="França", starts_at="2026-06-11T16:00:00",
+            lock_at="2026-06-11T15:50:00", status="scheduled"
+        )
+    ]
+    mock_ctx.live_predictions = [
+        LivePrediction(
+            id="cesar_1", participant_name="César", participant_key="cesar",
+            match_id="1", predicted_home_goals=3, predicted_away_goals=1,
+            submitted_at="2026-06-11T16:00:00", updated_at="2026-06-11T16:00:00"
+        )
+    ]
+    mock_ctx.submissions = []
+    mock_app_data.return_value = mock_ctx
+    
+    with patch('src.bolao.ui_social_pages.st', mock_st):
+        render_palpites_do_grupo()
+        
+    mock_st.tabs.assert_any_call(["🔍 Por Jogo", "📋 Matriz Geral de Palpites", "🏳️ Todos os Palpites (Filtros & Bandeiras)"])
+
+
+@patch("src.bolao.ui_admin_matches.load_matches")
+@patch("src.bolao.ui_admin_matches.load_live_predictions")
+@patch("src.bolao.storage.load_registered_participants")
+def test_admin_palpites_jogo_a_jogo(mock_registered, mock_preds, mock_matches):
+    from src.bolao.ui_admin_matches import admin_palpites_jogo_a_jogo
+    from src.bolao.models import LiveMatch, LivePrediction
+    
+    mock_registered.return_value = ["César"]
+    mock_matches.return_value = [
+        LiveMatch(
+            match_id="1", phase="grupos", group="A", round_label="Rodada 1",
+            home_team="Brasil", away_team="França", starts_at="2026-06-11T16:00:00",
+            lock_at="2026-06-11T15:50:00", status="scheduled"
+        )
+    ]
+    mock_preds.return_value = [
+        LivePrediction(
+            id="cesar_1", participant_name="César", participant_key="cesar",
+            match_id="1", predicted_home_goals=3, predicted_away_goals=1,
+            submitted_at="2026-06-11T16:00:00", updated_at="2026-06-11T16:00:00"
+        )
+    ]
+    
+    # Configure selectbox to return default "Todos" / "Todas" to bypass filter dropdowns
+    def smart_selectbox(label, options, **kwargs):
+        if "Todas" in options:
+            return "Todas"
+        if "Todos" in options:
+            return "Todos"
+        return options[0] if options else None
+    mock_st.selectbox.side_effect = smart_selectbox
+    
+    # Run UI rendering
+    with patch('src.bolao.ui_admin_matches.st', mock_st):
+        admin_palpites_jogo_a_jogo()
+        
+    assert mock_st.data_editor.call_count >= 1
+    mock_st.button.assert_any_call("💾 Salvar Alterações na Tabela", type="primary", key="btn_save_bulk_predictions", width="stretch")
+
+

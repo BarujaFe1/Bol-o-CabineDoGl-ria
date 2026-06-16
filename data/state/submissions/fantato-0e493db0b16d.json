@@ -611,5 +611,7 @@
       "61": "222",
       "62": "422"
     }
-  }
+  },
+  "mode": "classic",
+  "schema_version": "classic-v1"
 }

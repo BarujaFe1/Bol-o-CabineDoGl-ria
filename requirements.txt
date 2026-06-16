@@ -4,3 +4,4 @@ requests==2.33.1
 pillow==12.2.0
 pytesseract==0.3.13
 supabase==2.30.1
+streamlit-autorefresh==0.0.1

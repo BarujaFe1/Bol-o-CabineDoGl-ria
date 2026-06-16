@@ -70,6 +70,35 @@ def calculate_live_prediction_points(prediction: LivePrediction, match: LiveMatc
             points += goal_diff_points
             breakdown.append(f"Saldo de gols: +{goal_diff_points} pts")
             
+    # Lightning Mode (F19)
+    if (getattr(match, "placar_intervalo_mandante", None) is not None and 
+        getattr(match, "placar_intervalo_visitante", None) is not None and 
+        getattr(prediction, "predicted_second_half_home_goals", None) is not None and 
+        getattr(prediction, "predicted_second_half_away_goals", None) is not None):
+        
+        pi_h, pi_a = match.placar_intervalo_mandante, match.placar_intervalo_visitante
+        psh_h, psh_a = prediction.predicted_second_half_home_goals, prediction.predicted_second_half_away_goals
+        
+        # Real goals in 2nd half
+        real_sh_h = o_h - pi_h
+        real_sh_a = o_a - pi_a
+        
+        # Calculate points
+        sh_hit_exact = (psh_h == real_sh_h) and (psh_a == real_sh_a)
+        sh_hit_outcome = ((psh_h > psh_a) == (real_sh_h > real_sh_a)) and ((psh_h < psh_a) == (real_sh_h < real_sh_a)) and ((psh_h == psh_a) == (real_sh_h == real_sh_a))
+        
+        pts_exact_rel = int(config.get("live_scoring", {}).get("pts_relampago_exato", 4))
+        pts_outcome_rel = int(config.get("live_scoring", {}).get("pts_relampago_resultado", 2))
+        
+        if sh_hit_exact:
+            points += pts_exact_rel
+            breakdown.append(f"⚡ Relâmpago Exato (2ºT): +{pts_exact_rel} pts")
+        elif sh_hit_outcome:
+            points += pts_outcome_rel
+            breakdown.append(f"⚡ Relâmpago Resultado (2ºT): +{pts_outcome_rel} pts")
+        else:
+            breakdown.append("⚡ Relâmpago (2ºT): 0 pts")
+
     if points == 0:
         breakdown.append("Nenhum acerto")
         
@@ -90,8 +119,25 @@ def calculate_live_ranking(live_predictions: list[LivePrediction], matches: list
     """
     Ranking jogo a jogo.
     Considerar apenas jogos com resultado aprovado.
+    Inclui pontos de artilheiro e assistente do módulo Brasil.
     """
+    from .storage import load_brasil_palpites_goleadores
+
     approved_matches = {m.match_id: m for m in matches if m.status == "result_approved"}
+
+    # Build goleadores lookup: (normalized_key, jogo_id) -> pontos_ganhos
+    goleadores_map = {}
+    for gp in load_brasil_palpites_goleadores():
+        gk = normalize_participant_key(gp["participante_nome"])
+        gid = gp["jogo_id"]
+        pts = gp.get("pontos_ganhos", 0) or 0
+        goleadores_map[(gk, gid)] = pts
+
+    # Identify Brazil match IDs (any match with "Brasil" as home or away)
+    brazil_match_ids = set()
+    for m in matches:
+        if "Brasil" in (m.home_team or "") or "Brasil" in (m.away_team or ""):
+            brazil_match_ids.add(m.match_id)
     
     # Agrupa palpites por participante
     by_participant = {}
@@ -132,6 +178,13 @@ def calculate_live_ranking(live_predictions: list[LivePrediction], matches: list
                 if res["flags"].get("outcome"):
                     outcomes += 1
 
+                # Add artilheiro/assistente points for Brazil matches
+                if p.match_id in brazil_match_ids:
+                    gk = p.participant_key or normalize_participant_key(p.participant_name)
+                    gol_pts = goleadores_map.get((gk, p.match_id), 0)
+                    if gol_pts:
+                        total_points += gol_pts
+
         missed_predictions = max(0, possible_count - len(guessed_match_ids))
         
         hit_rate = 0.0
@@ -165,3 +218,106 @@ def calculate_live_ranking(live_predictions: list[LivePrediction], matches: list
         row["position"] = idx
 
     return ranking_list
+
+from collections import Counter
+
+def calcular_pontos_goleadores(
+    goleadores_palpitados: list,
+    assistentes_palpitados: list,
+    goleadores_reais: list,
+    assistentes_reais: list,
+    config: dict,
+    reservas_palpitadas: list | None = None
+) -> dict:
+    # Safely get rules from config, fallback to default if not found
+    live_rules = config.get("live_scoring", {})
+    pts_gol    = int(live_rules.get("pts_acertar_goleador", config.get("pts_acertar_goleador", 4)))
+    pts_assist = int(live_rules.get("pts_acertar_assistente", config.get("pts_acertar_assistente", 2)))
+    pts_bonus_todos     = int(live_rules.get("pts_todos_goleadores", config.get("pts_todos_goleadores", 5)))
+
+    pontos = 0
+    detalhes = []
+    
+    suspended_players = config.get("suspended_players", [])
+    
+    gols_palp = list(goleadores_palpitados)
+    res_palp = list(reservas_palpitadas) if reservas_palpitadas is not None else []
+    while len(res_palp) < len(gols_palp):
+        res_palp.append("Nenhum")
+        
+    goleadores_reais_copy = list(goleadores_reais)
+    goleadores_reais_counter = Counter(goleadores_reais_copy)
+    
+    # First pass: match non-suspended titulars
+    non_susp_palp = []
+    susp_pairs = []
+    for g, r in zip(gols_palp, res_palp):
+        if g in suspended_players:
+            susp_pairs.append((g, r))
+        else:
+            non_susp_palp.append(g)
+            
+    matched_titulars = []
+    # Match non-suspended titulars
+    non_susp_counter = Counter(non_susp_palp)
+    for jogador, count in non_susp_counter.items():
+        real_count = goleadores_reais_counter.get(jogador, 0)
+        hits = min(count, real_count)
+        if hits > 0:
+            pontos += hits * pts_gol
+            goleadores_reais_counter[jogador] -= hits
+            detalhes.append(f"⚽ {jogador} ×{hits}: +{hits * pts_gol}pts")
+            matched_titulars.extend([jogador] * hits)
+            
+    # Second pass: check reserves for suspended titulars
+    for g, r in susp_pairs:
+        if r and r != "Nenhum" and r not in suspended_players:
+            real_count = goleadores_reais_counter.get(r, 0)
+            if real_count > 0:
+                pts_half = pts_gol // 2
+                pontos += pts_half
+                goleadores_reais_counter[r] -= 1
+                detalhes.append(f"⚽ {r} (Reserva de {g}): +{pts_half}pts")
+                matched_titulars.append(r)
+                
+    # Assistances
+    real_assist_count = Counter(assistentes_reais)
+    palp_assist_count = Counter(assistentes_palpitados)
+    for jogador, qtd_real in real_assist_count.items():
+        acertos = min(palp_assist_count.get(jogador, 0), qtd_real)
+        pontos += acertos * pts_assist
+        if acertos:
+            detalhes.append(f"🅰️ {jogador} ×{acertos}: +{acertos * pts_assist}pts")
+
+    # Bônus: todos os goleadores
+    if len(goleadores_reais) > 1 and Counter(matched_titulars) == Counter(goleadores_reais):
+        pontos += pts_bonus_todos
+        detalhes.append(f"🔥 Todos os goleadores: +{pts_bonus_todos}pts")
+
+    return {"total": pontos, "detalhes": detalhes}
+
+def calcular_pontos_artilheiro_classico(
+    palpitado: str,
+    artilheiros_reais: list[str],
+    config: dict,
+    is_geral: bool = False
+) -> int:
+    if not palpitado or not artilheiros_reais:
+        return 0
+    
+    # Normalize comparison
+    from .utils import norm_team
+    p_norm = norm_team(palpitado)
+    reais_norm = [norm_team(x) for x in artilheiros_reais]
+    
+    if not reais_norm:
+        return 0
+        
+    pts_exact = int(config.get("pts_artilheiro_geral_copa", 20)) if is_geral else int(config.get("pts_artilheiro_brasil_copa", 15))
+    pts_top3 = int(config.get("pts_top3_artilheiros_gerais", 7)) if is_geral else int(config.get("pts_top3_artilheiros_brasil", 5))
+    
+    if p_norm == reais_norm[0]:
+        return pts_exact
+    if p_norm in reais_norm[:3]:
+        return pts_top3
+    return 0

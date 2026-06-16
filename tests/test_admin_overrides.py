@@ -167,6 +167,8 @@ def test_registered_participants_lifecycle(tmp_path):
     temp_json_path = tmp_path / "registered_participants.json"
     
     with patch('src.bolao.storage.REGISTERED_PARTICIPANTS_PATH', temp_json_path), \
+         patch('src.bolao.storage.load_live_predictions', return_value=[]), \
+         patch('src.bolao.storage.load_submissions', return_value=[]), \
          patch('src.bolao.storage._seed_initial_state', return_value=None):
         # Starts empty
         assert load_registered_participants() == []

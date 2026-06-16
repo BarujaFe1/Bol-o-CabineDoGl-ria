@@ -21,6 +21,9 @@
     "group_result_gd": 3,
     "group_result": 2,
     "group_team_goals": 1,
+    "group_sum_goals": 0,
+    "group_both_scored": 0,
+    "group_over_2_5": 0,
     "ko_oitavas": 3,
     "ko_quartas": 5,
     "ko_semifinais": 8,
@@ -29,5 +32,46 @@
   },
   "status_label": "Recebendo palpites",
   "admin_password_enabled": false,
-  "last_api_sync": null
+  "last_api_sync": null,
+  "is_bolao_locked": false,
+  "classic_enabled": true,
+  "live_mode_enabled": true,
+  "combined_ranking_enabled": false,
+  "classic_submissions_locked": false,
+  "live_lock_minutes_before_match": 10,
+  "default_timezone": "America/Sao_Paulo",
+  "public_features": {
+    "show_public_analytics": true,
+    "show_public_duels": true,
+    "show_public_group_predictions": true,
+    "show_public_transparency": true,
+    "show_public_match_center": true,
+    "show_public_activity_feed": true,
+    "reveal_classic_predictions_after_close": true,
+    "reveal_live_predictions_after_lock": true,
+    "hide_confirmation_codes_publicly": true
+  },
+  "theme": {
+    "allow_theme_toggle": true,
+    "default_theme": "system",
+    "available_themes": [
+      "light",
+      "dark",
+      "system"
+    ]
+  },
+  "combined_ranking": {
+    "classic_weight": 1.0,
+    "live_weight": 1.0,
+    "include_classic_only_players": true,
+    "include_live_only_players": true,
+    "missing_mode_points_strategy": "zero"
+  },
+  "live_scoring": {
+    "exact_score": 5,
+    "outcome": 3,
+    "one_team_goals": 1,
+    "goal_difference": 1,
+    "exact_score_mode": "isolated_max"
+  }
 }

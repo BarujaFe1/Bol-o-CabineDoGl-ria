@@ -136,22 +136,26 @@ def render_minha_cartela() -> None:
         live_next_match = f"{next_m.home_team} x {next_m.away_team} (em {next_m.starts_at.replace('T', ' ')})"
 
     # Render Main Card
+    from .utils import avatar_url
+    p_avatar = avatar_url(selected_name)
     st.markdown(
         f"""
         <div style="border: 2px solid var(--gold); border-radius: 24px; padding: 25px; background: var(--panel); box-shadow: var(--shadow); margin-bottom: 25px; color: var(--ink);">
-            <div style="font-size: 40px; text-align: center; margin-bottom: 5px;">⚽</div>
+            <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                <img src="{p_avatar}" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--gold);" />
+            </div>
             <h3 style="text-align: center; color: var(--ink); margin: 5px 0;">{selected_name}</h3>
             <p style="text-align: center; color: var(--muted); font-size: 14px; margin-top:0;">Chave estável: {pkey}</p>
             <div style="display: flex; gap: 20px; justify-content: space-around; margin-top: 20px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 200px; padding: 15px; border-radius: 12px; background-color: var(--bg-soft); border: 1px solid var(--line); text-align: center;">
-                    <span style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Modo Clássico</span>
-                    <h2 style="margin: 8px 0; color: var(--green);">{classic_points} <span style="font-size: 14px; color: var(--muted);">pts</span></h2>
-                    <div style="font-size: 13px; color: var(--muted);">Posição: <b>{classic_rank}º</b> · Campeão: <b>{classic_champ}</b></div>
-                </div>
-                <div style="flex: 1; min-width: 200px; padding: 15px; border-radius: 12px; background-color: var(--bg-soft); border: 1px solid var(--line); text-align: center;">
                     <span style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Modo Jogo a Jogo</span>
                     <h2 style="margin: 8px 0; color: var(--green);">{live_points} <span style="font-size: 14px; color: var(--muted);">pts</span></h2>
                     <div style="font-size: 13px; color: var(--muted);">Posição: <b>{live_rank}º</b> · Aprov.: <b>{live_rate}</b></div>
+                </div>
+                <div style="flex: 1; min-width: 200px; padding: 15px; border-radius: 12px; background-color: var(--bg-soft); border: 1px solid var(--line); text-align: center;">
+                    <span style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Modo Clássico</span>
+                    <h2 style="margin: 8px 0; color: var(--green);">{classic_points} <span style="font-size: 14px; color: var(--muted);">pts</span></h2>
+                    <div style="font-size: 13px; color: var(--muted);">Posição: <b>{classic_rank}º</b> · Campeão: <b>{classic_champ}</b></div>
                 </div>
             </div>
         </div>
@@ -159,12 +163,36 @@ def render_minha_cartela() -> None:
         unsafe_allow_html=True
     )
 
+    # Sequence caliente/frio (F14)
+    approved_matches_sorted = sorted([m_app for m_app in matches if m_app.status == "result_approved"], key=lambda x: x.starts_at)
+    palpites_recentes = []
+    for m_app in approved_matches_sorted:
+        pred_app = next((p for p in user_live_preds if p.match_id == m_app.match_id), None)
+        if pred_app:
+            res_app = calculate_live_prediction_points(pred_app, m_app, config)
+            palpites_recentes.append({
+                "placar_exato": res_app["flags"].get("exact"),
+                "resultado_acertado": res_app["flags"].get("outcome")
+            })
+    icons = []
+    for p_rec in palpites_recentes[-6:]:
+        if p_rec.get("placar_exato"):
+            icons.append("⚽")
+        elif p_rec.get("resultado_acertado"):
+            icons.append("🔥")
+        else:
+            icons.append("🧊")
+    seq_str = "".join(icons)
+    if seq_str:
+        st.markdown(f"📈 **Sua sequência:** {seq_str} *(últimos {len(seq_str)} jogos: ⚽ exato · 🔥 resultado · 🧊 erro)*")
+
     c_tabs = st.tabs([
         "📊 Resumo Geral", 
-        "🏆 Palpite Clássico", 
         "🎯 Palpites Jogo a Jogo", 
+        "🏆 Palpite Clássico", 
         "💡 Pontuação", 
         "🎖️ Conquistas",
+        "🧠 Perfil",
         "⚖️ Comparar com Amigo"
     ])
 
@@ -174,16 +202,16 @@ def render_minha_cartela() -> None:
         
         col_res1, col_res2 = st.columns(2)
         with col_res1:
-            st.markdown("**Informações do Modo Clássico:**")
-            st.write(f"- 🏆 **Campeão Escolhido:** {classic_champ}")
-            st.write(f"- ⚔️ **Final Prevista:** {classic_final}")
-            st.write(f"- 📊 **Placares Exatos em Grupos:** {classic_exact}")
-        
-        with col_res2:
             st.markdown("**Informações do Jogo a Jogo:**")
             st.write(f"- 🧩 **Palpites Realizados:** {len(user_live_preds)}")
             st.write(f"- 🎯 **Placares Exatos Jogo a Jogo:** {live_exact}")
             st.write(f"- ⏳ **Próximo Jogo Pendente:** {live_next_match}")
+        
+        with col_res2:
+            st.markdown("**Informações do Modo Clássico:**")
+            st.write(f"- 🏆 **Campeão Escolhido:** {classic_champ}")
+            st.write(f"- ⚔️ **Final Prevista:** {classic_final}")
+            st.write(f"- 📊 **Placares Exatos em Grupos:** {classic_exact}")
 
         # WhatsApp share code
         st.markdown("---")
@@ -196,8 +224,8 @@ def render_minha_cartela() -> None:
         encoded_text = urllib.parse.quote(share_text)
         st.link_button("💬 Enviar no WhatsApp", f"https://api.whatsapp.com/send?text={encoded_text}", type="primary", width="stretch")
 
-    # Tab 2: Palpite Clássico
-    with c_tabs[1]:
+    # Tab 3: Palpite Clássico
+    with c_tabs[2]:
         st.markdown("#### Detalhamento do Palpite Clássico")
         if not classic_pred:
             st.warning("Você não possui palpite clássico registrado.")
@@ -299,29 +327,44 @@ def render_minha_cartela() -> None:
                         )
                     render_responsive_table(pd.DataFrame(phase_rows), render_phase_row_card, f"phase_rows_{phase}")
 
-    # Tab 3: Jogo a Jogo
-    with c_tabs[2]:
+    # Tab 2: Jogo a Jogo
+    with c_tabs[1]:
         st.markdown("#### Detalhamento do Palpite Jogo a Jogo")
         if not user_live_preds:
             st.warning("Você não realizou nenhum palpite no Modo Jogo a Jogo ainda.")
         else:
+            # Sort user_live_preds by group and chronological order
+            def get_m_sort_key(p):
+                m = next((m for m in matches if m.match_id == p.match_id), None)
+                if not m:
+                    return ("Z_Mata-Mata", "", 0)
+                g = m.group or ""
+                g_clean = g.strip().upper()
+                if not g_clean or len(g_clean) > 1 or g_clean < 'A' or g_clean > 'L':
+                    group_key = "Z_Mata-Mata"
+                else:
+                    group_key = f"Grupo {g_clean}"
+                return (group_key, m.starts_at or "", m.sort_order)
+            user_live_preds_sorted = sorted(user_live_preds, key=get_m_sort_key)
+
             live_rows = []
-            for p in user_live_preds:
+            for p in user_live_preds_sorted:
                 m = next((m for m in matches if m.match_id == p.match_id), None)
                 if m:
                     res = calculate_live_prediction_points(p, m, config)
                     live_rows.append({
+                        "Grupo": f"Grupo {m.group}" if (m.group and m.group.strip()) else "Mata-Mata",
                         "Jogo": f"{m.home_team} x {m.away_team}",
                         "Fase": m.round_label,
                         "Seu Palpite": f"{p.predicted_home_goals} x {p.predicted_away_goals}",
                         "Placar Oficial": f"{m.official_home_goals} x {m.official_away_goals}" if m.status == "result_approved" else "Aguardando",
                         "Status": "Aprovado" if m.status == "result_approved" else "Aberto/Bloqueado",
-                        "Pontos": res["points"] if m.status == "result_approved" else "Pendente",
+                        "Pontos": res["points"] if m.status == "result_approved" else 0,
                         "Critério": " · ".join(res["breakdown"]) if m.status == "result_approved" else "—"
                     })
             
             def render_live_row_card(r):
-                badge_points = f"<span class='badge success'>{r['Pontos']} pts</span>" if isinstance(r['Pontos'], int) or str(r['Pontos']).isdigit() or 'pts' in str(r['Pontos']) else f"<span class='badge info'>{r['Pontos']}</span>"
+                badge_points = f"<span class='badge success'>{r['Pontos']} pts</span>" if r['Pontos'] > 0 else "<span class='badge info'>Pendente</span>"
                 st.markdown(
                     f"""
                     <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
@@ -330,7 +373,7 @@ def render_minha_cartela() -> None:
                             {badge_points}
                         </div>
                         <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
-                            🕒 Fase: {r['Fase']}
+                            🕒 Grupo/Fase: {r['Grupo']} · {r['Fase']}
                             <br>⚽ Palpite: <b>{r['Seu Palpite']}</b> | Placar Oficial: <b>{r['Placar Oficial']}</b>
                             <br>💡 Detalhe: {r['Critério']}
                         </div>
@@ -383,8 +426,82 @@ def render_minha_cartela() -> None:
                         unsafe_allow_html=True
                     )
 
-    # Tab 6: Comparar com amigo
+    # Tab 6: Perfil (Ousadia) (F16)
     with c_tabs[5]:
+        st.markdown("#### 🧠 Perfil de Palpites — Score de Ousadia")
+        st.caption("Consenso vs Coragem: mede sua ousadia em divergir do consenso do grupo e acertar zebras.")
+        
+        def calcular_ousadia(nome: str, todos_palpites: list, matches: list) -> dict:
+            from collections import Counter
+            divergencias_certas = 0
+            divergencias_erradas = 0
+            concordancias = 0
+            zebras_acertadas = []
+            
+            by_match = {}
+            for p in todos_palpites:
+                if p.match_id not in by_match:
+                    by_match[p.match_id] = []
+                by_match[p.match_id].append(p)
+                
+            approved_matches = [m for m in matches if m.status == "result_approved" and m.official_home_goals is not None and m.official_away_goals is not None]
+            
+            for m in approved_matches:
+                preds = by_match.get(m.match_id, [])
+                if not preds:
+                    continue
+                    
+                o_h, o_a = m.official_home_goals, m.official_away_goals
+                resultado_real = "draw" if o_h == o_a else ("home" if o_h > o_a else "away")
+                
+                votos = []
+                meu_voto = None
+                for p in preds:
+                    p_h, p_a = p.predicted_home_goals, p.predicted_away_goals
+                    p_res = "draw" if p_h == p_a else ("home" if p_h > p_a else "away")
+                    if p.participant_name.lower() == nome.lower():
+                        meu_voto = p_res
+                    else:
+                        votos.append(p_res)
+                        
+                if meu_voto is None:
+                    continue
+                    
+                counts = Counter(votos)
+                consenso = counts.most_common(1)[0][0] if votos else None
+                
+                if consenso is None:
+                    continue
+                    
+                if meu_voto != consenso:
+                    if meu_voto == resultado_real:
+                        divergencias_certas += 1
+                        zebras_acertadas.append(f"{m.home_team} x {m.away_team}")
+                    else:
+                        divergencias_erradas += 1
+                else:
+                    concordancias += 1
+                    
+            total_divergencias = divergencias_certas + divergencias_erradas
+            ousadia = round(divergencias_certas / total_divergencias * 100) if total_divergencias > 0 else 50
+            return {"ousadia": ousadia, "zebras": zebras_acertadas, "concordancias": concordancias}
+            
+        ousadia_res = calcular_ousadia(selected_name, live_preds, matches)
+        
+        st.markdown(f"**Índice de Ousadia:** `{ousadia_res['ousadia']}/100`")
+        
+        if ousadia_res["ousadia"] > 60:
+            st.success("🦁 **Corajoso/Zebra Hunter:** Você costuma ir contra a corrente e já acertar zebras importantes!")
+        elif ousadia_res["ousadia"] < 40:
+            st.info("🐏 **Conservador/Consensual:** Você prefere jogar na segurança com os favoritos do grupo.")
+        else:
+            st.warning("🦊 **Equilibrado:** Sabe dosar o risco de acordo com o jogo.")
+            
+        st.markdown(f"- 🤝 **Concordâncias com o grupo:** {ousadia_res['concordancias']} jogo(s)")
+        st.markdown(f"- 🦓 **Zebras cravadas sozinho:** {', '.join(ousadia_res['zebras']) if ousadia_res['zebras'] else 'Nenhuma zebra ainda'}")
+
+    # Tab 7: Comparar com amigo
+    with c_tabs[6]:
         st.markdown("#### Comparar Palpites")
         st.caption("Selecione um amigo e compare os palpites do modo clássico e do jogo a jogo.")
         

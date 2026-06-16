@@ -14,39 +14,39 @@
       "Bósnia"
     ],
     "C": [
+      "Escócia",
       "Brasil",
       "Marrocos",
-      "Escócia",
       "Haiti"
     ],
     "D": [
-      "Paraguai",
-      "Austrália",
       "Estados Unidos",
-      "Turquia"
+      "Austrália",
+      "Turquia",
+      "Paraguai"
     ],
     "E": [
-      "Equador",
       "Alemanha",
       "Costa do Marfim",
+      "Equador",
       "Curaçao"
     ],
     "F": [
       "Suécia",
       "Japão",
-      "Tunísia",
-      "Holanda"
+      "Holanda",
+      "Tunísia"
     ],
     "G": [
-      "Bélgica",
-      "Egito",
       "Irã",
-      "Nova Zelândia"
+      "Nova Zelândia",
+      "Bélgica",
+      "Egito"
     ],
     "H": [
-      "Espanha",
       "Uruguai",
       "Arábia Saudita",
+      "Espanha",
       "Cabo Verde"
     ],
     "I": [
@@ -75,14 +75,14 @@
     ]
   },
   "best_thirds": [
+    "Holanda",
     "Canadá",
-    "Escócia",
-    "Estados Unidos",
-    "Costa do Marfim",
-    "Tunísia",
-    "Irã",
-    "Arábia Saudita",
-    "Iraque"
+    "Marrocos",
+    "Bélgica",
+    "Espanha",
+    "Iraque",
+    "Jordânia",
+    "RD Congo"
   ],
   "knockout": {
     "fase_32": [
@@ -253,7 +253,7 @@
   },
   "champion": null,
   "submission_id": "resultado-oficial-demo",
-  "submitted_at": "2026-06-12T13:57:06",
+  "submitted_at": "2026-06-16T14:13:03",
   "status": "rascunho",
   "meta": {
     "group_matches": {
@@ -282,12 +282,12 @@
         null
       ],
       "13381": [
-        null,
-        null
+        1,
+        1
       ],
       "13383": [
-        null,
-        null
+        1,
+        1
       ],
       "13404": [
         null,
@@ -306,12 +306,12 @@
         null
       ],
       "13384": [
-        null,
-        null
+        1,
+        1
       ],
       "13385": [
-        null,
-        null
+        0,
+        1
       ],
       "13408": [
         null,
@@ -330,12 +330,12 @@
         null
       ],
       "13382": [
-        null,
-        null
+        4,
+        1
       ],
       "13386": [
-        null,
-        null
+        2,
+        0
       ],
       "13407": [
         null,
@@ -354,12 +354,12 @@
         null
       ],
       "13387": [
-        null,
-        null
+        7,
+        1
       ],
       "13389": [
-        null,
-        null
+        1,
+        0
       ],
       "13412": [
         null,
@@ -378,12 +378,12 @@
         null
       ],
       "13388": [
-        null,
-        null
+        2,
+        2
       ],
       "13390": [
-        null,
-        null
+        5,
+        1
       ],
       "13411": [
         null,
@@ -402,12 +402,12 @@
         null
       ],
       "13392": [
-        null,
-        null
+        1,
+        1
       ],
       "13394": [
-        null,
-        null
+        2,
+        2
       ],
       "13416": [
         null,
@@ -426,12 +426,12 @@
         null
       ],
       "13391": [
-        null,
-        null
+        0,
+        0
       ],
       "13393": [
-        null,
-        null
+        1,
+        1
       ],
       "13415": [
         null,

@@ -147,86 +147,309 @@ def render_palpites_do_grupo() -> None:
 
     matches.sort(key=lambda m: (m.starts_at or "", m.sort_order))
 
-    # Filtro por rodada/fase
-    rounds = sorted(list(set(m.round_label for m in matches)))
-    selected_round = st.selectbox("Filtrar por Rodada/Fase", ["Todas"] + rounds, key="palpites_grupo_round_filter")
+    tabs_public = st.tabs(["🔍 Por Jogo", "📋 Matriz Geral de Palpites", "🏳️ Todos os Palpites (Filtros & Bandeiras)"])
     
-    if selected_round != "Todas":
-        filtered_matches = [m for m in matches if m.round_label == selected_round]
-    else:
-        filtered_matches = matches
+    with tabs_public[0]:
+        # Filtro por rodada/fase
+        rounds = sorted(list(set(m.round_label for m in matches)))
+        selected_round = st.selectbox("Filtrar por Rodada/Fase", ["Todas"] + rounds, key="palpites_grupo_round_filter")
         
-    if not filtered_matches:
-        st.info("Nenhuma partida nesta rodada.")
-        return
-
-    # Escolher o jogo
-    selected_match = st.selectbox(
-        "Selecione uma partida para ver os palpites", 
-        filtered_matches, 
-        format_func=lambda m: f"{m.home_team} x {m.away_team} ({m.round_label})"
-    )
-
-    if not selected_match:
-        return
-
-    m = selected_match
-    now = datetime.now().isoformat()
-    is_open = is_match_open_for_prediction(m, now)
-
-    st.markdown(f"#### Palpites para: {m.home_team} x {m.away_team}")
-    
-    match_preds = [lp for lp in live_preds if lp.match_id == m.match_id]
-    
-    # Privado antes do lock
-    if is_open:
-        st.info("🔒 Os palpites individuais estão ocultados até o fechamento das apostas (10 minutos antes do início do jogo).")
-        st.metric("Total de palpites enviados até agora", len(match_preds))
-        return
-
-    # Privacidade pós lock
-    reveal_allowed = config.get("public_features", {}).get("reveal_live_predictions_after_lock", True) or m.status == "result_approved"
-    if not reveal_allowed:
-        st.info("🔒 A visualização dos palpites dos outros participantes está desativada conforme as regras de privacidade do bolão.")
-        return
-
-    if not match_preds:
-        st.info("Ninguém palpitou nesta partida.")
-        return
-
-    data = []
-    for lp in match_preds:
-        points_gained = "—"
-        if m.status == "result_approved":
-            res = calculate_live_prediction_points(lp, m, config)
-            points_gained = f"{res['points']} pts"
+        if selected_round != "Todas":
+            filtered_matches = [m for m in matches if m.round_label == selected_round]
+        else:
+            filtered_matches = matches
             
-        data.append({
-            "Participante": lp.participant_name,
-            "Palpite": f"{lp.predicted_home_goals} x {lp.predicted_away_goals}",
-            "Pontos Ganhos": points_gained,
-            "Envio": lp.submitted_at.replace("T", " ") if lp.submitted_at else "—"
-        })
-        
-    def render_palpite_grupo_card(r):
-        badge_pts = f"<span class='badge success'>{r['Pontos Ganhos']}</span>" if r['Pontos Ganhos'] != "—" else ""
-        st.markdown(
-            f"""
-            <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span style="font-weight: bold; font-size: 15px; color: var(--ink);">{r['Participante']}</span>
-                    {badge_pts}
-                </div>
-                <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
-                    🎯 Palpite: <strong style="color:var(--green); font-size:14px;">{r['Palpite']}</strong>
-                    <br>⏱️ Envio: {r['Envio']}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        if not filtered_matches:
+            st.info("Nenhuma partida nesta rodada.")
+        else:
+            # Escolher o jogo
+            selected_match = st.selectbox(
+                "Selecione uma partida para ver os palpites", 
+                filtered_matches, 
+                format_func=lambda m: f"{m.home_team} x {m.away_team} ({m.round_label})"
+            )
 
-    render_responsive_table(pd.DataFrame(data), render_palpite_grupo_card, f"palpites_grupo_{m.match_id}")
+            if selected_match:
+                m = selected_match
+                now = datetime.now().isoformat()
+                is_open = is_match_open_for_prediction(m, now)
+
+                st.markdown(f"#### Palpites para: {m.home_team} x {m.away_team}")
+                
+                match_preds = [lp for lp in live_preds if lp.match_id == m.match_id]
+                
+                # Privado antes do lock
+                if is_open:
+                    st.info("🔒 Os palpites individuais estão ocultados até o fechamento das apostas (10 minutos antes do início do jogo).")
+                    st.metric("Total de palpites enviados até agora", len(match_preds))
+                else:
+                    # Privacidade pós lock
+                    reveal_allowed = config.get("public_features", {}).get("reveal_live_predictions_after_lock", True) or m.status == "result_approved"
+                    if not reveal_allowed:
+                        st.info("🔒 A visualização dos palpites dos outros participantes está desativada conforme as regras de privacidade do bolão.")
+                    elif not match_preds:
+                        st.info("Ninguém palpitou nesta partida.")
+                    else:
+                        data = []
+                        for lp in match_preds:
+                            points_gained = None
+                            if m.status == "result_approved":
+                                res = calculate_live_prediction_points(lp, m, config)
+                                points_gained = res["points"]
+                                
+                            data.append({
+                                "Participante": lp.participant_name,
+                                "Palpite": f"{lp.predicted_home_goals} x {lp.predicted_away_goals}",
+                                "Pontos Ganhos": points_gained,
+                                "Envio": lp.submitted_at.replace("T", " ") if lp.submitted_at else "—"
+                            })
+                            
+                        def render_palpite_grupo_card(r):
+                            badge_pts = f"<span class='badge success'>{r['Pontos Ganhos']} pts</span>" if r['Pontos Ganhos'] is not None else ""
+                            st.markdown(
+                                f"""
+                                <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span style="font-weight: bold; font-size: 15px; color: var(--ink);">{r['Participante']}</span>
+                                        {badge_pts}
+                                    </div>
+                                    <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
+                                        🎯 Palpite: <strong style="color:var(--green); font-size:14px;">{r['Palpite']}</strong>
+                                        <br>⏱️ Envio: {r['Envio']}
+                                    </div>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+
+                        render_responsive_table(pd.DataFrame(data), render_palpite_grupo_card, f"palpites_grupo_{m.match_id}")
+
+    with tabs_public[1]:
+        st.markdown("#### 📋 Tabela Geral de Palpites")
+        st.caption("Consulte os palpites de todos os participantes para todas as partidas. Os palpites de partidas ainda abertas são protegidos sob sigilo (🔒 Oculto) para manter a integridade da competição.")
+        
+        from .storage import load_registered_participants
+        active_participants = load_registered_participants(include_archived=False)
+        participant_names = sorted([p for p in active_participants], key=lambda x: x.lower())
+        
+        logged_user_name = st.session_state.get("live_user_name", "")
+        logged_user_key = st.session_state.get("live_user_key", "")
+        
+        preds_map = {(lp.participant_key or normalize_participant_key(lp.participant_name), lp.match_id): lp for lp in live_preds}
+        now = datetime.now().isoformat()
+        
+        # Sort matches by group and then chronologically
+        def get_sort_key(m):
+            g = m.group or ""
+            g_clean = g.strip().upper()
+            if not g_clean or len(g_clean) > 1 or g_clean < 'A' or g_clean > 'L':
+                group_key = "Z_Mata-Mata"
+            else:
+                group_key = f"Grupo {g_clean}"
+            return (group_key, m.starts_at or "", m.sort_order)
+        sorted_matches_for_matrix = sorted(matches, key=get_sort_key)
+
+        matrix_data = []
+        for m in sorted_matches_for_matrix:
+            is_open = is_match_open_for_prediction(m, now)
+            
+            row = {
+                "Grupo": f"Grupo {m.group}" if (m.group and m.group.strip()) else "Mata-Mata",
+                "Jogo": f"{m.home_team} x {m.away_team}",
+                "Rodada": m.round_label,
+                "Início": m.starts_at.replace("T", " ") if m.starts_at else "—",
+                "Resultado Oficial": f"{m.official_home_goals} x {m.official_away_goals}" if m.official_home_goals is not None else "Aguardando"
+            }
+            
+            for p_name in participant_names:
+                pkey = normalize_participant_key(p_name)
+                pred = preds_map.get((pkey, m.match_id))
+                
+                if is_open:
+                    if pkey == logged_user_key:
+                        row[p_name] = f"{pred.predicted_home_goals} x {pred.predicted_away_goals} (Você)" if pred else "Sem palpite"
+                    else:
+                        row[p_name] = "🔒 Oculto"
+                else:
+                    reveal_allowed = config.get("public_features", {}).get("reveal_live_predictions_after_lock", True) or m.status == "result_approved"
+                    if reveal_allowed:
+                        if pred:
+                            pts_str = ""
+                            if m.status == "result_approved":
+                                res = calculate_live_prediction_points(pred, m, config)
+                                pts_str = f" ({res['points']} pts)"
+                            row[p_name] = f"{pred.predicted_home_goals} x {pred.predicted_away_goals}{pts_str}"
+                        else:
+                            row[p_name] = "—"
+                    else:
+                        if pkey == logged_user_key and pred:
+                            row[p_name] = f"{pred.predicted_home_goals} x {pred.predicted_away_goals}"
+                        else:
+                            row[p_name] = "🔒 Oculto"
+                            
+            matrix_data.append(row)
+            
+        if not matrix_data:
+            st.info("Nenhum palpite computado ou jogo agendado.")
+        else:
+            df_matrix = pd.DataFrame(matrix_data)
+            
+            tab_matriz, tab_lista = st.tabs(["📊 Matriz Completa", "📱 Visão por Participante"])
+            
+            with tab_matriz:
+                st.markdown('<div style="overflow-x: auto; max-width: 100%;">', unsafe_allow_html=True)
+                st.dataframe(df_matrix, width="content", hide_index=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+            with tab_lista:
+                if not participant_names:
+                    st.caption("Nenhum participante cadastrado.")
+                else:
+                    participante_sel = st.selectbox("Ver palpites de:", options=participant_names, key="matriz_select_participante")
+                    df_participante = df_matrix[["Grupo", "Jogo", "Rodada", "Resultado Oficial", participante_sel]]
+                    st.dataframe(df_participante, width="stretch", hide_index=True)
+
+    with tabs_public[2]:
+        st.markdown("#### 🏳️ Todos os Palpites (Filtros & Bandeiras)")
+        st.caption("Consulte todos os palpites jogo a jogo dos participantes. Filtre por rodada, por time ou por participante e veja as bandeiras das seleções.")
+
+        # 1. Filtros
+        col_f1, col_f2, col_f3 = st.columns(3)
+        with col_f1:
+            filtro_participante = st.selectbox(
+                "Filtrar por Participante",
+                ["Todos"] + participant_names,
+                key="public_all_preds_participante"
+            )
+        with col_f2:
+            filtro_rodada = st.selectbox(
+                "Filtrar por Rodada/Fase",
+                ["Todas"] + sorted(list(set(m.round_label for m in matches))),
+                key="public_all_preds_rodada"
+            )
+        with col_f3:
+            all_teams = sorted(list(set(m.home_team for m in matches).union(set(m.away_team for m in matches))))
+            filtro_time = st.selectbox(
+                "Filtrar por Seleção",
+                ["Todas"] + all_teams,
+                key="public_all_preds_time"
+            )
+
+        # 2. Get and filter predictions
+        preds_to_show = []
+        now = datetime.now().isoformat()
+        
+        from .ui_simulator import get_team_badge_path
+        from .simulator_engine import name_to_id
+        
+        for lp in live_preds:
+            m = next((m for m in matches if m.match_id == lp.match_id), None)
+            if not m:
+                continue
+            
+            # Apply Participant filter
+            if filtro_participante != "Todos" and (lp.participant_key or normalize_participant_key(lp.participant_name)) != normalize_participant_key(filtro_participante):
+                continue
+                
+            # Apply Round filter
+            if filtro_rodada != "Todas" and m.round_label != filtro_rodada:
+                continue
+                
+            # Apply Team filter
+            if filtro_time != "Todas" and m.home_team != filtro_time and m.away_team != filtro_time:
+                continue
+                
+            preds_to_show.append((lp, m))
+            
+        preds_to_show.sort(key=lambda item: (item[1].starts_at or "", item[1].sort_order, item[0].participant_name.lower()))
+        
+        if not preds_to_show:
+            st.info("Nenhum palpite corresponde aos filtros selecionados.")
+        else:
+            logged_user_key = st.session_state.get("live_user_key", "")
+            
+            _last_group = None
+            for lp, m in preds_to_show:
+                _cur_group = f"Grupo {m.group}" if (m.group and m.group.strip()) else "Mata-Mata"
+                if _cur_group != _last_group:
+                    st.markdown(f"##### 🏆 {_cur_group}")
+                    _last_group = _cur_group
+            
+            for lp, m in preds_to_show:
+                is_open = is_match_open_for_prediction(m, now)
+                
+                h_id = name_to_id(m.home_team)
+                a_id = name_to_id(m.away_team)
+                h_badge = get_team_badge_path(h_id) if h_id else None
+                a_badge = get_team_badge_path(a_id) if a_id else None
+                
+                # Privacy
+                if is_open:
+                    if (lp.participant_key or normalize_participant_key(lp.participant_name)) == logged_user_key:
+                        guess_display = f"{lp.predicted_home_goals} x {lp.predicted_away_goals} (Você)"
+                        status_str = "<span class='badge success'>🟢 ABERTO (Palpitado)</span>"
+                    else:
+                        guess_display = "🔒 Oculto"
+                        status_str = "<span class='badge info'>🟢 ABERTO (Sigilo)</span>"
+                else:
+                    reveal_allowed = config.get("public_features", {}).get("reveal_live_predictions_after_lock", True) or m.status == "result_approved"
+                    if reveal_allowed:
+                        guess_display = f"{lp.predicted_home_goals} x {lp.predicted_away_goals}"
+                    else:
+                        if (lp.participant_key or normalize_participant_key(lp.participant_name)) == logged_user_key:
+                            guess_display = f"{lp.predicted_home_goals} x {lp.predicted_away_goals}"
+                        else:
+                            guess_display = "🔒 Oculto"
+                    
+                    if m.status == "result_approved":
+                        res = calculate_live_prediction_points(lp, m, config)
+                        status_str = f"<span class='badge success'>🏆 CONCLUÍDO (+{res['points']} pts)</span>"
+                    else:
+                        status_str = "<span class='badge error'>🔒 BLOQUEADO</span>"
+                        
+                with st.container(border=True):
+                    # Card Header
+                    col_h1, col_h2 = st.columns([2, 1])
+                    with col_h1:
+                        st.markdown(f"**{m.round_label}** · Participante: **{lp.participant_name}**")
+                    with col_h2:
+                        st.markdown(f"<div style='text-align: right;'>{status_str}</div>", unsafe_allow_html=True)
+                        
+                    # Card body - teams, flags, and prediction
+                    col_t1, col_vs, col_t2 = st.columns([4, 4, 4])
+                    with col_t1:
+                        st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
+                        if h_badge:
+                            st.image(h_badge, width=32)
+                        st.markdown(f"<div style='font-weight: 700; margin-top: 4px; color: var(--ink);'>{m.home_team}</div>", unsafe_allow_html=True)
+                        st.markdown("</div>", unsafe_allow_html=True)
+                        
+                    with col_vs:
+                        st.markdown(
+                            f"""
+                            <div style='text-align: center; margin-top: 10px;'>
+                                <div style='font-size: 13px; color: var(--muted); text-transform: uppercase;'>Palpite</div>
+                                <div style='font-size: 20px; font-weight: 900; color: var(--green);'>{guess_display}</div>
+                            </div>
+                            """, 
+                            unsafe_allow_html=True
+                        )
+                        if m.status == "result_approved":
+                            st.markdown(
+                                f"""
+                                <div style='text-align: center; font-size: 11px; color: var(--muted); margin-top: 4px;'>
+                                    Placar Real: <b>{m.official_home_goals} x {m.official_away_goals}</b>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                            
+                    with col_t2:
+                        st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
+                        if a_badge:
+                            st.image(a_badge, width=32)
+                        st.markdown(f"<div style='font-weight: 700; margin-top: 4px; color: var(--ink);'>{m.away_team}</div>", unsafe_allow_html=True)
+                        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_analise_dos_palpites() -> None:

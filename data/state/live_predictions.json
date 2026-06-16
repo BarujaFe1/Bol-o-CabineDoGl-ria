@@ -5,16 +5,21 @@
     "participant_key": "baruja",
     "match_id": "13379",
     "predicted_home_goals": 2,
-    "predicted_away_goals": 1,
+    "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-12T17:50:54",
+    "updated_at": "2026-06-14T21:33:32",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
-    "is_locked": false,
+    "is_locked": true,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "baruja_13380",
@@ -24,14 +29,19 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:43",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13381",
@@ -41,14 +51,19 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-12T17:50:53",
+    "updated_at": "2026-06-14T14:22:43",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 5,
+    "scoring_breakdown": [
+      "Placar exato: +5 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13382",
@@ -58,31 +73,42 @@
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:42",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13383",
     "participant_name": "Baruja",
     "participant_key": "baruja",
     "match_id": "13383",
-    "predicted_home_goals": 0,
-    "predicted_away_goals": 2,
+    "predicted_home_goals": 2,
+    "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:42",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "baruja_13384",
@@ -92,14 +118,19 @@
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:41",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13385",
@@ -109,14 +140,20 @@
     "predicted_home_goals": 0,
     "predicted_away_goals": 3,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:41",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13386",
@@ -126,14 +163,19 @@
     "predicted_home_goals": 0,
     "predicted_away_goals": 4,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:41",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13387",
@@ -143,14 +185,19 @@
     "predicted_home_goals": 7,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:40",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 5,
+    "scoring_breakdown": [
+      "Placar exato: +5 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13388",
@@ -160,14 +207,19 @@
     "predicted_home_goals": 2,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:40",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13389",
@@ -177,14 +229,19 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:39",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13390",
@@ -194,14 +251,19 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:39",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 3,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13391",
@@ -211,14 +273,19 @@
     "predicted_home_goals": 6,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:39",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13392",
@@ -228,14 +295,19 @@
     "predicted_home_goals": 5,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-16T14:07:40",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13393",
@@ -245,14 +317,19 @@
     "predicted_home_goals": 0,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-16T14:07:40",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13394",
@@ -262,14 +339,19 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:38",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13395",
@@ -279,14 +361,17 @@
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T17:20:39",
-    "updated_at": "2026-06-11T17:20:39",
+    "updated_at": "2026-06-14T14:22:37",
     "confirmation_code": "c04ed592959f",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13396",
@@ -303,7 +388,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13397",
@@ -320,7 +408,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13398",
@@ -337,7 +428,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13399",
@@ -354,7 +448,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13400",
@@ -371,7 +468,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13401",
@@ -388,7 +488,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13402",
@@ -405,7 +508,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13403",
@@ -422,7 +528,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13404",
@@ -439,7 +548,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13405",
@@ -456,7 +568,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13406",
@@ -473,7 +588,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13407",
@@ -490,7 +608,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13408",
@@ -507,7 +628,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13409",
@@ -524,7 +648,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13410",
@@ -541,7 +668,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13411",
@@ -558,7 +688,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13412",
@@ -575,7 +708,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13413",
@@ -592,7 +728,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13414",
@@ -609,7 +748,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13415",
@@ -626,7 +768,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13416",
@@ -643,7 +788,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13417",
@@ -660,7 +808,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13418",
@@ -677,7 +828,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13419",
@@ -694,7 +848,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13420",
@@ -711,7 +868,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13421",
@@ -728,7 +888,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13422",
@@ -745,7 +908,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13423",
@@ -762,7 +928,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13424",
@@ -779,7 +948,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13425",
@@ -796,7 +968,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13426",
@@ -813,7 +988,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13427",
@@ -830,7 +1008,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13428",
@@ -847,7 +1028,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13429",
@@ -864,7 +1048,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13430",
@@ -881,7 +1068,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13431",
@@ -898,7 +1088,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13432",
@@ -915,7 +1108,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13433",
@@ -932,7 +1128,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13434",
@@ -949,7 +1148,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13435",
@@ -966,7 +1168,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13436",
@@ -983,7 +1188,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13437",
@@ -1000,7 +1208,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13438",
@@ -1017,7 +1228,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13439",
@@ -1034,7 +1248,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13440",
@@ -1051,7 +1268,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13441",
@@ -1068,7 +1288,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13442",
@@ -1085,7 +1308,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13443",
@@ -1102,7 +1328,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13444",
@@ -1119,7 +1348,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13445",
@@ -1136,7 +1368,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13446",
@@ -1153,7 +1388,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13447",
@@ -1170,7 +1408,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13448",
@@ -1187,7 +1428,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13449",
@@ -1204,7 +1448,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "baruja_13450",
@@ -1221,7 +1468,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13379",
@@ -1231,14 +1481,20 @@
     "predicted_home_goals": 3,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
-    "is_locked": false,
+    "is_locked": true,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13380",
@@ -1248,14 +1504,19 @@
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 5,
+    "scoring_breakdown": [
+      "Placar exato: +5 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13381",
@@ -1265,14 +1526,19 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13382",
@@ -1282,14 +1548,19 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 3,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13383",
@@ -1299,14 +1570,19 @@
     "predicted_home_goals": 0,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 2
   },
   {
     "id": "fantato_13384",
@@ -1316,14 +1592,19 @@
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:33",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13385",
@@ -1333,14 +1614,20 @@
     "predicted_home_goals": 0,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13386",
@@ -1350,14 +1637,19 @@
     "predicted_home_goals": 2,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13387",
@@ -1367,14 +1659,19 @@
     "predicted_home_goals": 3,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:31",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 3,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13388",
@@ -1384,14 +1681,20 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Saldo de gols: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13389",
@@ -1401,14 +1704,19 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13390",
@@ -1418,14 +1726,19 @@
     "predicted_home_goals": 0,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13391",
@@ -1435,14 +1748,19 @@
     "predicted_home_goals": 2,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:31",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13392",
@@ -1452,14 +1770,19 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:07:40",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 5,
+    "scoring_breakdown": [
+      "Placar exato: +5 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13393",
@@ -1469,14 +1792,19 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:07:40",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13394",
@@ -1486,14 +1814,19 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:31",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13395",
@@ -1503,14 +1836,17 @@
     "predicted_home_goals": 3,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:31",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13396",
@@ -1520,14 +1856,17 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:31",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13397",
@@ -1537,14 +1876,17 @@
     "predicted_home_goals": 2,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13398",
@@ -1554,14 +1896,17 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:32",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13399",
@@ -1578,7 +1923,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13400",
@@ -1595,7 +1943,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13401",
@@ -1612,7 +1963,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13402",
@@ -1629,7 +1983,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13403",
@@ -1646,7 +2003,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13404",
@@ -1663,7 +2023,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13405",
@@ -1680,7 +2043,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13406",
@@ -1697,7 +2063,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13407",
@@ -1714,7 +2083,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13408",
@@ -1731,7 +2103,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13409",
@@ -1748,7 +2123,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13410",
@@ -1765,7 +2143,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13411",
@@ -1782,7 +2163,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13412",
@@ -1799,7 +2183,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13413",
@@ -1816,7 +2203,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13414",
@@ -1833,7 +2223,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13415",
@@ -1850,7 +2243,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13416",
@@ -1867,7 +2263,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13417",
@@ -1884,7 +2283,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13418",
@@ -1901,7 +2303,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13419",
@@ -1918,7 +2323,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13420",
@@ -1935,7 +2343,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13421",
@@ -1952,7 +2363,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13422",
@@ -1969,7 +2383,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13423",
@@ -1986,7 +2403,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13424",
@@ -2003,7 +2423,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13425",
@@ -2020,7 +2443,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13426",
@@ -2037,7 +2463,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13427",
@@ -2054,7 +2483,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13428",
@@ -2071,7 +2503,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13429",
@@ -2088,7 +2523,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13430",
@@ -2105,7 +2543,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13431",
@@ -2122,7 +2563,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13432",
@@ -2139,7 +2583,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13433",
@@ -2156,7 +2603,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13434",
@@ -2173,7 +2623,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13435",
@@ -2190,7 +2643,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13436",
@@ -2207,7 +2663,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13437",
@@ -2224,7 +2683,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13438",
@@ -2241,7 +2703,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13439",
@@ -2258,7 +2723,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13440",
@@ -2275,7 +2743,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13441",
@@ -2292,7 +2763,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13442",
@@ -2309,7 +2783,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13443",
@@ -2326,7 +2803,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13444",
@@ -2343,7 +2823,10 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
     "id": "fantato_13445",
@@ -2353,14 +2836,17 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:30",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13446",
@@ -2370,14 +2856,17 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:30",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13447",
@@ -2387,14 +2876,17 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:31",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13448",
@@ -2404,14 +2896,17 @@
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:31",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13449",
@@ -2421,14 +2916,17 @@
     "predicted_home_goals": 0,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:31",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
     "id": "fantato_13450",
@@ -2438,444 +2936,456 @@
     "predicted_home_goals": 2,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:20:28",
-    "updated_at": "2026-06-11T18:20:28",
+    "updated_at": "2026-06-16T14:04:31",
     "confirmation_code": "0e493db0b16d",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "lucao_13381",
-    "participant_name": "Lucão",
-    "participant_key": "lucao",
-    "match_id": "13381",
-    "predicted_home_goals": 2,
-    "predicted_away_goals": 0,
-    "submitted_at": "2026-06-12T14:30:00",
-    "updated_at": "2026-06-12T14:30:00",
-    "confirmation_code": null,
-    "locked_at": null,
-    "is_locked": false,
-    "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
-  },
-  {
-    "id": "lucao_13382",
-    "participant_name": "Lucão",
-    "participant_key": "lucao",
-    "match_id": "13382",
-    "predicted_home_goals": 1,
-    "predicted_away_goals": 0,
-    "submitted_at": "2026-06-12T14:30:00",
-    "updated_at": "2026-06-12T14:30:00",
-    "confirmation_code": null,
-    "locked_at": null,
-    "is_locked": false,
-    "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
-  },
-  {
-    "id": "mantovas_13382",
-    "participant_name": "Mantovas",
-    "participant_key": "mantovas",
-    "match_id": "13382",
-    "predicted_home_goals": 0,
-    "predicted_away_goals": 1,
-    "submitted_at": "2026-06-12T14:30:00",
-    "updated_at": "2026-06-12T14:30:00",
-    "confirmation_code": null,
-    "locked_at": null,
-    "is_locked": false,
-    "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
-  },
-  {
-    "id": "murilov_13381",
-    "participant_name": "Murilov",
-    "participant_key": "murilov",
-    "match_id": "13381",
-    "predicted_home_goals": 2,
-    "predicted_away_goals": 0,
-    "submitted_at": "2026-06-12T14:30:00",
-    "updated_at": "2026-06-12T14:30:00",
-    "confirmation_code": null,
-    "locked_at": null,
-    "is_locked": false,
-    "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
-  },
-  {
-    "id": "murilov_13382",
-    "participant_name": "Murilov",
-    "participant_key": "murilov",
-    "match_id": "13382",
-    "predicted_home_goals": 1,
-    "predicted_away_goals": 1,
-    "submitted_at": "2026-06-12T14:30:00",
-    "updated_at": "2026-06-12T14:30:00",
-    "confirmation_code": null,
-    "locked_at": null,
-    "is_locked": false,
-    "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
-  },
-  {
-    "id": "henrique_13379",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13379",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13379",
     "predicted_home_goals": 2,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:29",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
-    "is_locked": false,
+    "is_locked": true,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 5,
+    "scoring_breakdown": [
+      "Placar exato: +5 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13380",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13380",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13380",
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:30",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Saldo de gols: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13381",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13381",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13381",
     "predicted_home_goals": 2,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:30",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13382",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13382",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13382",
     "predicted_home_goals": 2,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:30",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 3,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13383",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13383",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13383",
     "predicted_home_goals": 0,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:30",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 2
   },
   {
-    "id": "henrique_13384",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13384",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13384",
     "predicted_home_goals": 3,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:30",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13385",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13385",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13385",
     "predicted_home_goals": 0,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:29",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13386",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13386",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13386",
     "predicted_home_goals": 1,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:29",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13387",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13387",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13387",
     "predicted_home_goals": 3,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:28",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 3,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13388",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13388",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13388",
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:30",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13389",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13389",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13389",
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:30",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 5,
+    "scoring_breakdown": [
+      "Placar exato: +5 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13390",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13390",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13390",
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:30",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13391",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13391",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13391",
     "predicted_home_goals": 2,
     "predicted_away_goals": 0,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:28",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13392",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13392",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13392",
     "predicted_home_goals": 3,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:07:40",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13393",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13393",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13393",
     "predicted_home_goals": 0,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:07:40",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13394",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13394",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13394",
     "predicted_home_goals": 2,
     "predicted_away_goals": 4,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:28",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
-    "points": null,
-    "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13395",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13395",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13395",
     "predicted_home_goals": 3,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:29",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13396",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13396",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13396",
     "predicted_home_goals": 1,
     "predicted_away_goals": 3,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:29",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13397",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13397",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13397",
     "predicted_home_goals": 3,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:29",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13398",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13398",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13398",
     "predicted_home_goals": 2,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:29",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13399",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13399",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13399",
     "predicted_home_goals": 2,
     "predicted_away_goals": 0,
@@ -2887,12 +3397,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13400",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13400",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13400",
     "predicted_home_goals": 2,
     "predicted_away_goals": 0,
@@ -2904,12 +3417,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13401",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13401",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13401",
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
@@ -2921,12 +3437,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13402",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13402",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13402",
     "predicted_home_goals": 1,
     "predicted_away_goals": 2,
@@ -2938,12 +3457,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13403",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13403",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13403",
     "predicted_home_goals": 0,
     "predicted_away_goals": 0,
@@ -2955,12 +3477,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13404",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13404",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13404",
     "predicted_home_goals": 3,
     "predicted_away_goals": 0,
@@ -2972,12 +3497,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13405",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13405",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13405",
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
@@ -2989,12 +3517,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13406",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13406",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13406",
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
@@ -3006,12 +3537,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13407",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13407",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13407",
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
@@ -3023,12 +3557,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13408",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13408",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13408",
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
@@ -3040,12 +3577,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13409",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13409",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13409",
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
@@ -3057,12 +3597,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13410",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13410",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13410",
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
@@ -3074,12 +3617,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13411",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13411",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13411",
     "predicted_home_goals": 3,
     "predicted_away_goals": 1,
@@ -3091,12 +3637,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13412",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13412",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13412",
     "predicted_home_goals": 3,
     "predicted_away_goals": 2,
@@ -3108,12 +3657,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13413",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13413",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13413",
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
@@ -3125,12 +3677,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13414",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13414",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13414",
     "predicted_home_goals": 1,
     "predicted_away_goals": 4,
@@ -3142,12 +3697,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13415",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13415",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13415",
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
@@ -3159,12 +3717,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13416",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13416",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13416",
     "predicted_home_goals": 4,
     "predicted_away_goals": 0,
@@ -3176,12 +3737,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13417",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13417",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13417",
     "predicted_home_goals": 3,
     "predicted_away_goals": 0,
@@ -3193,12 +3757,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13418",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13418",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13418",
     "predicted_home_goals": 1,
     "predicted_away_goals": 3,
@@ -3210,12 +3777,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13419",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13419",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13419",
     "predicted_home_goals": 2,
     "predicted_away_goals": 0,
@@ -3227,12 +3797,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13420",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13420",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13420",
     "predicted_home_goals": 4,
     "predicted_away_goals": 1,
@@ -3244,12 +3817,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13421",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13421",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13421",
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
@@ -3261,12 +3837,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13422",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13422",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13422",
     "predicted_home_goals": 2,
     "predicted_away_goals": 0,
@@ -3278,12 +3857,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13423",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13423",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13423",
     "predicted_home_goals": 3,
     "predicted_away_goals": 1,
@@ -3295,12 +3877,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13424",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13424",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13424",
     "predicted_home_goals": 3,
     "predicted_away_goals": 2,
@@ -3312,12 +3897,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13425",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13425",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13425",
     "predicted_home_goals": 1,
     "predicted_away_goals": 2,
@@ -3329,12 +3917,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13426",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13426",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13426",
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
@@ -3346,12 +3937,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13427",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13427",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13427",
     "predicted_home_goals": 1,
     "predicted_away_goals": 2,
@@ -3363,12 +3957,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13428",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13428",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13428",
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
@@ -3380,12 +3977,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13429",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13429",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13429",
     "predicted_home_goals": 1,
     "predicted_away_goals": 4,
@@ -3397,12 +3997,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13430",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13430",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13430",
     "predicted_home_goals": 3,
     "predicted_away_goals": 1,
@@ -3414,12 +4017,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13431",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13431",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13431",
     "predicted_home_goals": 2,
     "predicted_away_goals": 3,
@@ -3431,12 +4037,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13432",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13432",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13432",
     "predicted_home_goals": 1,
     "predicted_away_goals": 3,
@@ -3448,12 +4057,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13433",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13433",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13433",
     "predicted_home_goals": 1,
     "predicted_away_goals": 2,
@@ -3465,12 +4077,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13434",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13434",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13434",
     "predicted_home_goals": 0,
     "predicted_away_goals": 1,
@@ -3482,12 +4097,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13435",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13435",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13435",
     "predicted_home_goals": 0,
     "predicted_away_goals": 2,
@@ -3499,12 +4117,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13436",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13436",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13436",
     "predicted_home_goals": 3,
     "predicted_away_goals": 2,
@@ -3516,12 +4137,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13437",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13437",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13437",
     "predicted_home_goals": 1,
     "predicted_away_goals": 0,
@@ -3533,12 +4157,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13438",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13438",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13438",
     "predicted_home_goals": 0,
     "predicted_away_goals": 0,
@@ -3550,12 +4177,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13439",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13439",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13439",
     "predicted_home_goals": 1,
     "predicted_away_goals": 2,
@@ -3567,12 +4197,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13440",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13440",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13440",
     "predicted_home_goals": 3,
     "predicted_away_goals": 0,
@@ -3584,12 +4217,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13441",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13441",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13441",
     "predicted_home_goals": 2,
     "predicted_away_goals": 1,
@@ -3601,12 +4237,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13442",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13442",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13442",
     "predicted_home_goals": 0,
     "predicted_away_goals": 2,
@@ -3618,12 +4257,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13443",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13443",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13443",
     "predicted_home_goals": 1,
     "predicted_away_goals": 2,
@@ -3635,12 +4277,15 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13444",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13444",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13444",
     "predicted_home_goals": 3,
     "predicted_away_goals": 0,
@@ -3652,108 +4297,947 @@
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   },
   {
-    "id": "henrique_13445",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13445",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13445",
     "predicted_home_goals": 0,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:27",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13446",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13446",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13446",
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:27",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13447",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13447",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13447",
     "predicted_home_goals": 1,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:28",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13448",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13448",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13448",
     "predicted_home_goals": 1,
     "predicted_away_goals": 1,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:28",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13449",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13449",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13449",
     "predicted_home_goals": 1,
     "predicted_away_goals": 4,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:28",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
   },
   {
-    "id": "henrique_13450",
-    "participant_name": "Henrique",
-    "participant_key": "henrique",
+    "id": "henrique-o-terrivel_13450",
+    "participant_name": "Henrique O Terrível",
+    "participant_key": "henrique-o-terrivel",
     "match_id": "13450",
     "predicted_home_goals": 1,
     "predicted_away_goals": 2,
     "submitted_at": "2026-06-11T18:30:39",
-    "updated_at": "2026-06-11T18:30:39",
+    "updated_at": "2026-06-16T14:04:28",
     "confirmation_code": "90727079dcad",
     "locked_at": null,
     "is_locked": false,
     "is_late": false,
     "points": null,
     "scoring_breakdown": [],
-    "schema_version": "live-v1"
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "murilov_13381",
+    "participant_name": "Murilov",
+    "participant_key": "murilov",
+    "match_id": "13381",
+    "predicted_home_goals": 2,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-13T14:26:05",
+    "updated_at": "2026-06-16T14:04:27",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "murilov_13382",
+    "participant_name": "Murilov",
+    "participant_key": "murilov",
+    "match_id": "13382",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-13T14:26:05",
+    "updated_at": "2026-06-16T14:04:27",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "mantovas_13382",
+    "participant_name": "Mantovas",
+    "participant_key": "mantovas",
+    "match_id": "13382",
+    "predicted_home_goals": 0,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-13T14:26:05",
+    "updated_at": "2026-06-14T14:22:42",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
+  },
+  {
+    "id": "lucao_13381",
+    "participant_name": "Lucão",
+    "participant_key": "lucao",
+    "match_id": "13381",
+    "predicted_home_goals": 2,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-13T14:26:05",
+    "updated_at": "2026-06-16T14:04:27",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "lucao_13382",
+    "participant_name": "Lucão",
+    "participant_key": "lucao",
+    "match_id": "13382",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-13T14:26:05",
+    "updated_at": "2026-06-16T14:04:27",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 3,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13395",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13395",
+    "predicted_home_goals": 3,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T14:22:37",
+    "updated_at": "2026-06-16T14:04:33",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": null,
+    "scoring_breakdown": [],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13394",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13394",
+    "predicted_home_goals": 0,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-14T14:22:38",
+    "updated_at": "2026-06-16T14:04:33",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Saldo de gols: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13393",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13393",
+    "predicted_home_goals": 0,
+    "predicted_away_goals": 2,
+    "submitted_at": "2026-06-14T14:22:38",
+    "updated_at": "2026-06-16T14:07:40",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13392",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13392",
+    "predicted_home_goals": 3,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T14:22:39",
+    "updated_at": "2026-06-16T14:07:40",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13391",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13391",
+    "predicted_home_goals": 3,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-14T14:22:39",
+    "updated_at": "2026-06-16T14:04:33",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "murilov_13390",
+    "participant_name": "Murilov",
+    "participant_key": "murilov",
+    "match_id": "13390",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T14:22:39",
+    "updated_at": "2026-06-16T14:04:27",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13390",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13390",
+    "predicted_home_goals": 0,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-14T14:22:39",
+    "updated_at": "2026-06-16T14:04:33",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "nikolas_13389",
+    "participant_name": "Nikolas",
+    "participant_key": "nikolas",
+    "match_id": "13389",
+    "predicted_home_goals": 0,
+    "predicted_away_goals": 2,
+    "submitted_at": "2026-06-14T14:22:40",
+    "updated_at": "2026-06-16T14:04:27",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "murilov_13389",
+    "participant_name": "Murilov",
+    "participant_key": "murilov",
+    "match_id": "13389",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-14T14:22:40",
+    "updated_at": "2026-06-16T14:04:27",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 5,
+    "scoring_breakdown": [
+      "Placar exato: +5 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "nikolas_13388",
+    "participant_name": "Nikolas",
+    "participant_key": "nikolas",
+    "match_id": "13388",
+    "predicted_home_goals": 2,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T14:22:40",
+    "updated_at": "2026-06-16T14:04:27",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "murilov_13388",
+    "participant_name": "Murilov",
+    "participant_key": "murilov",
+    "match_id": "13388",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 2,
+    "submitted_at": "2026-06-14T14:22:40",
+    "updated_at": "2026-06-16T14:04:27",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13387",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13387",
+    "predicted_home_goals": 5,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-14T14:22:40",
+    "updated_at": "2026-06-16T14:04:33",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 3,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "nikolas_13387",
+    "participant_name": "Nikolas",
+    "participant_key": "nikolas",
+    "match_id": "13387",
+    "predicted_home_goals": 2,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-14T14:22:40",
+    "updated_at": "2026-06-16T14:04:26",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 3,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "murilov_13387",
+    "participant_name": "Murilov",
+    "participant_key": "murilov",
+    "match_id": "13387",
+    "predicted_home_goals": 6,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-14T14:22:40",
+    "updated_at": "2026-06-16T14:04:27",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Saldo de gols: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13386",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13386",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T14:22:41",
+    "updated_at": "2026-06-16T14:04:33",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "nikolas_13386",
+    "participant_name": "Nikolas",
+    "participant_key": "nikolas",
+    "match_id": "13386",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T14:22:41",
+    "updated_at": "2026-06-16T14:04:26",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13385",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13385",
+    "predicted_home_goals": 0,
+    "predicted_away_goals": 2,
+    "submitted_at": "2026-06-14T14:22:41",
+    "updated_at": "2026-06-16T14:04:33",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "nikolas_13385",
+    "participant_name": "Nikolas",
+    "participant_key": "nikolas",
+    "match_id": "13385",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 2,
+    "submitted_at": "2026-06-14T14:22:41",
+    "updated_at": "2026-06-16T14:04:26",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Saldo de gols: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13384",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13384",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-14T14:22:42",
+    "updated_at": "2026-06-16T14:04:33",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "nikolas_13384",
+    "participant_name": "Nikolas",
+    "participant_key": "nikolas",
+    "match_id": "13384",
+    "predicted_home_goals": 3,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T14:22:42",
+    "updated_at": "2026-06-16T14:04:26",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "lucao_13383",
+    "participant_name": "Lucão",
+    "participant_key": "lucao",
+    "match_id": "13383",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-14T14:22:42",
+    "updated_at": "2026-06-14T14:22:42",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
+  },
+  {
+    "id": "mantovas_13383",
+    "participant_name": "Mantovas",
+    "participant_key": "mantovas",
+    "match_id": "13383",
+    "predicted_home_goals": 0,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T14:22:42",
+    "updated_at": "2026-06-14T14:22:42",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
+  },
+  {
+    "id": "murilov_13383",
+    "participant_name": "Murilov",
+    "participant_key": "murilov",
+    "match_id": "13383",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T14:22:42",
+    "updated_at": "2026-06-14T14:22:42",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 5,
+    "scoring_breakdown": [
+      "Placar exato: +5 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13383",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13383",
+    "predicted_home_goals": 4,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-14T14:22:42",
+    "updated_at": "2026-06-14T14:22:42",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13382",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13382",
+    "predicted_home_goals": 4,
+    "predicted_away_goals": 0,
+    "submitted_at": "2026-06-14T14:22:43",
+    "updated_at": "2026-06-16T14:04:33",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 1
+  },
+  {
+    "id": "nikolas_13383",
+    "participant_name": "Nikolas",
+    "participant_key": "nikolas",
+    "match_id": "13383",
+    "predicted_home_goals": 0,
+    "predicted_away_goals": 2,
+    "submitted_at": "2026-06-14T21:38:17.141817",
+    "updated_at": "2026-06-16T14:04:26",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
+  },
+  {
+    "id": "murilov_13384",
+    "participant_name": "Murilov",
+    "participant_key": "murilov",
+    "match_id": "13384",
+    "predicted_home_goals": 2,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T21:38:17.141817",
+    "updated_at": "2026-06-14T21:38:17.141817",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13388",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13388",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T21:38:17.141817",
+    "updated_at": "2026-06-16T14:04:33",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 4,
+    "scoring_breakdown": [
+      "Resultado correto: +3 pts",
+      "Saldo de gols: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
+  },
+  {
+    "id": "jonaldo,-o-fenomeno_13389",
+    "participant_name": "Jonaldo, o Fenômeno",
+    "participant_key": "jonaldo,-o-fenomeno",
+    "match_id": "13389",
+    "predicted_home_goals": 1,
+    "predicted_away_goals": 2,
+    "submitted_at": "2026-06-14T21:38:17.141817",
+    "updated_at": "2026-06-16T14:04:33",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do mandante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
+  },
+  {
+    "id": "mantovas_13384",
+    "participant_name": "Mantovas",
+    "participant_key": "mantovas",
+    "match_id": "13384",
+    "predicted_home_goals": 2,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-14T21:38:17.141817",
+    "updated_at": "2026-06-14T21:38:17.141817",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
+  },
+  {
+    "id": "lucao_13392",
+    "participant_name": "Lucão",
+    "participant_key": "lucao",
+    "match_id": "13392",
+    "predicted_home_goals": 3,
+    "predicted_away_goals": 1,
+    "submitted_at": "2026-06-16T14:07:40",
+    "updated_at": "2026-06-16T14:07:40",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 1,
+    "scoring_breakdown": [
+      "Gols do visitante: +1 pts"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
+  },
+  {
+    "id": "lucao_13393",
+    "participant_name": "Lucão",
+    "participant_key": "lucao",
+    "match_id": "13393",
+    "predicted_home_goals": 0,
+    "predicted_away_goals": 2,
+    "submitted_at": "2026-06-16T14:07:40",
+    "updated_at": "2026-06-16T14:07:40",
+    "confirmation_code": null,
+    "locked_at": null,
+    "is_locked": false,
+    "is_late": false,
+    "points": 0,
+    "scoring_breakdown": [
+      "Nenhum acerto"
+    ],
+    "schema_version": "live-v1",
+    "predicted_second_half_home_goals": null,
+    "predicted_second_half_away_goals": null,
+    "contador_edicoes": 0
   }
 ]

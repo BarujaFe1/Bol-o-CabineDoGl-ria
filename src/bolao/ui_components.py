@@ -252,3 +252,72 @@ def render_responsive_table(
             # Use unique key prefix inside callback if needed
             card_renderer_callback(row)
     st.markdown('</div>', unsafe_allow_html=True)
+
+
+def render_player_single_select(key_prefix: str, squad: list, selected_name: str | None, disabled: bool = False) -> str | None:
+    from src.bolao.utils import avatar_url
+    
+    filter_key = f"{key_prefix}_active_filter"
+    if filter_key not in st.session_state:
+        st.session_state[filter_key] = "Todos"
+        
+    cols_filt = st.columns(5)
+    positions_list = ["Todos", "GOL", "DEF", "MEI", "ATA"]
+    emojis_pos = {"Todos": "🌍", "GOL": "🧤", "DEF": "🛡️", "MEI": "⚙️", "ATA": "⚡"}
+    
+    for c_idx, pos in enumerate(positions_list):
+        with cols_filt[c_idx]:
+            if st.button(f"{emojis_pos[pos]} {pos}", key=f"btn_filt_{pos}_{key_prefix}", type="primary" if st.session_state[filter_key] == pos else "secondary", width="stretch"):
+                st.session_state[filter_key] = pos
+                st.rerun()
+                
+    p_filtered = [p for p in squad if st.session_state[filter_key] == "Todos" or p["posicao"] == st.session_state[filter_key]]
+    
+    st.markdown('<div class="player-grid-container">', unsafe_allow_html=True)
+    p_cols = st.columns(4)
+    choice = selected_name
+    
+    st.markdown(
+        """
+        <style>
+        @media (max-width: 640px) {
+          .player-grid-container [data-testid="stHorizontalBlock"] {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .player-grid-container [data-testid="stHorizontalBlock"] > div {
+            width: 100% !important;
+          }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    for p_idx, p in enumerate(p_filtered):
+        p_col = p_cols[p_idx % 4]
+        with p_col:
+            is_selected = (choice == p["nome"])
+            p_avatar = avatar_url(p["nome"])
+            border_color = "var(--green)" if is_selected else "var(--line)"
+            bg_color = "var(--panel)" if not is_selected else "var(--bg-soft)"
+            
+            st.markdown(
+                f"""
+                <div style="border: 2px solid {border_color}; border-radius: 12px; padding: 8px; text-align: center; background-color: {bg_color}; position: relative; margin-bottom: 10px;">
+                    <span style="position: absolute; top: 4px; right: 4px; background-color: var(--gold); color: black; font-weight: bold; font-size: 10px; padding: 2px 5px; border-radius: 4px;">#{p['camisa']}</span>
+                    <img src="{p_avatar}" style="width: 44px; height: 44px; border-radius: 50%; margin-bottom: 4px;" />
+                    <div style="font-weight: bold; font-size: 11px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{p['nome']}</div>
+                    <div style="font-size: 9px; color: var(--muted);">{p['posicao']}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            
+            if not disabled:
+                if st.button("Selecionar", key=f"btn_sel_{p['nome']}_{key_prefix}", type="primary" if is_selected else "secondary", width="stretch"):
+                    choice = p["nome"]
+                    st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+    return choice

@@ -254,6 +254,120 @@ def calculate_achievements(ctx: AppDataContext) -> dict[str, list[dict[str, str]
         if p_stats["outcome_count"] > 15:
             badges_list.append(Badge("⚔️", "Rei dos Duelos", f"Comprovou consistência com {p_stats['outcome_count']} resultados corretos no live.").to_dict())
             
+        # Módulo Brasil Badges (F11)
+        from src.bolao.storage import load_brasil_palpites_classicos, load_brasil_palpites_goleadores, load_brasil_resultados_goleadores, load_config
+        raw_config = load_config()
+        classic_brasil_guesses = load_brasil_palpites_classicos()
+        goleadores_palpites = load_brasil_palpites_goleadores()
+        goleadores_resultados = load_brasil_resultados_goleadores()
+        
+        gol_de_ouro_real = None
+        for row in goleadores_resultados.values():
+            if row.get("primeiro_gol_copa"):
+                gol_de_ouro_real = row["primeiro_gol_copa"]
+                break
+                
+        art_br_reais = [x.strip() for x in raw_config.get("artilheiros_reais_brasil", "").split(",") if x.strip()]
+        art_ge_reais = [x.strip() for x in raw_config.get("artilheiros_reais_geral", "").split(",") if x.strip()]
+        art_ge_reais_clean = [x.split("(")[0].strip() for x in art_ge_reais]
+        
+        my_classic_br = next((g for g in classic_brasil_guesses if normalize_participant_key(g["participante_nome"]) == pkey), None)
+        
+        has_gold_hit = False
+        if my_classic_br and gol_de_ouro_real and gol_de_ouro_real.lower() not in ("contra", "anulado"):
+            from src.bolao.utils import norm_team
+            pred_gold = my_classic_br.get("gol_de_ouro")
+            if pred_gold and norm_team(pred_gold) == norm_team(gol_de_ouro_real):
+                has_gold_hit = True
+                
+        if has_gold_hit:
+            badges_list.append(Badge("🥇", "Gol de Ouro", "Acertou o 1º goleador do Brasil na Copa!").to_dict())
+            badges_list.append(Badge("🟢", "Olheiro da CBF", "Acertou o marcador do 1º gol do Brasil na Copa.").to_dict())
+            
+        has_art_br_hit = False
+        if my_classic_br and art_br_reais:
+            from src.bolao.live_scoring import calcular_pontos_artilheiro_classico
+            pred_art_br = my_classic_br.get("artilheiro_brasil_copa")
+            pts_art_br = calcular_pontos_artilheiro_classico(pred_art_br, art_br_reais, raw_config, is_geral=False)
+            if pts_art_br > 0:
+                has_art_br_hit = True
+                
+        if has_art_br_hit:
+            badges_list.append(Badge("🏅", "Chutômetro de Ouro", "Acertou artilheiro do Brasil na Copa (clássico).").to_dict())
+            
+        has_art_ge_hit = False
+        if my_classic_br and art_ge_reais:
+            from src.bolao.live_scoring import calcular_pontos_artilheiro_classico
+            pred_art_ge = my_classic_br.get("artilheiro_geral_copa")
+            if pred_art_ge and "(" in pred_art_ge:
+                pred_art_ge = pred_art_ge.split("(")[0].strip()
+            pts_art_ge = calcular_pontos_artilheiro_classico(pred_art_ge, art_ge_reais_clean, raw_config, is_geral=True)
+            if pts_art_ge > 0:
+                has_art_ge_hit = True
+                
+        if has_art_br_hit and has_art_ge_hit:
+            badges_list.append(Badge("🟣", "Vidente Hexagonal", "Acertou artilheiro geral E artilheiro do Brasil!").to_dict())
+            
+        g_hits_per_match = {}
+        has_craque_palpite = False
+        
+        my_gps = [gp for gp in goleadores_palpites if normalize_participant_key(gp["participante_nome"]) == pkey]
+        for gp in my_gps:
+            real_res = goleadores_resultados.get(gp["jogo_id"])
+            if real_res:
+                from collections import Counter
+                real_g = Counter(real_res.get("goleadores_reais", []))
+                palp_g = Counter(gp.get("goleadores", []))
+                g_hits = sum(min(palp_g.get(k, 0), v) for k, v in real_g.items())
+                
+                real_a = Counter(real_res.get("assistentes_reais", []))
+                palp_a = Counter(gp.get("assistentes", []))
+                a_hits = sum(min(palp_a.get(k, 0), v) for k, v in real_a.items())
+                
+                if g_hits >= 1:
+                    g_hits_per_match[gp["jogo_id"]] = g_hits
+                if g_hits >= 1 and a_hits >= 1:
+                    has_craque_palpite = True
+                    
+        if has_craque_palpite:
+            badges_list.append(Badge("🟡", "Craque do Palpite", "Acertou goleador + assistente no mesmo jogo!").to_dict())
+            
+        if len(g_hits_per_match) >= 3:
+            badges_list.append(Badge("🔵", "Analista da Canarinha", "Acertou ≥1 goleador nos 3 jogos do grupo.").to_dict())
+            
+        leader_canarinho = None
+        try:
+            brazil_matches = [m for m in matches if ("Brasil" in m.home_team or "Brasil" in m.away_team) and m.status == "result_approved"]
+            if len(brazil_matches) >= 3:
+                can_points = {}
+                for lp in live_predictions:
+                    if lp.match_id in {m.match_id for m in brazil_matches}:
+                        pk = lp.participant_key or normalize_participant_key(lp.participant_name)
+                        m = next(x for x in brazil_matches if x.match_id == lp.match_id)
+                        res = calculate_live_prediction_points(lp, m, ctx.config)
+                        can_points[pk] = can_points.get(pk, 0) + res["points"]
+                for gp in goleadores_palpites:
+                    if gp["jogo_id"] in {m.match_id for m in brazil_matches}:
+                        pk = normalize_participant_key(gp["participante_nome"])
+                        real_res = goleadores_resultados.get(gp["jogo_id"])
+                        if real_res:
+                            from src.bolao.live_scoring import calcular_pontos_goleadores
+                            pts = calcular_pontos_goleadores(
+                                gp.get("goleadores", []),
+                                gp.get("assistentes", []),
+                                real_res.get("goleadores_reais", []),
+                                real_res.get("assistentes_reais", []),
+                                ctx.config
+                            )["total"]
+                            can_points[pk] = can_points.get(pk, 0) + pts
+                if can_points:
+                    leader_canarinho = max(can_points, key=can_points.get)
+        except Exception:
+            pass
+            
+        if leader_canarinho and pkey == leader_canarinho:
+            badges_list.append(Badge("🥈", "Canarinho de Prata", "Ficou em 1º no Ranking Canarinho!").to_dict())
+            
         achievements[pkey] = badges_list
         
     return achievements

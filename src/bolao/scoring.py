@@ -167,8 +167,73 @@ def score_prediction(pred: Prediction, official: Prediction, config: ScoreConfig
             "acertou": champion_hit,
             "pontos": points,
         })
-        
         sb.total = sb.group_points + sb.knockout_points + sb.champion_points
+        
+        # Módulo Brasil classic points integration
+        from src.bolao.storage import load_brasil_palpites_classicos, load_config
+        from src.bolao.live_scoring import calcular_pontos_artilheiro_classico
+        raw_config = load_config()
+        classic_brasil_guesses = load_brasil_palpites_classicos()
+        my_brasil_guess = next((g for g in classic_brasil_guesses if g["participante_nome"].lower() == pred.participant.lower()), None)
+        if my_brasil_guess:
+            art_br_reais = [x.strip() for x in raw_config.get("artilheiros_reais_brasil", "").split(",") if x.strip()]
+            art_ge_reais = [x.strip() for x in raw_config.get("artilheiros_reais_geral", "").split(",") if x.strip()]
+            
+            from src.bolao.storage import load_brasil_resultados_goleadores
+            resultados_g = load_brasil_resultados_goleadores()
+            gol_de_ouro_real = None
+            for row in resultados_g.values():
+                if row.get("primeiro_gol_copa"):
+                    gol_de_ouro_real = row["primeiro_gol_copa"]
+                    break
+            
+            pred_art_br = my_brasil_guess.get("artilheiro_brasil_copa")
+            pred_art_ge = my_brasil_guess.get("artilheiro_geral_copa")
+            pred_gold = my_brasil_guess.get("gol_de_ouro")
+            
+            if pred_art_ge and "(" in pred_art_ge:
+                pred_art_ge = pred_art_ge.split("(")[0].strip()
+            art_ge_reais_clean = [x.split("(")[0].strip() for x in art_ge_reais]
+            
+            pts_art_br = calcular_pontos_artilheiro_classico(pred_art_br, art_br_reais, raw_config, is_geral=False)
+            pts_art_ge = calcular_pontos_artilheiro_classico(pred_art_ge, art_ge_reais_clean, raw_config, is_geral=True)
+            
+            pts_gold = 0
+            if pred_gold and gol_de_ouro_real and gol_de_ouro_real.lower() != "contra" and gol_de_ouro_real.lower() != "anulado":
+                from .utils import norm_team
+                if norm_team(pred_gold) == norm_team(gol_de_ouro_real):
+                    pts_gold = int(raw_config.get("pts_gol_de_ouro", 10))
+            
+            sb.total += pts_art_br + pts_art_ge + pts_gold
+            
+            sb.details.append({
+                "seção": "Módulo Brasil",
+                "fase": "Extras",
+                "item": "Artilheiro Brasil",
+                "palpite": pred_art_br,
+                "oficial": ", ".join(art_br_reais) if art_br_reais else "A definir",
+                "acertou": pts_art_br > 0,
+                "pontos": pts_art_br
+            })
+            sb.details.append({
+                "seção": "Módulo Brasil",
+                "fase": "Extras",
+                "item": "Artilheiro Geral",
+                "palpite": pred_art_ge,
+                "oficial": ", ".join(art_ge_reais) if art_ge_reais else "A definir",
+                "acertou": pts_art_ge > 0,
+                "pontos": pts_art_ge
+            })
+            sb.details.append({
+                "seção": "Módulo Brasil",
+                "fase": "Extras",
+                "item": "Gol de Ouro",
+                "palpite": pred_gold,
+                "oficial": gol_de_ouro_real or "A definir",
+                "acertou": pts_gold > 0,
+                "pontos": pts_gold
+            })
+            
         sb.tie_breaker = f"Mata-mata {sb.knockout_points} pts · campeã {'sim' if sb.champion_hit else 'não'}"
         return sb
 
@@ -272,6 +337,72 @@ def score_prediction(pred: Prediction, official: Prediction, config: ScoreConfig
         })
 
         sb.total = sb.group_points + sb.best_third_points + sb.knockout_points + sb.champion_points
+        
+        # Módulo Brasil classic points integration
+        from src.bolao.storage import load_brasil_palpites_classicos, load_config
+        from src.bolao.live_scoring import calcular_pontos_artilheiro_classico
+        raw_config = load_config()
+        classic_brasil_guesses = load_brasil_palpites_classicos()
+        my_brasil_guess = next((g for g in classic_brasil_guesses if g["participante_nome"].lower() == pred.participant.lower()), None)
+        if my_brasil_guess:
+            art_br_reais = [x.strip() for x in raw_config.get("artilheiros_reais_brasil", "").split(",") if x.strip()]
+            art_ge_reais = [x.strip() for x in raw_config.get("artilheiros_reais_geral", "").split(",") if x.strip()]
+            
+            from src.bolao.storage import load_brasil_resultados_goleadores
+            resultados_g = load_brasil_resultados_goleadores()
+            gol_de_ouro_real = None
+            for row in resultados_g.values():
+                if row.get("primeiro_gol_copa"):
+                    gol_de_ouro_real = row["primeiro_gol_copa"]
+                    break
+            
+            pred_art_br = my_brasil_guess.get("artilheiro_brasil_copa")
+            pred_art_ge = my_brasil_guess.get("artilheiro_geral_copa")
+            pred_gold = my_brasil_guess.get("gol_de_ouro")
+            
+            if pred_art_ge and "(" in pred_art_ge:
+                pred_art_ge = pred_art_ge.split("(")[0].strip()
+            art_ge_reais_clean = [x.split("(")[0].strip() for x in art_ge_reais]
+            
+            pts_art_br = calcular_pontos_artilheiro_classico(pred_art_br, art_br_reais, raw_config, is_geral=False)
+            pts_art_ge = calcular_pontos_artilheiro_classico(pred_art_ge, art_ge_reais_clean, raw_config, is_geral=True)
+            
+            pts_gold = 0
+            if pred_gold and gol_de_ouro_real and gol_de_ouro_real.lower() != "contra" and gol_de_ouro_real.lower() != "anulado":
+                from .utils import norm_team
+                if norm_team(pred_gold) == norm_team(gol_de_ouro_real):
+                    pts_gold = int(raw_config.get("pts_gol_de_ouro", 10))
+            
+            sb.total += pts_art_br + pts_art_ge + pts_gold
+            
+            sb.details.append({
+                "seção": "Módulo Brasil",
+                "fase": "Extras",
+                "item": "Artilheiro Brasil",
+                "palpite": pred_art_br,
+                "oficial": ", ".join(art_br_reais) if art_br_reais else "A definir",
+                "acertou": pts_art_br > 0,
+                "pontos": pts_art_br
+            })
+            sb.details.append({
+                "seção": "Módulo Brasil",
+                "fase": "Extras",
+                "item": "Artilheiro Geral",
+                "palpite": pred_art_ge,
+                "oficial": ", ".join(art_ge_reais) if art_ge_reais else "A definir",
+                "acertou": pts_art_ge > 0,
+                "pontos": pts_art_ge
+            })
+            sb.details.append({
+                "seção": "Módulo Brasil",
+                "fase": "Extras",
+                "item": "Gol de Ouro",
+                "palpite": pred_gold,
+                "oficial": gol_de_ouro_real or "A definir",
+                "acertou": pts_gold > 0,
+                "pontos": pts_gold
+            })
+            
         sb.tie_breaker = f"Mata-mata {sb.knockout_points} pts · campeã {'sim' if sb.champion_hit else 'não'}"
         return sb
 

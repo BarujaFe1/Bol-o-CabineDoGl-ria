@@ -5,9 +5,41 @@ import hashlib
 import json
 import re
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+
+
+def render_countdown(horario_jogo: datetime, minutos_antes: int) -> str:
+    br_tz = timezone(timedelta(hours=-3))
+    agora = datetime.now(br_tz)
+    # Ensure horario_jogo is timezone-aware for comparison
+    if horario_jogo.tzinfo is None:
+        horario_jogo = horario_jogo.replace(tzinfo=br_tz)
+    else:
+        horario_jogo = horario_jogo.astimezone(br_tz)
+        
+    fechamento = horario_jogo - timedelta(minutes=minutos_antes)
+    delta = fechamento - agora
+    segundos_restantes = int(delta.total_seconds())
+    if segundos_restantes <= 0:
+        return "🔒 FECHADO"
+    
+    dias, resto = divmod(segundos_restantes, 86400)
+    h, resto = divmod(resto, 3600)
+    m, s = divmod(resto, 60)
+    if dias > 0:
+        texto = f"{dias}d {h:02d}h{m:02d}m"
+    else:
+        texto = f"{h:02d}:{m:02d}:{s:02d}"
+        
+    if segundos_restantes < 1800:
+        emoji = "🔴"
+    elif segundos_restantes < 3600:
+        emoji = "🟡"
+    else:
+        emoji = "🟢"
+    return f"{emoji} Fecha em {texto}"
 
 
 def now_iso() -> str:
@@ -49,10 +81,34 @@ def read_json(path: Path, default: Any = None) -> Any:
 
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = path.with_suffix(".tmp")
-    tmp_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    import uuid
     import os
-    os.replace(str(tmp_path), str(path))
+    import time
+    tmp_path = path.with_name(f"{path.name}.{uuid.uuid4().hex}.tmp")
+    try:
+        tmp_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        for i in range(5):
+            try:
+                os.replace(str(tmp_path), str(path))
+                return
+            except PermissionError:
+                time.sleep(0.1)
+            except FileNotFoundError:
+                break
+    except Exception:
+        pass
+    
+    # Fallback to direct write if anything failed
+    try:
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+    finally:
+        try:
+            if tmp_path.exists():
+                tmp_path.unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 def normalize_participant_key(name: str) -> str:
@@ -128,3 +184,40 @@ def is_debug_mode() -> bool:
     except Exception:
         pass
     return os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
+
+
+def buscar_jogador_copa(query: str, limite: int = 8) -> list[dict]:
+    from .constants import JOGADORES_COPA_2026
+    resultados = []
+    q = strip_accents(query).lower().strip()
+    if not q:
+        return []
+    for selecao, jogadores in JOGADORES_COPA_2026.items():
+        for nome in jogadores:
+            nome_clean = strip_accents(nome).lower()
+            if q in nome_clean:
+                resultados.append({"nome": nome, "selecao": selecao})
+    # Prioritize matches that start with the query
+    resultados.sort(key=lambda x: (not strip_accents(x["nome"]).lower().startswith(q), x["nome"]))
+    return resultados[:limite]
+
+
+def avatar_url(nome: str) -> str:
+    import urllib.parse
+    seed = urllib.parse.quote(nome.strip())
+    return (f"https://api.dicebear.com/7.x/initials/svg"
+            f"?seed={seed}&backgroundColor=1a472a&textColor=ffd700"
+            f"&fontSize=38&fontWeight=700")
+
+
+def foto_jogador(camisa: int, nome: str) -> str:
+    import os
+    import urllib.parse
+    caminho_local = f"assets/players/camisa_{camisa:02d}.jpg"
+    if os.path.exists(caminho_local):
+        return caminho_local
+    # Fallback: avatar DiceBear com iniciais, cores do bolão
+    seed = urllib.parse.quote(nome.strip())
+    return (f"https://api.dicebear.com/7.x/initials/svg"
+            f"?seed={seed}&backgroundColor=1a472a&textColor=ffd700"
+            f"&fontSize=38&fontWeight=700")

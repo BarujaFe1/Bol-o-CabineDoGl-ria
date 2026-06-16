@@ -59,11 +59,13 @@ from src.bolao.ui_components import (
     render_page_header,
     render_empty_state,
     render_badge,
+    render_player_single_select,
     render_theme_selector,
 )
 from src.bolao.utils import decode_uploaded_file, norm_team, now_iso, stable_id
 from src.bolao.validation import validate_prediction, has_blocking_errors
 from src.bolao.simulator_engine import validate_prediction_complete
+from src.bolao.ui_artilheiro import render_page_artilheiro
 from src.bolao.ui_simulator import render_simulator, init_simulator_state, get_guess_completion_state
 from src.bolao.migrations import migrate_existing_submissions_to_classic_schema
 
@@ -78,7 +80,8 @@ from src.bolao.ui_social_pages import (
     render_duelo_de_palpites,
     render_regras_do_bolao,
 )
-from src.bolao.ui_admin_matches import admin_matches_agenda
+from src.bolao.ui_admin_matches import admin_matches_agenda, admin_palpites_jogo_a_jogo
+from src.bolao.ui_admin_brasil import admin_selecao_brasileira
 from src.bolao.storage import load_archived_participants
 
 
@@ -393,6 +396,82 @@ def public_home() -> None:
             st.session_state["match_center_selected_match_id"] = recent_blocked.match_id
             navigate_to("Match Center")
 
+    # N2 - Resumo "O que rolou hoje"
+    from datetime import timezone, timedelta
+    tz_br = timezone(timedelta(hours=-3))
+    now_br = datetime.datetime.now(tz_br)
+    
+    today_str = now_br.strftime("%Y-%m-%d")
+    jogos_hoje = [m for m in matches if m.starts_at and m.starts_at.startswith(today_str)]
+    jogos_concluidos_hoje = [m for m in jogos_hoje if m.status == "result_approved"]
+    
+    if now_br.hour >= 23 and jogos_concluidos_hoje:
+        st.markdown("<br>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown(
+                """
+                <div style="border-left: 5px solid var(--gold); padding-left: 15px;">
+                    <h3 style="margin: 0; color: var(--gold);">🌙 O que rolou hoje</h3>
+                    <p style="color: var(--muted); font-size: 14px; margin: 4px 0 15px 0;">Resumo das partidas concluídas na data de hoje e as principais zebras do bolão.</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            
+            for m in jogos_concluidos_hoje:
+                st.markdown(f"⚽ **{m.home_team} {m.official_home_goals} × {m.official_away_goals} {m.away_team}** ({m.round_label})")
+                
+            from src.bolao.storage import load_live_predictions
+            live_preds_for_summary = load_live_predictions()
+            
+            def calcular_zebra_do_dia(jogos: list, predictions: list) -> dict | None:
+                pior_acerto = None
+                for jogo in jogos:
+                    palpites_jogo = [p for p in predictions if p.match_id == jogo.match_id]
+                    if not palpites_jogo:
+                        continue
+                    
+                    acertos = 0
+                    for p in palpites_jogo:
+                        real_home, real_away = jogo.official_home_goals, jogo.official_away_goals
+                        pred_home, pred_away = p.predicted_home_goals, p.predicted_away_goals
+                        
+                        real_outcome = "home" if real_home > real_away else ("away" if real_home < real_away else "draw")
+                        pred_outcome = "home" if pred_home > pred_away else ("away" if pred_home < pred_away else "draw")
+                        
+                        if real_outcome == pred_outcome:
+                            acertos += 1
+                            
+                    pct_acerto = acertos / len(palpites_jogo)
+                    if pior_acerto is None or pct_acerto < pior_acerto["pct"]:
+                        pior_acerto = {"jogo": jogo, "pct": pct_acerto, "total_palpites": len(palpites_jogo), "acertos": acertos}
+                return pior_acerto
+
+            zebra = calcular_zebra_do_dia(jogos_concluidos_hoje, live_preds_for_summary)
+            
+            texto_wa = f"🌙 *BOLÃO DA CABINE DO GLÓRIA - Resumo do Dia*\n\n"
+            for m in jogos_concluidos_hoje:
+                texto_wa += f"👉 {m.home_team} {m.official_home_goals} x {m.official_away_goals} {m.away_team}\n"
+                
+            if zebra:
+                pct_val = zebra['pct'] * 100
+                st.markdown(
+                    f"""
+                    <div style="background-color: var(--gold-bg); padding: 12px; border-radius: 8px; margin-top: 15px; border: 1px solid var(--gold); color: var(--ink);">
+                        🦓 <b>Zebra do dia:</b> {zebra['jogo'].home_team} × {zebra['jogo'].away_team}
+                        (apenas {pct_val:.0f}% do grupo acertou o vencedor!)
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+                texto_wa += f"\n🦓 *Zebra do Dia:* {zebra['jogo'].home_team} x {zebra['jogo'].away_team} (apenas {pct_val:.0f}% acertaram o vencedor!)\n"
+            
+            texto_wa += f"\n👉 Acompanhe o ranking completo em: https://bolaodogloria.streamlit.app/"
+            
+            import urllib.parse
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            st.link_button("📲 Compartilhar Resumo do Dia no WhatsApp", f"https://wa.me/?text={urllib.parse.quote(texto_wa)}", key="btn_share_daily_summary", width="stretch")
+
     # CARDS E SEÇÕES DO BOLÃO
     st.markdown("### ⚽ Atividades e Modos do Bolão")
     
@@ -416,6 +495,26 @@ def public_home() -> None:
             if config.get("live_mode_enabled", True):
                 if st.button("⚡ Ir para Jogos de Hoje", key="btn_home_live_guess_new", type="primary", width="stretch"):
                     navigate_to("Jogos de Hoje")
+                    
+        # C2 - Módulo Brasil Card
+        with st.container(border=True):
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #1a472a, #0d2818);
+                         border-radius: 12px; padding: 20px; border: 1px solid #ffd700; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(26,71,42,0.3);">
+                <div style="font-size: 32px; margin-bottom: 8px;">🇧🇷</div>
+                <h3 style="margin: 0 0 8px 0; color: #ffd700;">Módulo Brasil</h3>
+                <p style="color: #e0e0e0; font-size: 14px; margin-bottom: 12px; line-height: 1.4;">
+                    Escale os goleadores e assistentes da Seleção, aposte no
+                    artilheiro da Copa e acompanhe o Ranking Canarinho!
+                </p>
+                <div style="margin-bottom: 12px;">
+                    <span style="font-weight: bold; font-size: 13px; color: white;">Status:</span>
+                    <span style="background-color: #22c55e; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">🟢 ABERTO</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("⚽ Ir para Módulo Brasil", key="home_modulo_brasil", width="stretch"):
+                navigate_to("🇧🇷 Jogos do Brasil")
                     
         with st.container(border=True):
             st.markdown(
@@ -507,238 +606,7 @@ def public_home() -> None:
             navigate_to("Admin Login")
 
 
-def public_submission() -> None:
-    if st.button("⬅️ Voltar ao Início", key="back_to_home_submission", width="stretch"):
-        navigate_to("Início")
-    if st.session_state.get("last_submitted_prediction"):
-        pred = st.session_state["last_submitted_prediction"]
-        champion = pred.champion or "Indefinido"
-        
-        finalists = []
-        ko_final = pred.knockout.get("final", [])
-        if ko_final and len(ko_final) > 0:
-            if ko_final[0].a:
-                finalists.append(ko_final[0].a)
-            if ko_final[0].b:
-                finalists.append(ko_final[0].b)
-        
-        finalist_1 = finalists[0] if len(finalists) > 0 else "Indefinido"
-        finalist_2 = finalists[1] if len(finalists) > 1 else "Indefinido"
-        
-        st.markdown(
-            f"""
-            <div class="success-card" style="margin-bottom: 25px; padding: 25px; border-radius: 12px; background-color: var(--panel); border: 2px solid var(--gold); color: var(--ink);">
-                <div style="font-size: 48px; text-align: center;">🏆</div>
-                <h3 style="text-align: center; color: var(--ink); margin-top: 10px;">Palpite Enviado com Sucesso!</h3>
-                <p style="text-align: center; color: var(--muted);">Seu palpite foi registrado no sistema. O ranking será atualizado quando a organização aprovar os resultados oficiais.</p>
-                <hr style="border: 0; border-top: 1px solid var(--line); margin: 20px 0;">
-                <div style="text-align: center; margin-bottom: 15px;">
-                    <span style="font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Código de Confirmação</span>
-                    <h2 style="color: var(--gold); margin: 5px 0; font-family: monospace; letter-spacing: 2px; font-size: 28px;">{pred.submission_id}</h2>
-                </div>
-                <div style="display: flex; justify-content: space-around; background: var(--bg); padding: 15px; border-radius: 8px; border: 1px dashed var(--gold); margin-bottom: 20px; color: var(--ink);">
-                    <div style="text-align: center; flex: 1;">
-                        <span style="font-size: 12px; color: var(--muted);">Campeão</span>
-                        <div style="font-weight: bold; color: var(--ink);">{champion}</div>
-                    </div>
-                    <div style="text-align: center; border-left: 1px solid var(--line); padding-left: 20px; flex: 1;">
-                        <span style="font-size: 12px; color: var(--muted);">Grande Final</span>
-                        <div style="font-weight: bold; color: var(--ink);">{finalist_1} x {finalist_2}</div>
-                    </div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        
-        share_text = f"🏆 Meu palpite no Bolão da Cabine do Glória está feito!\nCampeão: {champion}\nFinal: {finalist_1} x {finalist_2}\nCódigo: {pred.submission_id}\nAcompanhe o ranking no app."
-        
-        st.markdown("#### 📱 Compartilhar no WhatsApp")
-        st.text_area("Texto de compartilhamento", value=share_text, height=120, key="share_text_area", disabled=True)
-        
-        import urllib.parse
-        encoded_text = urllib.parse.quote(share_text)
-        whatsapp_url = f"https://api.whatsapp.com/send?text={encoded_text}"
-        
-        col_sh1, col_sh2, col_sh3 = st.columns(3)
-        with col_sh1:
-            st.link_button("💬 Enviar no WhatsApp", whatsapp_url, width="stretch", type="primary")
-        with col_sh2:
-            st.code(share_text, language="text", line_numbers=False)
-            
-        with col_sh3:
-            if st.button("📊 Ir para o Ranking", width="stretch"):
-                st.session_state.pop("last_submitted_prediction", None)
-                navigate_to("Ranking")
-                
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🆕 Fazer outro palpite", width="stretch"):
-            st.session_state.pop("last_submitted_prediction", None)
-            st.rerun()
-        return
 
-    hero("Palpite Clássico", "Fluxo do participante", "Monte seu palpite completo da Copa do Mundo 2026 pelo simulador interativo.")
-
-    st.markdown("### 1. Identificação")
-    name = st.text_input("Seu nome no bolão", placeholder="Ex.: César", key="public_sim_name")
-    
-    if not name.strip():
-        st.info("Informe seu nome para começar a simulação.")
-        st.session_state.pop("sim_prediction", None)
-        st.session_state.pop("sim_public", None)
-        st.session_state.pop("edit_mode", None)
-        st.session_state.pop("show_delete_confirm", None)
-        return
-
-    name_clean = name.strip()
-    ctx = load_app_data_cached()
-    config = ctx.config
-    is_locked = config.get("is_bolao_locked", False)
-    
-    # Load submissions to find match
-    submissions = ctx.submissions
-    existing = [p for p in submissions if p.participant.strip().lower() == name_clean.lower()]
-    
-    # If the user hasn't selected an action yet, show the options screen
-    if existing and "edit_mode" not in st.session_state:
-        existing_pred = existing[0]
-        
-        if is_locked:
-            st.warning(f"🔒 Os palpites estão bloqueados. Existe um palpite cadastrado para **{existing_pred.participant}**, mas novas submissões ou edições estão desabilitadas.")
-            if st.button(f"🔍 Visualizar o palpite de {existing_pred.participant}", width="stretch"):
-                st.session_state["sim_prediction"] = existing_pred
-                init_simulator_state(existing_pred, force_reset=True)
-                st.session_state["edit_mode"] = "view"
-                st.rerun()
-        else:
-            st.info(f"💡 Encontramos um palpite já enviado para **{existing_pred.participant}**.")
-            col_btn1, col_btn2, col_btn3 = st.columns(3)
-            with col_btn1:
-                if st.button("✏️ Editar palpite existente", type="primary", width="stretch"):
-                    st.session_state["sim_prediction"] = existing_pred
-                    init_simulator_state(existing_pred, force_reset=True)
-                    st.session_state["edit_mode"] = "edit"
-                    st.rerun()
-            with col_btn2:
-                if st.button("❌ Excluir meu palpite", width="stretch"):
-                    st.session_state["show_delete_confirm"] = True
-                    st.rerun()
-            with col_btn3:
-                if st.button("🆕 Iniciar novo do zero", width="stretch"):
-                    new_pred = Prediction(
-                        participant=existing_pred.participant,
-                        submission_id=existing_pred.submission_id,
-                        submitted_at=existing_pred.submitted_at,
-                        status="rascunho"
-                    )
-                    st.session_state["sim_prediction"] = new_pred
-                    init_simulator_state(new_pred, force_reset=True)
-                    st.session_state["edit_mode"] = "edit"
-                    st.rerun()
-                    
-        if st.session_state.get("show_delete_confirm", False):
-            st.markdown("---")
-            st.warning(f"⚠️ Tem certeza que deseja excluir permanentemente o palpite de **{existing_pred.participant}**? Esta ação não pode ser desfeita.")
-            c_del1, c_del2 = st.columns(2)
-            with c_del1:
-                if st.button("Sim, excluir permanentemente", type="primary", width="stretch"):
-                    delete_submission(existing_pred.submission_id)
-                    st.success("Seu palpite foi excluído do sistema.")
-                    st.session_state.pop("sim_prediction", None)
-                    st.session_state.pop("sim_public", None)
-                    st.session_state.pop("edit_mode", None)
-                    st.session_state.pop("show_delete_confirm", None)
-                    st.balloons()
-                    st.rerun()
-            with c_del2:
-                if st.button("Cancelar", width="stretch"):
-                    st.session_state.pop("show_delete_confirm", None)
-                    st.rerun()
-        return
-
-    if not existing and is_locked:
-        st.error("🔒 Os palpites estão encerrados pelo administrador. Não é possível enviar novos palpites.")
-        return
-
-    # If new user and not initialized yet
-    if "sim_prediction" not in st.session_state or st.session_state["sim_prediction"].participant.lower() != name_clean.lower():
-        new_pred = Prediction(
-            participant=name_clean,
-            submission_id=stable_id(name_clean, now_iso()),
-            submitted_at=now_iso(),
-            status="rascunho"
-        )
-        st.session_state["sim_prediction"] = new_pred
-        init_simulator_state(new_pred, force_reset=True)
-        st.session_state["edit_mode"] = "new"
-
-def render_player_single_select(key_prefix: str, squad: list, selected_name: str | None, disabled: bool = False) -> str | None:
-    from src.bolao.utils import avatar_url
-    
-    filter_key = f"{key_prefix}_active_filter"
-    if filter_key not in st.session_state:
-        st.session_state[filter_key] = "Todos"
-        
-    cols_filt = st.columns(5)
-    positions_list = ["Todos", "GOL", "DEF", "MEI", "ATA"]
-    emojis_pos = {"Todos": "🌍", "GOL": "🧤", "DEF": "🛡️", "MEI": "⚙️", "ATA": "⚡"}
-    
-    for c_idx, pos in enumerate(positions_list):
-        with cols_filt[c_idx]:
-            if st.button(f"{emojis_pos[pos]} {pos}", key=f"btn_filt_{pos}_{key_prefix}", type="primary" if st.session_state[filter_key] == pos else "secondary", width="stretch"):
-                st.session_state[filter_key] = pos
-                st.rerun()
-                
-    p_filtered = [p for p in squad if st.session_state[filter_key] == "Todos" or p["posicao"] == st.session_state[filter_key]]
-    
-    st.markdown('<div class="player-grid-container">', unsafe_allow_html=True)
-    p_cols = st.columns(4)
-    choice = selected_name
-    
-    st.markdown(
-        """
-        <style>
-        @media (max-width: 640px) {
-          .player-grid-container [data-testid="stHorizontalBlock"] {
-            display: grid !important;
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 10px !important;
-          }
-          .player-grid-container [data-testid="stHorizontalBlock"] > div {
-            width: 100% !important;
-          }
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-    
-    for p_idx, p in enumerate(p_filtered):
-        p_col = p_cols[p_idx % 4]
-        with p_col:
-            is_selected = (choice == p["nome"])
-            p_avatar = avatar_url(p["nome"])
-            border_color = "var(--green)" if is_selected else "var(--line)"
-            bg_color = "var(--panel)" if not is_selected else "var(--bg-soft)"
-            
-            st.markdown(
-                f"""
-                <div style="border: 2px solid {border_color}; border-radius: 12px; padding: 8px; text-align: center; background-color: {bg_color}; position: relative; margin-bottom: 10px;">
-                    <span style="position: absolute; top: 4px; right: 4px; background-color: var(--gold); color: black; font-weight: bold; font-size: 10px; padding: 2px 5px; border-radius: 4px;">#{p['camisa']}</span>
-                    <img src="{p_avatar}" style="width: 44px; height: 44px; border-radius: 50%; margin-bottom: 4px;" />
-                    <div style="font-weight: bold; font-size: 11px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{p['nome']}</div>
-                    <div style="font-size: 9px; color: var(--muted);">{p['posicao']}</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-            
-            if not disabled:
-                if st.button("Selecionar", key=f"btn_sel_{p['nome']}_{key_prefix}", type="primary" if is_selected else "secondary", width="stretch"):
-                    choice = p["nome"]
-                    st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
-    return choice
 
 
 def public_submission() -> None:
@@ -1160,33 +1028,44 @@ def admin_dashboard() -> None:
 
     st.markdown("---")
     st.markdown("### 🎛️ Painel de Controle (Navegação Rápida)")
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3 = st.columns(3)
     with c1:
         if st.button("👥 Participantes", key="nav_admin_part", width="stretch"):
             navigate_to("Participantes")
     with c2:
+        if st.button("🏟️ Palpites Jogo a Jogo", key="nav_admin_palpites_live", width="stretch"):
+            navigate_to("Palpites Jogo a Jogo")
+    with c3:
         if st.button("📅 Jogos e Agenda", key="nav_admin_matches", width="stretch"):
             navigate_to("Jogos e Agenda")
-    with c3:
+
+    c4, c5, c6 = st.columns(3)
+    with c4:
         if st.button("⚽ Resultados Oficiais", key="nav_admin_results", width="stretch"):
             navigate_to("Resultados Oficiais")
-    with c4:
+    with c5:
         if st.button("🏆 Ranking", key="nav_admin_ranking", width="stretch"):
             navigate_to("Ranking")
-
-    c5, c6, c7, c8 = st.columns(4)
-    with c5:
+    with c6:
         if st.button("📦 Exportações", key="nav_admin_exports", width="stretch"):
             navigate_to("Exportações")
-    with c6:
+
+    c7, c8, c9 = st.columns(3)
+    with c7:
         if st.button("⚙️ Configurações", key="nav_admin_settings", width="stretch"):
             navigate_to("Configurações")
-    with c7:
+    with c8:
         if st.button("🛡️ Auditoria", key="nav_admin_auditoria", width="stretch"):
             navigate_to("Auditoria")
-    with c8:
+    with c9:
         if st.button("📖 Ajuda", key="nav_admin_help", width="stretch"):
             navigate_to("Ajuda")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    c10, c11, c12 = st.columns(3)
+    with c10:
+        if st.button("🇧🇷 Seleção Brasileira", key="nav_admin_brasil", width="stretch"):
+            navigate_to("🇧🇷 Seleção Brasileira")
 
     st.markdown("---")
     st.markdown("### 📋 Histórico de Auditoria (Últimos Eventos)")
@@ -1342,7 +1221,7 @@ def admin_participants() -> None:
                                      selected_lp.scoring_breakdown = res["breakdown"]
                              else:
                                  from src.bolao.models import LivePrediction
-                                 new_lp_id = stable_id(selected_name + str(selected_m.match_id), now_iso())
+                                 new_lp_id = f"{user_key}_{selected_m.match_id}"
     
                                  new_lp = LivePrediction(
                                      id=new_lp_id,
@@ -1744,7 +1623,6 @@ def admin_exports() -> None:
                 word_confirm = st.text_input("Digite RESTAURAR para confirmar a ação:", key="word_restore_confirm")
                 if st.button("Executar Restauração de Dados", type="primary", key="btn_run_restore_backup", disabled=word_confirm != "RESTAURAR", width="stretch"):
                     try:
-                        import json
                         backup_data = json.load(uploaded_backup)
                         from src.bolao.storage import import_all_state
                         import_all_state(backup_data)
@@ -2178,14 +2056,49 @@ def admin_help() -> None:
 def admin_auditoria() -> None:
     if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_auditoria", width="stretch"):
         navigate_to("Dashboard")
-    render_page_header("Admin", "Histórico de Auditoria", "Eventos de auditoria gravados no bolão.", "🛡️")
-    events = load_events(100)
-    if events:
-        for ev in events:
-            ts = ev["timestamp"].replace("T", " ")[:19]
-            st.markdown(f"⏱️ `{ts}` — {ev['message']}")
-    else:
-        st.caption("Nenhum evento registrado ainda.")
+    render_page_header("Admin", "Auditoria e Moderação", "Histórico de eventos e moderação de comentários.", "🛡️")
+    
+    tab_eventos, tab_comentarios = st.tabs(["📋 Eventos de Auditoria", "💬 Moderação de Comentários"])
+    
+    with tab_eventos:
+        events = load_events(100)
+        if events:
+            for ev in events:
+                ts = ev["timestamp"].replace("T", " ")[:19]
+                st.markdown(f"⏱️ `{ts}` — {ev['message']}")
+        else:
+            st.caption("Nenhum evento registrado ainda.")
+            
+    with tab_comentarios:
+        st.markdown("### 💬 Comentários Recentes no Mural")
+        st.caption("Aqui você pode visualizar e excluir provocações inadequadas do mural de comentários.")
+        from src.bolao.storage import load_all_comentarios, delete_comentario_jogo
+        comments = load_all_comentarios()
+        
+        # Filtro para mostrar deletados ou não
+        show_deleted = st.checkbox("Mostrar comentários já excluídos", value=False)
+        
+        active_comments = [c for c in comments if show_deleted or not c.get("deletado", False)]
+        
+        if not active_comments:
+            st.caption("Nenhum comentário para exibir.")
+        else:
+            for c in active_comments:
+                is_del = c.get("deletado", False)
+                del_badge = " [EXCLUÍDO]" if is_del else ""
+                
+                with st.container(border=True):
+                    col_det, col_btn = st.columns([8, 2])
+                    with col_det:
+                        st.markdown(f"**Jogo ID:** `{c['jogo_id']}` · **Participante:** {c['participante_nome']} {del_badge}")
+                        st.markdown(f"*{c['texto']}*")
+                        st.caption(f"Enviado em: {c['created_at']}")
+                    with col_btn:
+                        if not is_del:
+                            if st.button("🗑️ Deletar", key=f"mod_del_{c['id']}", type="secondary", width="stretch"):
+                                delete_comentario_jogo(c["id"])
+                                st.success("Comentário excluído!")
+                                st.rerun()
 
 
 def render_login_screen() -> None:
@@ -2486,7 +2399,7 @@ def main() -> None:
 
         if st.session_state.get("admin_authenticated", False) and st.session_state.get("admin_mode", False):
             # Admin Menu
-            admin_options = ["Dashboard", "Participantes", "Jogos e Agenda", "Resultados Oficiais", "Ranking", "Exportações", "Configurações", "Auditoria", "Ajuda"]
+            admin_options = ["Dashboard", "Participantes", "Palpites Jogo a Jogo", "Jogos e Agenda", "Resultados Oficiais", "Ranking", "Exportações", "Configurações", "Auditoria", "Ajuda"]
             current_page = st.session_state["nav_page"]
             if current_page not in admin_options:
                 current_page = "Dashboard"
@@ -2514,7 +2427,7 @@ def main() -> None:
             
             GROUPS = {
                 "🏠 Início & Regras": ["Início", "Regras"],
-                "⚽ Enviar Palpites": ["Palpite Clássico", "Jogos de Hoje", "🇧🇷 Jogos do Brasil", "Match Center"],
+                "⚽ Enviar Palpites": ["Jogos de Hoje", "🇧🇷 Jogos do Brasil", "Palpite Clássico", "⚽ Artilheiro", "Match Center"],
                 "🏆 Rankings & Estatísticas": ["Ranking", "Minha Cartela"],
                 "💬 Social & Comunidade": ["Central do Bolão", "Palpites do Grupo", "Análise dos Palpites", "Duelo de Palpites"]
             }
@@ -2603,29 +2516,39 @@ def main() -> None:
         st.markdown("### 🔒 Área Administrativa")
         st.caption("Esta área é protegida. Informe a senha de acesso.")
         
-        password = st.text_input("Senha do admin", type="password", key="admin_password_input_page")
-        if password:
-            try:
-                admin_pwd = st.secrets.get("ADMIN_PASSWORD")
-            except Exception:
-                admin_pwd = None
-            
-            from src.bolao.utils import is_debug_mode
-            import os
-            is_dev = is_debug_mode() or os.getenv("APP_ENV") == "development"
-            
-            allowed = False
-            if is_dev and password == "brasilhexa":
-                allowed = True
-            elif admin_pwd and password == admin_pwd:
-                allowed = True
-            
-            if allowed:
-                st.session_state["admin_authenticated"] = True
-                st.success("Login efetuado com sucesso!")
-                navigate_to("Dashboard", admin_mode=True)
-            else:
-                st.error("Senha incorreta.")
+        if "admin_login_attempts" not in st.session_state:
+            st.session_state["admin_login_attempts"] = 0
+        
+        max_attempts = 5
+        if st.session_state["admin_login_attempts"] >= max_attempts:
+            st.error(f"🔒 Número máximo de tentativas ({max_attempts}) excedido. Aguarde e tente novamente mais tarde.")
+        else:
+            password = st.text_input("Senha do admin", type="password", key="admin_password_input_page")
+            if password:
+                try:
+                    admin_pwd = st.secrets.get("ADMIN_PASSWORD")
+                except Exception:
+                    admin_pwd = None
+                
+                from src.bolao.utils import is_debug_mode
+                import os
+                is_dev = is_debug_mode() or os.getenv("APP_ENV") == "development"
+                
+                allowed = False
+                if is_dev and password == "brasilhexa":
+                    allowed = True
+                elif admin_pwd and password == admin_pwd:
+                    allowed = True
+                
+                if allowed:
+                    st.session_state["admin_login_attempts"] = 0
+                    st.session_state["admin_authenticated"] = True
+                    st.success("Login efetuado com sucesso!")
+                    navigate_to("Dashboard", admin_mode=True)
+                else:
+                    st.session_state["admin_login_attempts"] += 1
+                    remaining = max_attempts - st.session_state["admin_login_attempts"]
+                    st.error(f"Senha incorreta. {remaining} tentativa(s) restante(s).")
                     
         st.markdown("---")
         if st.button("Voltar ao Início", width="stretch"):
@@ -2635,12 +2558,12 @@ def main() -> None:
     # Renderizar menu de navegação móvel rápida (apenas para celular)
     if st.session_state["nav_page"] != "Admin Login":
         m_opts = [
-            "Dashboard", "Participantes", "Jogos e Agenda", "Resultados Oficiais", 
+            "Dashboard", "Participantes", "Palpites Jogo a Jogo", "Jogos e Agenda", "Resultados Oficiais", 
             "Ranking", "Exportações", "Configurações", "Auditoria", "Ajuda"
         ] if show_admin else [
-            "Início", "Palpite Clássico", "Jogos de Hoje", "🇧🇷 Jogos do Brasil", "Minha Cartela", 
+            "Início", "Jogos de Hoje", "🇧🇷 Jogos do Brasil", "Palpite Clássico", "⚽ Artilheiro", "Minha Cartela", 
             "Ranking", "Central do Bolão", "Palpites do Grupo", 
-            "Análise dos Palpites", "Duelo de Palpites", "Regras"
+            "Análise dos Palpites", "Duelo de Palpites", "Match Center", "Regras"
         ]
         current_p = st.session_state["nav_page"]
         if current_p in m_opts:
@@ -2652,27 +2575,35 @@ def main() -> None:
         st.selectbox("🧭 Navegação Rápida", m_opts, key="mobile_nav_selectbox_key", on_change=on_mobile_nav_change)
 
     if show_admin:
-        page = st.session_state["nav_page"]
-        if page == "Dashboard":
-            admin_dashboard()
-        elif page == "Participantes":
-            admin_participants()
-        elif page == "Editar Palpite Clássico":
-            admin_edit_classic_page()
-        elif page == "Jogos e Agenda":
-            admin_matches_agenda()
-        elif page == "Resultados Oficiais":
-            admin_official_results()
-        elif page == "Ranking":
-            admin_ranking()
-        elif page == "Exportações":
-            admin_exports()
-        elif page == "Configurações":
-            admin_settings()
-        elif page == "Auditoria":
-            admin_auditoria()
+        if not st.session_state.get("admin_authenticated", False):
+            st.error("🔒 Acesso não autorizado. Faça login como administrador.")
+            navigate_to("Admin Login")
         else:
-            admin_help()
+            page = st.session_state["nav_page"]
+            if page == "Dashboard":
+                admin_dashboard()
+            elif page == "Participantes":
+                admin_participants()
+            elif page == "Palpites Jogo a Jogo":
+                admin_palpites_jogo_a_jogo()
+            elif page == "Editar Palpite Clássico":
+                admin_edit_classic_page()
+            elif page == "Jogos e Agenda":
+                admin_matches_agenda()
+            elif page == "Resultados Oficiais":
+                admin_official_results()
+            elif page == "Ranking":
+                admin_ranking()
+            elif page == "Exportações":
+                admin_exports()
+            elif page == "Configurações":
+                admin_settings()
+            elif page == "Auditoria":
+                admin_auditoria()
+            elif page == "🇧🇷 Seleção Brasileira":
+                admin_selecao_brasileira()
+            else:
+                admin_help()
     else:
         user_name = st.session_state.get("live_user_name")
         if user_name:
@@ -2711,6 +2642,8 @@ def main() -> None:
             render_regras_do_bolao()
         elif page == "Match Center":
             render_match_center()
+        elif page == "⚽ Artilheiro":
+            render_page_artilheiro()
 
 
 if __name__ == "__main__":

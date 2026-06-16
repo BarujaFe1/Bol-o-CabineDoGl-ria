@@ -130,6 +130,11 @@ class LiveMatch:
     source: str = "manual"  # manual, official_result, imported
     sort_order: int = 0
     bets_manual_closed: bool | None = None
+    has_custom_lock: bool = False
+    stadium: str | None = None
+    modo_relampago_ativo: bool = False
+    placar_intervalo_mandante: int | None = None
+    placar_intervalo_visitante: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -149,6 +154,11 @@ class LiveMatch:
             "source": self.source,
             "sort_order": self.sort_order,
             "bets_manual_closed": self.bets_manual_closed,
+            "has_custom_lock": self.has_custom_lock,
+            "stadium": self.stadium,
+            "modo_relampago_ativo": self.modo_relampago_ativo,
+            "placar_intervalo_mandante": self.placar_intervalo_mandante,
+            "placar_intervalo_visitante": self.placar_intervalo_visitante,
         }
 
     @classmethod
@@ -170,6 +180,11 @@ class LiveMatch:
             source=d.get("source", "manual"),
             sort_order=int(d.get("sort_order", 0)),
             bets_manual_closed=d.get("bets_manual_closed") if d.get("bets_manual_closed") is None else bool(d.get("bets_manual_closed")),
+            has_custom_lock=bool(d.get("has_custom_lock", False)),
+            stadium=d.get("stadium"),
+            modo_relampago_ativo=bool(d.get("modo_relampago_ativo", False)),
+            placar_intervalo_mandante=d.get("placar_intervalo_mandante") if d.get("placar_intervalo_mandante") is None else int(d.get("placar_intervalo_mandante")),
+            placar_intervalo_visitante=d.get("placar_intervalo_visitante") if d.get("placar_intervalo_visitante") is None else int(d.get("placar_intervalo_visitante")),
         )
 
 
@@ -190,6 +205,9 @@ class LivePrediction:
     points: int | None = None
     scoring_breakdown: list[str] = field(default_factory=list)
     schema_version: str = "live-v1"
+    predicted_second_half_home_goals: int | None = None
+    predicted_second_half_away_goals: int | None = None
+    contador_edicoes: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -208,6 +226,9 @@ class LivePrediction:
             "points": self.points,
             "scoring_breakdown": self.scoring_breakdown,
             "schema_version": self.schema_version,
+            "predicted_second_half_home_goals": self.predicted_second_half_home_goals,
+            "predicted_second_half_away_goals": self.predicted_second_half_away_goals,
+            "contador_edicoes": self.contador_edicoes,
         }
 
     @classmethod
@@ -279,6 +300,9 @@ class LivePrediction:
             points=points,
             scoring_breakdown=scoring_breakdown,
             schema_version=d.get("schema_version", "live-v1"),
+            predicted_second_half_home_goals=d.get("predicted_second_half_home_goals") if d.get("predicted_second_half_home_goals") is None else int(d.get("predicted_second_half_home_goals")),
+            predicted_second_half_away_goals=d.get("predicted_second_half_away_goals") if d.get("predicted_second_half_away_goals") is None else int(d.get("predicted_second_half_away_goals")),
+            contador_edicoes=int(d.get("contador_edicoes", 0)),
         )
 
 

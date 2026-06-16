@@ -790,6 +790,20 @@ div[data-testid="stNumberInput"] button {{
 .step-line.done {{
   background: var(--green);
 }}
+
+a[data-testid*="LinkButton"] {{
+  background-color: #1a472a !important;
+  color: #ffffff !important;
+  border: 1px solid #2d6a4f !important;
+  border-radius: 8px !important;
+}}
+a[data-testid*="LinkButton"]:hover {{
+  background-color: #2d6a4f !important;
+  color: #ffd700 !important;
+}}
+a[data-testid*="LinkButton"] p {{
+  color: inherit !important;
+}}
 </style>
     """
     return css
