@@ -329,6 +329,23 @@ def _sync_local_to_supabase(client) -> None:
                     client.table("bolao_live_predictions").upsert(live_data, on_conflict="id").execute()
             except Exception:
                 pass
+
+        # Sync registered participants
+        if REGISTERED_PARTICIPANTS_PATH.exists():
+            try:
+                parts = read_json(REGISTERED_PARTICIPANTS_PATH, [])
+                if parts:
+                    result = client.table("bolao_config").select("value").eq("key", "registered_participants").execute()
+                    existing = result.data[0].get("value", []) if result.data else []
+                    merged = list(dict.fromkeys(existing + [p for p in parts if p.lower() not in {x.lower() for x in existing}]))
+                    if len(merged) != len(existing):
+                        client.table("bolao_config").upsert({
+                            "key": "registered_participants",
+                            "value": merged,
+                            "updated_at": now_iso(),
+                        }, on_conflict="key").execute()
+            except Exception:
+                pass
     except Exception:
         pass
 
