@@ -86,7 +86,7 @@ def _ensure_supabase_tables(client) -> None:
 
 
 def _maybe_create_tables(client, missing_tables: list[str]) -> None:
-    """Try to create missing tables via direct HTTP request to Supabase."""
+    """Try to create missing tables via direct DB connection or REST API."""
     sql_lines = []
     for table in missing_tables:
         sql_lines.append(TABLE_DDL.get(table, ""))
@@ -95,6 +95,44 @@ def _maybe_create_tables(client, missing_tables: list[str]) -> None:
     if not sql.strip():
         return
 
+    # Method 1: Try direct PostgreSQL connection (via psycopg2 with DB password in secrets)
+    try:
+        import os as _os, psycopg2 as _pg
+
+        db_url = _os.environ.get("SUPABASE_DB_URL") or ""
+        db_pass = _os.environ.get("SUPABASE_DB_PASSWORD") or ""
+        if not db_pass:
+            try:
+                db_url = st.secrets.get("SUPABASE_DB_URL", "")
+                db_pass = st.secrets.get("SUPABASE_DB_PASSWORD", "")
+            except Exception:
+                pass
+
+        url = _os.environ.get("SUPABASE_URL") or st.secrets.get("SUPABASE_URL", "")
+
+        if db_pass and url:
+            project_ref = url.rstrip("/").split("//")[1].split(".")[0]
+            conn = _pg.connect(
+                host=f"db.{project_ref}.supabase.co",
+                port=5432,
+                dbname="postgres",
+                user="postgres",
+                password=db_pass,
+                connect_timeout=10,
+            )
+            conn.autocommit = True
+            cur = conn.cursor()
+            cur.execute(sql)
+            cur.close()
+            conn.close()
+            for t in missing_tables:
+                if _supabase_table_exists(client, t):
+                    st.success(f"Tabela {t} criada automaticamente no Supabase.")
+            return
+    except Exception:
+        pass
+
+    # Method 2: Try REST API (may fail - PostgREST doesn't support DDL)
     try:
         import os as _os, requests as _requests
 
@@ -107,29 +145,27 @@ def _maybe_create_tables(client, missing_tables: list[str]) -> None:
             except Exception:
                 pass
 
-        if not url or not key:
-            return
-
-        headers = {
-            "apikey": key,
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json",
-        }
-
-        resp = _requests.post(
-            f"{url.rstrip('/')}/rest/v1/rpc/",
-            json={"query": sql},
-            headers=headers,
-            timeout=15,
-        )
-        if resp.status_code == 200:
-            for t in missing_tables:
-                if _supabase_table_exists(client, t):
-                    st.success(f"Tabela {t} criada automaticamente no Supabase.")
-        else:
-            _warn_missing_tables(missing_tables)
+        if url and key:
+            headers = {
+                "apikey": key,
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/json",
+            }
+            resp = _requests.post(
+                f"{url.rstrip('/')}/rest/v1/rpc/",
+                json={"query": sql},
+                headers=headers,
+                timeout=15,
+            )
+            if resp.status_code == 200:
+                for t in missing_tables:
+                    if _supabase_table_exists(client, t):
+                        st.success(f"Tabela {t} criada automaticamente no Supabase.")
+                        return
     except Exception:
-        _warn_missing_tables(missing_tables)
+        pass
+
+    _warn_missing_tables(missing_tables)
 
 
 def _warn_missing_tables(tables: list[str]) -> None:
