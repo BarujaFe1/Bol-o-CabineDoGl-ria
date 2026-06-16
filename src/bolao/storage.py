@@ -62,119 +62,174 @@ def _supabase_table_exists(client, table: str) -> bool:
         return False
 
 
+REQUIRED_TABLES = [
+    "bolao_config",
+    "bolao_submissions",
+    "bolao_official",
+    "bolao_live_predictions",
+    "bolao_matches",
+    "bolao_events",
+]
+
 def _ensure_supabase_tables(client) -> None:
-    if not hasattr(client, 'execute_sql'):
+    """Verify required tables exist. Attempt creation via REST API if missing."""
+    existing = set()
+    for table in REQUIRED_TABLES:
+        if _supabase_table_exists(client, table):
+            existing.add(table)
+
+    if len(existing) == len(REQUIRED_TABLES):
         return
+
+    missing = [t for t in REQUIRED_TABLES if t not in existing]
+    _maybe_create_tables(client, missing)
+
+
+def _maybe_create_tables(client, missing_tables: list[str]) -> None:
+    """Try to create missing tables via direct HTTP request to Supabase."""
+    sql_lines = []
+    for table in missing_tables:
+        sql_lines.append(TABLE_DDL.get(table, ""))
+
+    sql = "\n".join(sql_lines)
+    if not sql.strip():
+        return
+
     try:
-        client.execute_sql(
-            """
-            CREATE TABLE IF NOT EXISTS bolao_config (
-                key TEXT PRIMARY KEY,
-                value JSONB NOT NULL,
-                updated_at TIMESTAMPTZ DEFAULT NOW()
-            );
-            """
+        import os as _os, requests as _requests
+
+        url = _os.environ.get("SUPABASE_URL") or ""
+        key = _os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or ""
+        if not url or not key:
+            try:
+                url = st.secrets.get("SUPABASE_URL", "")
+                key = st.secrets.get("SUPABASE_SERVICE_ROLE_KEY", "")
+            except Exception:
+                pass
+
+        if not url or not key:
+            return
+
+        headers = {
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+        }
+
+        resp = _requests.post(
+            f"{url.rstrip('/')}/rest/v1/rpc/",
+            json={"query": sql},
+            headers=headers,
+            timeout=15,
         )
-        client.execute_sql(
-            """
-            CREATE TABLE IF NOT EXISTS bolao_submissions (
-                id TEXT PRIMARY KEY,
-                participant TEXT NOT NULL,
-                groups JSONB NOT NULL,
-                best_thirds JSONB,
-                knockout JSONB,
-                champion TEXT,
-                submission_id TEXT NOT NULL,
-                submitted_at TEXT,
-                status TEXT DEFAULT 'confirmado',
-                meta JSONB,
-                created_at TIMESTAMPTZ DEFAULT NOW()
-            );
-            """
-        )
-        client.execute_sql(
-            """
-            CREATE TABLE IF NOT EXISTS bolao_official (
-                id TEXT PRIMARY KEY DEFAULT 'official',
-                participant TEXT NOT NULL,
-                groups JSONB NOT NULL,
-                best_thirds JSONB,
-                knockout JSONB,
-                champion TEXT,
-                submission_id TEXT,
-                submitted_at TEXT,
-                status TEXT DEFAULT 'aprovado',
-                meta JSONB,
-                updated_at TIMESTAMPTZ DEFAULT NOW()
-            );
-            """
-        )
-        client.execute_sql(
-            """
-            CREATE TABLE IF NOT EXISTS bolao_live_predictions (
-                id TEXT PRIMARY KEY,
-                participant_name TEXT NOT NULL,
-                participant_key TEXT NOT NULL,
-                match_id TEXT NOT NULL,
-                predicted_home_goals INT NOT NULL,
-                predicted_away_goals INT NOT NULL,
-                submitted_at TEXT,
-                updated_at TEXT,
-                confirmation_code TEXT,
-                locked_at TEXT,
-                is_locked BOOLEAN DEFAULT FALSE,
-                is_late BOOLEAN DEFAULT FALSE,
-                points INT,
-                scoring_breakdown JSONB DEFAULT '[]'::jsonb,
-                schema_version TEXT DEFAULT 'live-v1'
-            );
-            """
-        )
-        client.execute_sql(
-            """
-            CREATE TABLE IF NOT EXISTS bolao_matches (
-                match_id TEXT PRIMARY KEY,
-                phase TEXT NOT NULL,
-                "group" TEXT,
-                round_label TEXT,
-                home_team TEXT NOT NULL,
-                away_team TEXT NOT NULL,
-                starts_at TEXT NOT NULL,
-                starts_at_timezone TEXT DEFAULT 'America/Sao_Paulo',
-                lock_at TEXT,
-                status TEXT DEFAULT 'scheduled',
-                official_home_goals INT,
-                official_away_goals INT,
-                winner TEXT,
-                source TEXT DEFAULT 'manual',
-                sort_order INT DEFAULT 0
-            );
-            """
-        )
-        client.execute_sql(
-            """
-            CREATE TABLE IF NOT EXISTS bolao_events (
-                id TEXT PRIMARY KEY,
-                timestamp TEXT NOT NULL,
-                kind TEXT NOT NULL,
-                message TEXT NOT NULL,
-                visibility TEXT DEFAULT 'public',
-                metadata JSONB DEFAULT '{}'::jsonb
-            );
-            """
-        )
-        client.execute_sql("ALTER TABLE bolao_submissions ADD COLUMN IF NOT EXISTS meta JSONB;")
-        client.execute_sql("ALTER TABLE bolao_submissions ADD COLUMN IF NOT EXISTS mode TEXT;")
-        client.execute_sql("ALTER TABLE bolao_submissions ADD COLUMN IF NOT EXISTS schema_version TEXT;")
-        client.execute_sql("ALTER TABLE bolao_official ADD COLUMN IF NOT EXISTS meta JSONB;")
-        client.execute_sql("ALTER TABLE bolao_official ADD COLUMN IF NOT EXISTS mode TEXT;")
-        client.execute_sql("ALTER TABLE bolao_official ADD COLUMN IF NOT EXISTS schema_version TEXT;")
-        client.execute_sql("ALTER TABLE bolao_submissions ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;")
-        client.execute_sql("ALTER TABLE bolao_submissions ADD COLUMN IF NOT EXISTS archived_reason TEXT;")
-        client.execute_sql("ALTER TABLE bolao_live_predictions ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;")
-        client.execute_sql("ALTER TABLE bolao_live_predictions ADD COLUMN IF NOT EXISTS archived_reason TEXT;")
+        if resp.status_code == 200:
+            for t in missing_tables:
+                if _supabase_table_exists(client, t):
+                    st.success(f"Tabela {t} criada automaticamente no Supabase.")
+        else:
+            _warn_missing_tables(missing_tables)
     except Exception:
-        pass
+        _warn_missing_tables(missing_tables)
+
+
+def _warn_missing_tables(tables: list[str]) -> None:
+    st.warning(
+        f"Tabelas do Supabase ausentes: {', '.join(tables)}. "
+        f"Execute supabase_migrations/001_initial_schema.sql no SQL Editor do Supabase Dashboard. "
+        f"Os dados serão salvos localmente até a migração ser concluída."
+    )
+
+
+TABLE_DDL = {
+    "bolao_config": """
+CREATE TABLE IF NOT EXISTS bolao_config (
+    key TEXT PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);""",
+    "bolao_submissions": """
+CREATE TABLE IF NOT EXISTS bolao_submissions (
+    id TEXT PRIMARY KEY,
+    participant TEXT NOT NULL,
+    groups JSONB NOT NULL,
+    best_thirds JSONB,
+    knockout JSONB,
+    champion TEXT,
+    submission_id TEXT NOT NULL,
+    submitted_at TEXT,
+    status TEXT DEFAULT 'confirmado',
+    meta JSONB,
+    mode TEXT,
+    schema_version TEXT,
+    active BOOLEAN DEFAULT TRUE,
+    archived_reason TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);""",
+    "bolao_official": """
+CREATE TABLE IF NOT EXISTS bolao_official (
+    id TEXT PRIMARY KEY DEFAULT 'official',
+    participant TEXT NOT NULL,
+    groups JSONB NOT NULL,
+    best_thirds JSONB,
+    knockout JSONB,
+    champion TEXT,
+    submission_id TEXT,
+    submitted_at TEXT,
+    status TEXT DEFAULT 'aprovado',
+    meta JSONB,
+    mode TEXT,
+    schema_version TEXT,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);""",
+    "bolao_live_predictions": """
+CREATE TABLE IF NOT EXISTS bolao_live_predictions (
+    id TEXT PRIMARY KEY,
+    participant_name TEXT NOT NULL,
+    participant_key TEXT NOT NULL,
+    match_id TEXT NOT NULL,
+    predicted_home_goals INT NOT NULL,
+    predicted_away_goals INT NOT NULL,
+    submitted_at TEXT,
+    updated_at TEXT,
+    confirmation_code TEXT,
+    locked_at TEXT,
+    is_locked BOOLEAN DEFAULT FALSE,
+    is_late BOOLEAN DEFAULT FALSE,
+    points INT,
+    scoring_breakdown JSONB DEFAULT '[]'::jsonb,
+    schema_version TEXT DEFAULT 'live-v1',
+    active BOOLEAN DEFAULT TRUE,
+    archived_reason TEXT
+);""",
+    "bolao_matches": """
+CREATE TABLE IF NOT EXISTS bolao_matches (
+    match_id TEXT PRIMARY KEY,
+    phase TEXT NOT NULL,
+    "group" TEXT,
+    round_label TEXT,
+    home_team TEXT NOT NULL,
+    away_team TEXT NOT NULL,
+    starts_at TEXT NOT NULL,
+    starts_at_timezone TEXT DEFAULT 'America/Sao_Paulo',
+    lock_at TEXT,
+    status TEXT DEFAULT 'scheduled',
+    official_home_goals INT,
+    official_away_goals INT,
+    winner TEXT,
+    source TEXT DEFAULT 'manual',
+    sort_order INT DEFAULT 0,
+    bets_manual_closed BOOLEAN
+);""",
+    "bolao_events": """
+CREATE TABLE IF NOT EXISTS bolao_events (
+    id TEXT PRIMARY KEY,
+    timestamp TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    message TEXT NOT NULL,
+    visibility TEXT DEFAULT 'public',
+    metadata JSONB DEFAULT '{}'::jsonb
+);""",
+}
 
 
 _submissions_synced = False
@@ -244,6 +299,18 @@ def _sync_local_to_supabase(client) -> None:
 
 def ensure_state() -> None:
     global _submissions_synced
+    backend = get_storage_backend()
+
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client:
+            _ensure_supabase_tables(client)
+            _seed_initial_state()
+            if not _submissions_synced:
+                _sync_local_to_supabase(client)
+                _submissions_synced = True
+        return
+
     SUBMISSIONS_DIR.mkdir(parents=True, exist_ok=True)
     UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
     STATE_DIR.mkdir(parents=True, exist_ok=True)
@@ -251,19 +318,91 @@ def ensure_state() -> None:
         write_json(CONFIG_PATH, default_config())
     _seed_initial_state()
 
-    backend = get_storage_backend()
-    if backend == "supabase":
-        client = _get_supabase_client()
-        if client:
-            _ensure_supabase_tables(client)
-            if not _submissions_synced:
-                _sync_local_to_supabase(client)
-                _submissions_synced = True
+
+INITIAL_PARTICIPANTS = ["Baruja", "Fantato", "Henrique", "Murilov", "Lucão", "Mantovas"]
+
+MERGE_PREDS = [
+    ("Murilov", "13381", 2, 0),
+    ("Murilov", "13382", 1, 1),
+    ("Mantovas", "13382", 0, 1),
+    ("Lucão", "13381", 2, 0),
+    ("Lucão", "13382", 1, 0),
+]
 
 
 def _seed_initial_state() -> None:
-    INITIAL_PARTICIPANTS = ["Baruja", "Fantato", "Henrique", "Murilov", "Lucão", "Mantovas"]
+    backend = get_storage_backend()
 
+    if backend == "supabase":
+        _seed_initial_state_supabase()
+    else:
+        _seed_initial_state_local()
+
+
+def _seed_initial_state_supabase() -> None:
+    client = _get_supabase_client()
+    if not client:
+        _seed_initial_state_local()
+        return
+
+    # Seed registered participants
+    try:
+        result = client.table("bolao_config").select("value").eq("key", "registered_participants").execute()
+        existing = result.data[0].get("value", []) if result.data else []
+    except Exception:
+        existing = []
+
+    missing = [p for p in INITIAL_PARTICIPANTS if p.lower() not in {x.lower() for x in existing}]
+    if missing:
+        existing.extend(missing)
+        try:
+            client.table("bolao_config").upsert({
+                "key": "registered_participants",
+                "value": existing,
+                "updated_at": now_iso(),
+            }, on_conflict="key").execute()
+        except Exception:
+            pass
+
+    # Seed live predictions
+    try:
+        result = client.table("bolao_live_predictions").select("id").execute()
+        existing_ids = {r["id"] for r in result.data}
+    except Exception:
+        existing_ids = set()
+
+    now = now_iso()
+    new_preds = []
+    for name, m_id, h, a in MERGE_PREDS:
+        key = normalize_participant_key(name)
+        pid = f"{key}_{m_id}"
+        if pid not in existing_ids:
+            new_preds.append({
+                "id": pid,
+                "participant_name": name,
+                "participant_key": key,
+                "match_id": m_id,
+                "predicted_home_goals": h,
+                "predicted_away_goals": a,
+                "submitted_at": now,
+                "updated_at": now,
+                "confirmation_code": None,
+                "locked_at": None,
+                "is_locked": False,
+                "is_late": False,
+                "points": None,
+                "scoring_breakdown": [],
+                "schema_version": "live-v1",
+            })
+
+    if new_preds:
+        try:
+            client.table("bolao_live_predictions").insert(new_preds).execute()
+        except Exception:
+            pass
+
+
+def _seed_initial_state_local() -> None:
     if REGISTERED_PARTICIPANTS_PATH.exists():
         parts = read_json(REGISTERED_PARTICIPANTS_PATH, [])
         missing = [p for p in INITIAL_PARTICIPANTS if p.lower() not in {x.lower() for x in parts}]
@@ -272,14 +411,6 @@ def _seed_initial_state() -> None:
             write_json(REGISTERED_PARTICIPANTS_PATH, parts)
     else:
         write_json(REGISTERED_PARTICIPANTS_PATH, list(INITIAL_PARTICIPANTS))
-
-    MERGE_PREDS = [
-        ("Murilov", "13381", 2, 0),
-        ("Murilov", "13382", 1, 1),
-        ("Mantovas", "13382", 0, 1),
-        ("Lucão", "13381", 2, 0),
-        ("Lucão", "13382", 1, 0),
-    ]
 
     from .utils import normalize_participant_key
     if LIVE_PREDICTIONS_PATH.exists():
@@ -722,37 +853,33 @@ def load_matches() -> list[LiveMatch]:
         if client and _supabase_table_exists(client, "bolao_matches"):
             try:
                 result = client.table("bolao_matches").select("*").execute()
-                return _override_first_match_lock([LiveMatch.from_dict(row) for row in result.data])
+                if result.data:
+                    return _override_first_match_lock([LiveMatch.from_dict(row) for row in result.data])
             except Exception:
                 pass
-    
-    # Fallback to local
-    if not MATCHES_PATH.exists():
-        # Seed matches from worldcup_2026_data.py on first load
-        from .worldcup_2026_data import GROUP_MATCHES, TEAMS
-        matches = []
-        for idx, gm in enumerate(GROUP_MATCHES):
-            starts_at = f"{gm['date'].split('/')[2]}-{gm['date'].split('/')[1]}-{gm['date'].split('/')[0]}T{gm['hour']}:00"
-            m = LiveMatch(
-                match_id=str(gm["id"]),
-                phase="grupos",
-                group=gm["group"],
-                round_label=f"Rodada {gm['round']}",
-                home_team=TEAMS.get(gm["home_id"], {}).get("name", "Mandante"),
-                away_team=TEAMS.get(gm["away_id"], {}).get("name", "Visitante"),
-                starts_at=starts_at,
-                starts_at_timezone="America/Sao_Paulo",
-                lock_at=None,
-                status="scheduled",
-                sort_order=idx
-            )
-            matches.append(m)
-        _override_first_match_lock(matches)
-        save_matches(matches)
-        return matches
 
-    data = read_json(MATCHES_PATH, [])
-    return _override_first_match_lock([LiveMatch.from_dict(m) for m in data])
+    # Seed matches from worldcup_2026_data.py if none exist in Supabase or locally
+    from .worldcup_2026_data import GROUP_MATCHES, TEAMS
+    matches = []
+    for idx, gm in enumerate(GROUP_MATCHES):
+        starts_at = f"{gm['date'].split('/')[2]}-{gm['date'].split('/')[1]}-{gm['date'].split('/')[0]}T{gm['hour']}:00"
+        m = LiveMatch(
+            match_id=str(gm["id"]),
+            phase="grupos",
+            group=gm["group"],
+            round_label=f"Rodada {gm['round']}",
+            home_team=TEAMS.get(gm["home_id"], {}).get("name", "Mandante"),
+            away_team=TEAMS.get(gm["away_id"], {}).get("name", "Visitante"),
+            starts_at=starts_at,
+            starts_at_timezone="America/Sao_Paulo",
+            lock_at=None,
+            status="scheduled",
+            sort_order=idx
+        )
+        matches.append(m)
+    _override_first_match_lock(matches)
+    save_matches(matches)
+    return matches
 
 
 def save_matches(matches: list[LiveMatch]) -> None:
@@ -822,12 +949,37 @@ def save_live_predictions(predictions: list[LivePrediction]) -> None:
 
 
 def load_migrations() -> dict:
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client:
+            try:
+                result = client.table("bolao_config").select("value").eq("key", "migrations").execute()
+                if result.data:
+                    return result.data[0].get("value", {})
+            except Exception:
+                pass
+
     if not MIGRATIONS_PATH.exists():
         return {}
     return read_json(MIGRATIONS_PATH, {})
 
 
 def save_migrations(migrations: dict) -> None:
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client:
+            try:
+                client.table("bolao_config").upsert({
+                    "key": "migrations",
+                    "value": migrations,
+                    "updated_at": now_iso(),
+                }, on_conflict="key").execute()
+                return
+            except Exception:
+                pass
+
     write_json(MIGRATIONS_PATH, migrations)
 
 

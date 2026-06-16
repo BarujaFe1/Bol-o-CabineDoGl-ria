@@ -336,7 +336,7 @@ def render_minha_cartela() -> None:
                         "Seu Palpite": f"{p.predicted_home_goals} x {p.predicted_away_goals}",
                         "Placar Oficial": f"{m.official_home_goals} x {m.official_away_goals}" if m.status == "result_approved" else "Aguardando",
                         "Status": "Aprovado" if m.status == "result_approved" else "Aberto/Bloqueado",
-                        "Pontos": res["points"] if m.status == "result_approved" else "Pendente",
+                        "Pontos": res["points"] if m.status == "result_approved" else None,
                         "Critério": " · ".join(res["breakdown"]) if m.status == "result_approved" else "—"
                     })
             

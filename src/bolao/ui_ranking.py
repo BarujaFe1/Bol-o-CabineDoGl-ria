@@ -233,7 +233,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         "Fase/Rodada": m.round_label,
                         "Palpite": f"{p.predicted_home_goals} x {p.predicted_away_goals}",
                         "Resultado Oficial": f"{m.official_home_goals} x {m.official_away_goals}" if m.status == "result_approved" else "Aguardando",
-                        "Pontos Ganhos": res["points"] if m.status == "result_approved" else "—",
+                        "Pontos Ganhos": res["points"] if m.status == "result_approved" else None,
                         "Breakdown": " · ".join(res["breakdown"]) if m.status == "result_approved" else "Pendente"
                     })
             if det_rows:
