@@ -5,7 +5,23 @@ Uses psycopg2 with the service_role JWT as password.
 
 import sys
 
-JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvY2JxdmF2a2h4d2ZjdmpxaGNkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTE5NDYxMywiZXhwIjoyMDk0NzcwNjEzfQ.3DlAw8mXLiuBIrgRjJJYNxJd_TmHeHPAzl2HjSa-qyU"
+import os
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+DB_PASSWORD = os.environ.get("SUPABASE_DB_PASSWORD", "")
+
+if not SUPABASE_URL or not SERVICE_ROLE_KEY or not DB_PASSWORD:
+    print("ERROR: Set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_DB_PASSWORD environment variables.")
+    print("Usage:")
+    print("  $env:SUPABASE_URL = 'https://your-project.supabase.co'")
+    print("  $env:SUPABASE_SERVICE_ROLE_KEY = 'your-service-role-key'")
+    print("  $env:SUPABASE_DB_PASSWORD = 'your-db-password'")
+    print("  python tools/run_migration.py")
+    sys.exit(1)
+
+PROJECT_REF = SUPABASE_URL.split("//")[1].split(".")[0]
+DB_HOST = f"db.{PROJECT_REF}.supabase.co"
 
 SQL = """
 CREATE TABLE IF NOT EXISTS bolao_config (
@@ -116,9 +132,8 @@ except ImportError:
     import psycopg2
 
 try:
-    DB_PASSWORD = "BarujaFe17.."
     conn = psycopg2.connect(
-        host="db.qocbqvavkhxwfcvjqhcd.supabase.co",
+        host=DB_HOST,
         port=5432,
         dbname="postgres",
         user="postgres",
