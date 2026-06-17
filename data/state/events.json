@@ -1,97 +1,49 @@
 [
   {
-    "id": "71d97b2a",
-    "timestamp": "2026-06-16T15:21:24",
+    "id": "bf14fd8c",
+    "timestamp": "2026-06-16T18:37:30",
     "kind": "participant_restored",
     "message": "Participante Murilov foi restaurado.",
     "visibility": "public",
     "metadata": {}
   },
   {
-    "id": "0a9101c5",
-    "timestamp": "2026-06-16T15:21:24",
+    "id": "d858a951",
+    "timestamp": "2026-06-16T18:37:30",
     "kind": "participant_archived",
     "message": "Participante Murilov foi arquivado.",
     "visibility": "public",
     "metadata": {}
   },
   {
-    "id": "cc58f2dc",
-    "timestamp": "2026-06-16T15:21:23",
+    "id": "93c2756e",
+    "timestamp": "2026-06-16T18:33:24",
     "kind": "config_changed",
     "message": "Configurações do bolão foram atualizadas.",
     "visibility": "public",
     "metadata": {}
   },
   {
-    "id": "295e2bbb",
-    "timestamp": "2026-06-16T15:21:23",
+    "id": "4ed99107",
+    "timestamp": "2026-06-16T18:33:24",
     "kind": "state_imported",
     "message": "Um backup completo do bolão foi importado pelo administrador.",
     "visibility": "public",
     "metadata": {}
   },
   {
-    "id": "85817e4d",
-    "timestamp": "2026-06-16T15:18:23",
+    "id": "abe053ab",
+    "timestamp": "2026-06-16T15:36:12",
     "kind": "config_changed",
     "message": "Configurações do bolão foram atualizadas.",
     "visibility": "public",
     "metadata": {}
   },
   {
-    "id": "5fd3f96c",
-    "timestamp": "2026-06-16T15:18:23",
+    "id": "a6873566",
+    "timestamp": "2026-06-16T15:36:12",
     "kind": "state_imported",
     "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "87a9030a",
-    "timestamp": "2026-06-16T15:14:10",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "52d01b50",
-    "timestamp": "2026-06-16T15:14:10",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "6fdfa780",
-    "timestamp": "2026-06-16T15:08:39",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "e24e5a62",
-    "timestamp": "2026-06-16T15:08:39",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "cfb691cc",
-    "timestamp": "2026-06-16T15:06:58",
-    "kind": "participant_restored",
-    "message": "Participante Mantovas foi restaurado.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "f40733fe",
-    "timestamp": "2026-06-16T15:06:58",
-    "kind": "participant_restored",
-    "message": "Participante Lucão foi restaurado.",
     "visibility": "public",
     "metadata": {}
   },
@@ -794,6 +746,54 @@
   {
     "id": "0beab8b0",
     "timestamp": "2026-06-14T14:07:48",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "600dfa51",
+    "timestamp": "2026-06-14T14:07:48",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "13f8128c",
+    "timestamp": "2026-06-14T13:48:04",
+    "kind": "participant_registered",
+    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "d146d88c",
+    "timestamp": "2026-06-14T13:48:04",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "dd5dcd9e",
+    "timestamp": "2026-06-14T13:48:04",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "9ee22a1c",
+    "timestamp": "2026-06-14T13:47:26",
+    "kind": "participant_registered",
+    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "ed1e6192",
+    "timestamp": "2026-06-14T13:47:26",
     "kind": "config_changed",
     "message": "Configurações do bolão foram atualizadas.",
     "visibility": "public",

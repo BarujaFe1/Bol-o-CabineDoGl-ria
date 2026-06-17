@@ -350,14 +350,15 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         "Pontos Ganhos": res["points"] if m.status == "result_approved" else None,
                         "Breakdown": " · ".join(res["breakdown"]) if m.status == "result_approved" else "Pendente"
                     })
+            user_score = None
+            u_gm = 0
+            u_gv = 0
+            u_sd = 0
             if det_rows:
                 st.dataframe(pd.DataFrame(det_rows), width="stretch", hide_index=True)
 
                 # Compute per-participant metrics for the selected user
                 user_score = next((s for s in live_scores if s["participant_key"] == user_key), None)
-                u_gm = 0
-                u_gv = 0
-                u_sd = 0
                 for p in user_preds:
                     m = next((mm for mm in matches if mm.match_id == p.match_id), None)
                     if m and m.status == "result_approved" and m.official_home_goals is not None:

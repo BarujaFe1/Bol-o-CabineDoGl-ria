@@ -26,14 +26,24 @@ MIGRATIONS_PATH = STATE_DIR / "migrations.json"
 REGISTERED_PARTICIPANTS_PATH = STATE_DIR / "registered_participants.json"
 ARCHIVED_PARTICIPANTS_PATH = STATE_DIR / "archived_participants.json"
 
+import sys as _sys
+
+_log_supabase = True
+
+
+def _warn(msg: str) -> None:
+    _sys.stderr.write(f"[storage] {msg}\n")
+
 
 def get_storage_backend() -> str:
+    global _log_supabase
     try:
         client = _get_supabase_client()
         if client is not None:
             return "supabase"
     except Exception:
-        pass
+        _log_supabase = False
+        _warn("Supabase client unavailable — using local JSON backend")
     return "local"
 
 
@@ -641,7 +651,7 @@ def load_config() -> dict:
                     merged["v2_rules"] = {**DEFAULT_V2_RULES, **(merged.get("v2_rules") or {})}
                     return merged
             except Exception:
-                pass
+                _warn("load_config: Supabase read failed — falling back to JSON")
 
     data = read_json(CONFIG_PATH, {})
     merged = default_config()
@@ -664,7 +674,7 @@ def save_config(config: dict) -> None:
             try:
                 client.table("bolao_config").upsert({"key": "main", "value": config, "updated_at": now_iso()}, on_conflict="key").execute()
             except Exception:
-                pass
+                _warn("save_config: Supabase write failed — config saved locally")
 
 
 @st.cache_data(ttl=15, show_spinner=False)
@@ -744,7 +754,7 @@ def save_submission(prediction: Prediction, overwrite: bool = True) -> Path:
                     "meta": prediction.meta,
                 }, on_conflict="id").execute()
             except Exception:
-                pass
+                _warn("save_submission: Supabase write failed — data saved locally")
 
     return path
 
@@ -1102,7 +1112,7 @@ def load_matches() -> list[LiveMatch]:
                 if result.data:
                     return _override_first_match_lock([LiveMatch.from_dict(row) for row in result.data])
             except Exception:
-                pass
+                _warn("load_matches: Supabase read failed — falling back to JSON")
 
     # Seed matches from worldcup_2026_data.py if none exist in Supabase or locally
     if not MATCHES_PATH.exists():
@@ -1169,7 +1179,7 @@ def save_matches(matches: list[LiveMatch]) -> None:
                 data = [m.to_dict() for m in matches]
                 client.table("bolao_matches").upsert(data, on_conflict="match_id").execute()
             except Exception:
-                pass
+                _warn("save_matches: Supabase write failed — data saved locally")
 
 
 @st.cache_data(ttl=15, show_spinner=False)
@@ -1199,7 +1209,7 @@ def load_live_predictions(include_archived: bool = False) -> list[LivePrediction
                     preds = [p for p in preds if p.participant_key not in archived_keys]
                 return preds
             except Exception:
-                pass
+                _warn("load_live_predictions: Supabase read failed — falling back to JSON")
 
     if not LIVE_PREDICTIONS_PATH.exists():
         # Defensive: try Supabase one more time before returning empty
@@ -1281,7 +1291,7 @@ def save_live_predictions(predictions: list[LivePrediction]) -> None:
                 data = [p.to_dict() for p in predictions]
                 client.table("bolao_live_predictions").upsert(data, on_conflict="id").execute()
             except Exception:
-                pass
+                _warn("save_live_predictions: Supabase write failed — data saved locally")
 
 
 def upsert_live_prediction(
@@ -1873,3 +1883,47 @@ def save_artilheiro_palpite_rodada(palpite: dict) -> None:
     else:
         current.append(palpite)
     write_json(ARTILHEIRO_RODADA_PATH, current)
+
+
+# ─── Artilheiro por Dia / Rodada - Resultados Oficiais ─────────────────────────
+
+ARTILHEIRO_RESULTADO_DIA_PATH = STATE_DIR / "artilheiro_resultado_dia.json"
+ARTILHEIRO_RESULTADO_RODADA_PATH = STATE_DIR / "artilheiro_resultado_rodada.json"
+
+
+def load_artilheiro_resultado_dia() -> list[dict]:
+    ensure_state()
+    if ARTILHEIRO_RESULTADO_DIA_PATH.exists():
+        return read_json(ARTILHEIRO_RESULTADO_DIA_PATH, [])
+    return []
+
+
+def save_artilheiro_resultado_dia(registro: dict) -> None:
+    ensure_state()
+    current = load_artilheiro_resultado_dia()
+    for i, r in enumerate(current):
+        if r["data"] == registro["data"]:
+            current[i] = registro
+            break
+    else:
+        current.append(registro)
+    write_json(ARTILHEIRO_RESULTADO_DIA_PATH, current)
+
+
+def load_artilheiro_resultado_rodada() -> list[dict]:
+    ensure_state()
+    if ARTILHEIRO_RESULTADO_RODADA_PATH.exists():
+        return read_json(ARTILHEIRO_RESULTADO_RODADA_PATH, [])
+    return []
+
+
+def save_artilheiro_resultado_rodada(registro: dict) -> None:
+    ensure_state()
+    current = load_artilheiro_resultado_rodada()
+    for i, r in enumerate(current):
+        if r["rodada"] == registro["rodada"]:
+            current[i] = registro
+            break
+    else:
+        current.append(registro)
+    write_json(ARTILHEIRO_RESULTADO_RODADA_PATH, current)

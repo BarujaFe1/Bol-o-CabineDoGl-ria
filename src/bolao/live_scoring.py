@@ -138,6 +138,18 @@ def calculate_live_ranking(live_predictions: list[LivePrediction], matches: list
     for m in matches:
         if "Brasil" in (m.home_team or "") or "Brasil" in (m.away_team or ""):
             brazil_match_ids.add(m.match_id)
+
+    # Build artilheiro dia/rodada lookup: normalized_key -> pontos
+    artilheiro_dia_entries = calculate_artilheiro_dia_points(config)
+    artilheiro_rodada_entries = calculate_artilheiro_rodada_points(config)
+    artilheiro_dia_map = {}
+    for e in artilheiro_dia_entries:
+        nk = normalize_participant_key(e["participante_nome"])
+        artilheiro_dia_map[nk] = artilheiro_dia_map.get(nk, 0) + e["pontos"]
+    artilheiro_rodada_map = {}
+    for e in artilheiro_rodada_entries:
+        nk = normalize_participant_key(e["participante_nome"])
+        artilheiro_rodada_map[nk] = artilheiro_rodada_map.get(nk, 0) + e["pontos"]
     
     # Agrupa palpites por participante
     by_participant = {}
@@ -184,6 +196,11 @@ def calculate_live_ranking(live_predictions: list[LivePrediction], matches: list
                     gol_pts = goleadores_map.get((gk, p.match_id), 0)
                     if gol_pts:
                         total_points += gol_pts
+
+        # Add artilheiro do dia / rodada points
+        art_dia = artilheiro_dia_map.get(pkey, 0)
+        art_rod = artilheiro_rodada_map.get(pkey, 0)
+        total_points += art_dia + art_rod
 
         missed_predictions = max(0, possible_count - len(guessed_match_ids))
         
@@ -321,3 +338,86 @@ def calcular_pontos_artilheiro_classico(
     if p_norm in reais_norm[:3]:
         return pts_top3
     return 0
+
+
+def calculate_artilheiro_dia_points(config: dict) -> list[dict]:
+    """
+    Calcula pontos de artilheiro do dia para cada participante.
+    Compara palpites (artilheiro_palpites_dia.json) com resultados oficiais
+    (artilheiro_resultado_dia.json). Retorna lista de dicts com
+    participante, data, pontos e breakdown.
+    """
+    from .storage import load_artilheiro_palpites_dia, load_artilheiro_resultado_dia
+
+    palpites = load_artilheiro_palpites_dia()
+    resultados = load_artilheiro_resultado_dia()
+
+    pts_acertou = int(config.get("pts_artilheiro_dia", 5))
+
+    resultado_por_data = {r["data"]: r for r in resultados}
+
+    entries = []
+    for p in palpites:
+        data = p["data"]
+        resultado = resultado_por_data.get(data)
+        if not resultado:
+            continue
+
+        palpite_jogador = (p.get("selecao", ""), p.get("jogador", ""))
+        real_jogador = (resultado.get("selecao", ""), resultado.get("jogador", ""))
+
+        pontos = pts_acertou if palpite_jogador == real_jogador else 0
+
+        entries.append({
+            "participante_nome": p["participante_nome"],
+            "data": data,
+            "jogador_palpite": p.get("jogador", ""),
+            "selecao_palpite": p.get("selecao", ""),
+            "jogador_real": resultado.get("jogador", ""),
+            "selecao_real": resultado.get("selecao", ""),
+            "pontos": pontos,
+            "acertou": pontos > 0,
+        })
+
+    return entries
+
+
+def calculate_artilheiro_rodada_points(config: dict) -> list[dict]:
+    """
+    Calcula pontos de artilheiro da rodada para cada participante.
+    Compara palpites (artilheiro_palpites_rodada.json) com resultados oficiais
+    (artilheiro_resultado_rodada.json).
+    """
+    from .storage import load_artilheiro_palpites_rodada, load_artilheiro_resultado_rodada
+
+    palpites = load_artilheiro_palpites_rodada()
+    resultados = load_artilheiro_resultado_rodada()
+
+    pts_acertou = int(config.get("pts_artilheiro_rodada", 10))
+
+    resultado_por_rodada = {r["rodada"]: r for r in resultados}
+
+    entries = []
+    for p in palpites:
+        rodada = p["rodada"]
+        resultado = resultado_por_rodada.get(rodada)
+        if not resultado:
+            continue
+
+        palpite_jogador = (p.get("selecao", ""), p.get("jogador", ""))
+        real_jogador = (resultado.get("selecao", ""), resultado.get("jogador", ""))
+
+        pontos = pts_acertou if palpite_jogador == real_jogador else 0
+
+        entries.append({
+            "participante_nome": p["participante_nome"],
+            "rodada": rodada,
+            "jogador_palpite": p.get("jogador", ""),
+            "selecao_palpite": p.get("selecao", ""),
+            "jogador_real": resultado.get("jogador", ""),
+            "selecao_real": resultado.get("selecao", ""),
+            "pontos": pontos,
+            "acertou": pontos > 0,
+        })
+
+    return entries

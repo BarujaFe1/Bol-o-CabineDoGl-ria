@@ -44,6 +44,12 @@ from src.bolao.storage import (
     register_participant,
     load_registered_participants,
     delete_registered_participant,
+    load_artilheiro_resultado_dia,
+    save_artilheiro_resultado_dia,
+    load_artilheiro_resultado_rodada,
+    save_artilheiro_resultado_rodada,
+    load_artilheiro_palpites_dia,
+    load_artilheiro_palpites_rodada,
 )
 from src.bolao.navigation import navigate_to
 from src.bolao.ui_components import (
@@ -65,7 +71,7 @@ from src.bolao.ui_components import (
 from src.bolao.utils import decode_uploaded_file, norm_team, now_iso, stable_id
 from src.bolao.validation import validate_prediction, has_blocking_errors
 from src.bolao.simulator_engine import validate_prediction_complete
-from src.bolao.ui_artilheiro import render_page_artilheiro
+from src.bolao.ui_artilheiro import render_page_artilheiro, _render_player_select_team_first
 from src.bolao.ui_simulator import render_simulator, init_simulator_state, get_guess_completion_state
 from src.bolao.migrations import migrate_existing_submissions_to_classic_schema
 
@@ -82,6 +88,7 @@ from src.bolao.ui_social_pages import (
 )
 from src.bolao.ui_admin_matches import admin_matches_agenda, admin_palpites_jogo_a_jogo
 from src.bolao.ui_admin_brasil import admin_selecao_brasileira
+from src.bolao.live_scoring import calculate_artilheiro_dia_points, calculate_artilheiro_rodada_points
 from src.bolao.storage import load_archived_participants
 
 
@@ -1683,6 +1690,133 @@ def admin_exports() -> None:
             st.text_area("Texto Jogos do Dia", value=daily_text, height=150, key="txt_area_daily_whatsapp")
 
 
+def admin_artilheiro_results() -> None:
+    if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_art", width="stretch"):
+        navigate_to("Dashboard")
+    render_page_header("Admin", "Artilheiro do Dia / Rodada", "Cadastre os artilheiros reais e veja a pontuação dos participantes.", "⚽")
+
+    config = load_app_data_cached().config
+
+    tab_dia, tab_rodada, tab_scoring = st.tabs([
+        "📅 Artilheiro do Dia",
+        "📆 Artilheiro da Rodada",
+        "🏆 Scoring & Acertos",
+    ])
+
+    # ── Tab: Artilheiro do Dia ──────────────────────────────────────────
+    with tab_dia:
+        st.markdown("#### Cadastrar Artilheiro Real do Dia")
+        resultados_dia = load_artilheiro_resultado_dia()
+        st.dataframe(resultados_dia if resultados_dia else [{"info": "Nenhum resultado cadastrado"}], width="stretch", hide_index=True)
+
+        st.markdown("---")
+        st.markdown("##### Novo / Editar Resultado do Dia")
+        all_datas = sorted(set(
+            m.starts_at.split("T")[0] for m in load_app_data_cached().matches
+            if m.starts_at
+        ))
+        sel_data = st.selectbox("Data", all_datas if all_datas else [""], key="art_admin_dia_data")
+
+        existing_dia = next((r for r in resultados_dia if r["data"] == sel_data), None)
+        dia_team, dia_player = _render_player_select_team_first(
+            "Artilheiro Real do Dia",
+            f"art_admin_dia_{sel_data}",
+            existing_dia.get("selecao", "") if existing_dia else "",
+            existing_dia.get("jogador", "") if existing_dia else "",
+        )
+
+        if st.button("💾 Salvar Artilheiro do Dia", type="primary", key="btn_save_art_admin_dia", width="stretch"):
+            if not dia_player:
+                st.error("Selecione um jogador.")
+            else:
+                save_artilheiro_resultado_dia({
+                    "data": sel_data,
+                    "jogador": dia_player,
+                    "selecao": dia_team,
+                    "atualizado_em": now_iso(),
+                })
+                st.success(f"✅ Artilheiro de {sel_data}: {dia_player} ({dia_team}) salvo!")
+                st.rerun()
+
+    # ── Tab: Artilheiro da Rodada ───────────────────────────────────────
+    with tab_rodada:
+        st.markdown("#### Cadastrar Artilheiro Real da Rodada")
+        resultados_rodada = load_artilheiro_resultado_rodada()
+        st.dataframe(resultados_rodada if resultados_rodada else [{"info": "Nenhum resultado cadastrado"}], width="stretch", hide_index=True)
+
+        st.markdown("---")
+        st.markdown("##### Novo / Editar Resultado da Rodada")
+        all_rounds = sorted(set(
+            m.round_label for m in load_app_data_cached().matches
+            if m.round_label
+        ))
+        sel_rodada = st.selectbox("Rodada", all_rounds if all_rounds else [""], key="art_admin_rodada_sel")
+
+        existing_rod = next((r for r in resultados_rodada if r["rodada"] == sel_rodada), None)
+        rod_team, rod_player = _render_player_select_team_first(
+            "Artilheiro Real da Rodada",
+            f"art_admin_rodada_{sel_rodada}",
+            existing_rod.get("selecao", "") if existing_rod else "",
+            existing_rod.get("jogador", "") if existing_rod else "",
+        )
+
+        if st.button("💾 Salvar Artilheiro da Rodada", type="primary", key="btn_save_art_admin_rodada", width="stretch"):
+            if not rod_player:
+                st.error("Selecione um jogador.")
+            else:
+                save_artilheiro_resultado_rodada({
+                    "rodada": sel_rodada,
+                    "jogador": rod_player,
+                    "selecao": rod_team,
+                    "atualizado_em": now_iso(),
+                })
+                st.success(f"✅ Artilheiro da {sel_rodada}: {rod_player} ({rod_team}) salvo!")
+                st.rerun()
+
+    # ── Tab: Scoring & Acertos ──────────────────────────────────────────
+    with tab_scoring:
+        st.markdown("#### Pontuação dos Participantes")
+        st.caption("Calculado com base nos resultados cadastrados vs. palpites dos participantes.")
+
+        pts_dia = int(config.get("pts_artilheiro_dia", 5))
+        pts_rodada = int(config.get("pts_artilheiro_rodada", 10))
+
+        col1, col2 = st.columns(2)
+        with col1:
+            new_pts_dia = st.number_input("Pontos por Artilheiro do Dia", min_value=1, max_value=50, value=pts_dia, step=1)
+        with col2:
+            new_pts_rodada = st.number_input("Pontos por Artilheiro da Rodada", min_value=1, max_value=50, value=pts_rodada, step=1)
+
+        if st.button("💾 Salvar Pesos", key="btn_save_art_weights", width="stretch"):
+            config["pts_artilheiro_dia"] = new_pts_dia
+            config["pts_artilheiro_rodada"] = new_pts_rodada
+            save_config(config)
+            st.success("Pesos salvos!")
+            st.rerun()
+
+        st.markdown("---")
+        st.markdown("##### Acertos Artilheiro do Dia")
+        dia_entries = calculate_artilheiro_dia_points(config)
+        if dia_entries:
+            df_dia = pd.DataFrame(dia_entries)
+            st.dataframe(df_dia, width="stretch", hide_index=True)
+            total_dia = sum(e["pontos"] for e in dia_entries)
+            st.metric("Total de pontos distribuídos (Dia)", total_dia)
+        else:
+            st.caption("Nenhum resultado de dia cadastrado ou palpites disponíveis.")
+
+        st.markdown("---")
+        st.markdown("##### Acertos Artilheiro da Rodada")
+        rod_entries = calculate_artilheiro_rodada_points(config)
+        if rod_entries:
+            df_rod = pd.DataFrame(rod_entries)
+            st.dataframe(df_rod, width="stretch", hide_index=True)
+            total_rod = sum(e["pontos"] for e in rod_entries)
+            st.metric("Total de pontos distribuídos (Rodada)", total_rod)
+        else:
+            st.caption("Nenhum resultado de rodada cadastrado ou palpites disponíveis.")
+
+
 def admin_settings() -> None:
     if st.button("⬅️ Voltar ao Painel Admin", key="back_to_dashboard_settings", width="stretch"):
         navigate_to("Dashboard")
@@ -2399,7 +2533,7 @@ def main() -> None:
 
         if st.session_state.get("admin_authenticated", False) and st.session_state.get("admin_mode", False):
             # Admin Menu
-            admin_options = ["Dashboard", "Participantes", "Palpites Jogo a Jogo", "Jogos e Agenda", "Resultados Oficiais", "Ranking", "Exportações", "Configurações", "Auditoria", "Ajuda"]
+            admin_options = ["Dashboard", "Participantes", "Palpites Jogo a Jogo", "Jogos e Agenda", "Resultados Oficiais", "Artilheiro", "Ranking", "Exportações", "Configurações", "Auditoria", "Ajuda"]
             current_page = st.session_state["nav_page"]
             if current_page not in admin_options:
                 current_page = "Dashboard"
@@ -2596,6 +2730,8 @@ def main() -> None:
                 admin_ranking()
             elif page == "Exportações":
                 admin_exports()
+            elif page == "Artilheiro":
+                admin_artilheiro_results()
             elif page == "Configurações":
                 admin_settings()
             elif page == "Auditoria":
