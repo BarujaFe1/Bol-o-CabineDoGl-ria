@@ -91,6 +91,10 @@ REQUIRED_TABLES = [
     "bolao_live_predictions",
     "bolao_matches",
     "bolao_events",
+    "bolao_artilheiro_palpites_dia",
+    "bolao_artilheiro_palpites_rodada",
+    "bolao_artilheiro_resultado_dia",
+    "bolao_artilheiro_resultado_rodada",
 ]
 
 def _ensure_supabase_tables(client) -> None:
@@ -331,6 +335,46 @@ CREATE TABLE IF NOT EXISTS bolao_events (
     message TEXT NOT NULL,
     visibility TEXT DEFAULT 'public',
     metadata JSONB DEFAULT '{}'::jsonb
+);""",
+    "bolao_artilheiro_palpites_dia": """
+CREATE TABLE IF NOT EXISTS bolao_artilheiro_palpites_dia (
+    id SERIAL,
+    participante_nome TEXT NOT NULL,
+    data TEXT NOT NULL,
+    jogador TEXT NOT NULL,
+    selecao TEXT NOT NULL,
+    atualizado_em TEXT,
+    PRIMARY KEY (id),
+    UNIQUE (participante_nome, data)
+);""",
+    "bolao_artilheiro_palpites_rodada": """
+CREATE TABLE IF NOT EXISTS bolao_artilheiro_palpites_rodada (
+    id SERIAL,
+    participante_nome TEXT NOT NULL,
+    rodada TEXT NOT NULL,
+    jogador TEXT NOT NULL,
+    selecao TEXT NOT NULL,
+    atualizado_em TEXT,
+    PRIMARY KEY (id),
+    UNIQUE (participante_nome, rodada)
+);""",
+    "bolao_artilheiro_resultado_dia": """
+CREATE TABLE IF NOT EXISTS bolao_artilheiro_resultado_dia (
+    id SERIAL,
+    data TEXT NOT NULL UNIQUE,
+    jogador TEXT NOT NULL,
+    selecao TEXT NOT NULL,
+    atualizado_em TEXT,
+    PRIMARY KEY (id)
+);""",
+    "bolao_artilheiro_resultado_rodada": """
+CREATE TABLE IF NOT EXISTS bolao_artilheiro_resultado_rodada (
+    id SERIAL,
+    rodada TEXT NOT NULL UNIQUE,
+    jogador TEXT NOT NULL,
+    selecao TEXT NOT NULL,
+    atualizado_em TEXT,
+    PRIMARY KEY (id)
 );""",
 }
 
@@ -1850,6 +1894,17 @@ ARTILHEIRO_RODADA_PATH = STATE_DIR / "artilheiro_palpites_rodada.json"
 
 def load_artilheiro_palpites_dia() -> list[dict]:
     ensure_state()
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client and _supabase_table_exists(client, "bolao_artilheiro_palpites_dia"):
+            try:
+                result = client.table("bolao_artilheiro_palpites_dia").select("*").execute()
+                for row in result.data:
+                    row.pop("id", None)
+                return result.data
+            except Exception:
+                _warn("load_artilheiro_palpites_dia: Supabase read failed — falling back to JSON")
     if ARTILHEIRO_DIA_PATH.exists():
         return read_json(ARTILHEIRO_DIA_PATH, [])
     return []
@@ -1865,9 +1920,31 @@ def save_artilheiro_palpite_dia(palpite: dict) -> None:
     else:
         current.append(palpite)
     write_json(ARTILHEIRO_DIA_PATH, current)
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client:
+            try:
+                data = {k: v for k, v in palpite.items()}
+                client.table("bolao_artilheiro_palpites_dia").upsert(
+                    data, on_conflict="participante_nome,data"
+                ).execute()
+            except Exception:
+                _warn("save_artilheiro_palpite_dia: Supabase write failed — saved locally")
 
 def load_artilheiro_palpites_rodada() -> list[dict]:
     ensure_state()
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client and _supabase_table_exists(client, "bolao_artilheiro_palpites_rodada"):
+            try:
+                result = client.table("bolao_artilheiro_palpites_rodada").select("*").execute()
+                for row in result.data:
+                    row.pop("id", None)
+                return result.data
+            except Exception:
+                _warn("load_artilheiro_palpites_rodada: Supabase read failed — falling back to JSON")
     if ARTILHEIRO_RODADA_PATH.exists():
         return read_json(ARTILHEIRO_RODADA_PATH, [])
     return []
@@ -1883,6 +1960,17 @@ def save_artilheiro_palpite_rodada(palpite: dict) -> None:
     else:
         current.append(palpite)
     write_json(ARTILHEIRO_RODADA_PATH, current)
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client:
+            try:
+                data = {k: v for k, v in palpite.items()}
+                client.table("bolao_artilheiro_palpites_rodada").upsert(
+                    data, on_conflict="participante_nome,rodada"
+                ).execute()
+            except Exception:
+                _warn("save_artilheiro_palpite_rodada: Supabase write failed — saved locally")
 
 
 # ─── Artilheiro por Dia / Rodada - Resultados Oficiais ─────────────────────────
@@ -1893,6 +1981,17 @@ ARTILHEIRO_RESULTADO_RODADA_PATH = STATE_DIR / "artilheiro_resultado_rodada.json
 
 def load_artilheiro_resultado_dia() -> list[dict]:
     ensure_state()
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client and _supabase_table_exists(client, "bolao_artilheiro_resultado_dia"):
+            try:
+                result = client.table("bolao_artilheiro_resultado_dia").select("*").execute()
+                for row in result.data:
+                    row.pop("id", None)
+                return result.data
+            except Exception:
+                _warn("load_artilheiro_resultado_dia: Supabase read failed — falling back to JSON")
     if ARTILHEIRO_RESULTADO_DIA_PATH.exists():
         return read_json(ARTILHEIRO_RESULTADO_DIA_PATH, [])
     return []
@@ -1908,10 +2007,32 @@ def save_artilheiro_resultado_dia(registro: dict) -> None:
     else:
         current.append(registro)
     write_json(ARTILHEIRO_RESULTADO_DIA_PATH, current)
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client:
+            try:
+                data = {k: v for k, v in registro.items()}
+                client.table("bolao_artilheiro_resultado_dia").upsert(
+                    data, on_conflict="data"
+                ).execute()
+            except Exception:
+                _warn("save_artilheiro_resultado_dia: Supabase write failed — saved locally")
 
 
 def load_artilheiro_resultado_rodada() -> list[dict]:
     ensure_state()
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client and _supabase_table_exists(client, "bolao_artilheiro_resultado_rodada"):
+            try:
+                result = client.table("bolao_artilheiro_resultado_rodada").select("*").execute()
+                for row in result.data:
+                    row.pop("id", None)
+                return result.data
+            except Exception:
+                _warn("load_artilheiro_resultado_rodada: Supabase read failed — falling back to JSON")
     if ARTILHEIRO_RESULTADO_RODADA_PATH.exists():
         return read_json(ARTILHEIRO_RESULTADO_RODADA_PATH, [])
     return []
@@ -1927,3 +2048,14 @@ def save_artilheiro_resultado_rodada(registro: dict) -> None:
     else:
         current.append(registro)
     write_json(ARTILHEIRO_RESULTADO_RODADA_PATH, current)
+    backend = get_storage_backend()
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client:
+            try:
+                data = {k: v for k, v in registro.items()}
+                client.table("bolao_artilheiro_resultado_rodada").upsert(
+                    data, on_conflict="rodada"
+                ).execute()
+            except Exception:
+                _warn("save_artilheiro_resultado_rodada: Supabase write failed — saved locally")
