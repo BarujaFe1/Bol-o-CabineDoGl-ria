@@ -1071,6 +1071,9 @@ def admin_dashboard() -> None:
     st.markdown("<br>", unsafe_allow_html=True)
     c10, c11, c12 = st.columns(3)
     with c10:
+        if st.button("⚽ Artilheiro", key="nav_admin_artilheiro", width="stretch"):
+            navigate_to("Artilheiro")
+    with c11:
         if st.button("🇧🇷 Seleção Brasileira", key="nav_admin_brasil", width="stretch"):
             navigate_to("🇧🇷 Seleção Brasileira")
 
@@ -2692,8 +2695,8 @@ def main() -> None:
     # Renderizar menu de navegação móvel rápida (apenas para celular)
     if st.session_state["nav_page"] != "Admin Login":
         m_opts = [
-            "Dashboard", "Participantes", "Palpites Jogo a Jogo", "Jogos e Agenda", "Resultados Oficiais", 
-            "Ranking", "Exportações", "Configurações", "Auditoria", "Ajuda"
+            "Dashboard", "Participantes", "Palpites Jogo a Jogo", "Jogos e Agenda", "Resultados Oficiais",
+            "Artilheiro", "Ranking", "Exportações", "Configurações", "Auditoria", "Ajuda"
         ] if show_admin else [
             "Início", "Jogos de Hoje", "🇧🇷 Jogos do Brasil", "Palpite Clássico", "⚽ Artilheiro", "Minha Cartela", 
             "Ranking", "Central do Bolão", "Palpites do Grupo", 
