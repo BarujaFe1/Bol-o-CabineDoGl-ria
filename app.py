@@ -1478,6 +1478,56 @@ def admin_official_results() -> None:
             if response.raw:
                 st.json(response.raw, expanded=False)
 
+        st.markdown("---")
+        st.markdown("#### ⚽ Alternativa Gratuita (football-data.org)")
+        st.caption("Esta alternativa utiliza a API gratuita do **football-data.org** para buscar os resultados reais da Copa de 2026 e preencher o Simulador Oficial automaticamente.")
+        
+        fd_configured = False
+        try:
+            fd_configured = bool(st.secrets.get("FOOTBALL_DATA_API_KEY"))
+        except Exception:
+            pass
+            
+        if not fd_configured:
+            st.info("💡 **Dica:** Para habilitar a alternativa gratuita, configure `FOOTBALL_DATA_API_KEY` nos secrets do Streamlit Cloud.")
+            
+        if st.button("🔄 Sincronizar e Preencher Simulador Oficial (football-data.org)", key="btn_sync_official_fd", type="primary", width="stretch", disabled=not fd_configured):
+            with st.spinner("Buscando últimos resultados na API..."):
+                from src.score_updater import run_score_sync
+                run_score_sync()
+                
+            from src.bolao.storage import load_matches
+            from src.bolao.worldcup_2026_data import GROUP_MATCHES
+            from src.bolao.ui_simulator import init_simulator_state
+            
+            db_matches = load_matches()
+            db_by_id = {m.match_id: m for m in db_matches}
+            
+            # Start with a new draft or existing official prediction
+            draft = deepcopy(st.session_state.get("official_draft") or ctx.official or Prediction(participant="Resultado oficial"))
+            if "group_matches" not in draft.meta:
+                draft.meta["group_matches"] = {}
+                
+            updated_count = 0
+            for gm in GROUP_MATCHES:
+                m_id = gm["id"]
+                if m_id in db_by_id:
+                    db_m = db_by_id[m_id]
+                    if db_m.status == "result_approved" or db_m.official_home_goals is not None:
+                        draft.meta["group_matches"][m_id] = [db_m.official_home_goals, db_m.official_away_goals]
+                        updated_count += 1
+                        
+            # Save this prediction as a draft so the simulator picks it up
+            draft.status = "rascunho"
+            save_official(draft)
+            
+            # Force reset the simulator state to load this draft
+            init_simulator_state(draft, force_reset=True, is_admin=True)
+            
+            st.success(f"✅ Sincronizado! {updated_count} placares da Fase de Grupos foram copiados para o Simulador Oficial. Confira na aba 'Simulador Oficial' e prossiga para o mata-mata!")
+            st.session_state["official_draft"] = draft
+            st.rerun()
+
     with tabs[3]:
         official = ctx.official
         if not official:
