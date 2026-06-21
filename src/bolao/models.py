@@ -17,13 +17,15 @@ from .constants import GROUPS, PHASES
 
 @dataclass
 class ParseIssue:
+    __module__ = "src.bolao.models"
     level: str
     message: str
-    context: str = ""
+    context: str | None = None
 
 
 @dataclass
 class Match:
+    __module__ = "src.bolao.models"
     a: str | None = None
     b: str | None = None
     winner: str | None = None
@@ -34,6 +36,7 @@ class Match:
 
 @dataclass
 class Prediction:
+    __module__ = "src.bolao.models"
     participant: str
     groups: dict[str, list[str | None]] = field(default_factory=lambda: {g: [None, None, None, None] for g in GROUPS})
     best_thirds: list[str] = field(default_factory=list)
@@ -91,6 +94,7 @@ class Prediction:
 
 @dataclass
 class ScoreBreakdown:
+    __module__ = "src.bolao.models"
     participant: str
     total: int = 0
     group_points: int = 0
@@ -122,6 +126,7 @@ class ScoreBreakdown:
 
 @dataclass
 class LiveMatch:
+    __module__ = "src.bolao.models"
     match_id: str
     phase: str
     group: str
@@ -202,6 +207,7 @@ class LiveMatch:
 
 @dataclass
 class LivePrediction:
+    __module__ = "src.bolao.models"
     id: str  # unique id (key + "_" + match_id)
     participant_name: str
     participant_key: str
@@ -320,6 +326,7 @@ class LivePrediction:
 
 @dataclass
 class ActivityEvent:
+    __module__ = "src.bolao.models"
     id: str
     timestamp: str
     kind: str

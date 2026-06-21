@@ -359,12 +359,12 @@ def render_minha_cartela() -> None:
                         "Seu Palpite": f"{p.predicted_home_goals} x {p.predicted_away_goals}",
                         "Placar Oficial": f"{m.official_home_goals} x {m.official_away_goals}" if m.status == "result_approved" else "Aguardando",
                         "Status": "Aprovado" if m.status == "result_approved" else "Aberto/Bloqueado",
-                        "Pontos": res["points"] if m.status == "result_approved" else None,
+                        "Pontos": str(res["points"]) if m.status == "result_approved" else "—",
                         "Critério": " · ".join(res["breakdown"]) if m.status == "result_approved" else "—"
                     })
             
             def render_live_row_card(r):
-                badge_points = f"<span class='badge success'>{r['Pontos']} pts</span>" if r['Pontos'] > 0 else "<span class='badge info'>Pendente</span>"
+                badge_points = f"<span class='badge success'>{r['Pontos']} pts</span>" if str(r['Pontos']).isdigit() and int(r['Pontos']) > 0 else "<span class='badge info'>Pendente</span>"
                 st.markdown(
                     f"""
                     <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">

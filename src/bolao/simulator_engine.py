@@ -215,8 +215,8 @@ def get_best_third_placed_teams(all_standings: dict[str, list[GroupStanding]]) -
             return t_a.gf - t_b.gf
         
         # Fallback: group letter (lower letter is better, so 'B' index > 'A' index, return reverse)
-        group_a = next(g for g, t_ids in GROUPS_TEAMS.items() if t_a.team_id in t_ids)
-        group_b = next(g for g, t_ids in GROUPS_TEAMS.items() if t_b.team_id in t_ids)
+        group_a = next((g for g, t_ids in GROUPS_TEAMS.items() if t_a.team_id in t_ids), "Z")
+        group_b = next((g for g, t_ids in GROUPS_TEAMS.items() if t_b.team_id in t_ids), "Z")
         return ord(group_b) - ord(group_a)
 
     return sorted(thirds, key=functools.cmp_to_key(compare_thirds), reverse=True)

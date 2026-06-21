@@ -96,7 +96,7 @@ def init_simulator_state(prediction: Prediction, force_reset: bool = False, is_a
                     best_thirds_list = get_best_third_placed_teams(standings)[:8]
                     best_thirds_groups = []
                     for stg in best_thirds_list:
-                        g_letter = next(g for g, t_ids in GROUPS_TEAMS.items() if stg.team_id in t_ids)
+                        g_letter = next((g for g, t_ids in GROUPS_TEAMS.items() if stg.team_id in t_ids), "?")
                         best_thirds_groups.append(g_letter)
                     slots = deserialize_prediction_to_slots(prediction, standings, best_thirds_groups)
                     state["slots"] = slots
@@ -149,7 +149,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
 
     # Step progress indicator
     steps_labels = ["Identificação", "Fase de grupos", "Classificados", "Mata-mata", "Revisão"]
-    unplayed = [gm["id"] for gm in GROUP_MATCHES if state["group_matches"].get(gm["id"])[0] is None or state["group_matches"].get(gm["id"])[1] is None]
+    unplayed = [gm["id"] for gm in GROUP_MATCHES if state["group_matches"].get(gm["id"], [None, None])[0] is None or state["group_matches"].get(gm["id"], [None, None])[1] is None]
     group_done = len(unplayed) == 0
     slots = state.get("slots", {})
     missing_ko = [i for i in range(63) if slots.get(i) is None]
@@ -237,6 +237,7 @@ def render_simulator(prediction: Prediction, is_admin: bool = False) -> Predicti
                 if new_h != val_h or new_a != val_a:
                     state["group_matches"][gm["id"]] = [new_h, new_a]
                     st.rerun()
+                    break
                     
         st.markdown("---")
         st.markdown("#### Classificação do Grupo")

@@ -201,7 +201,7 @@ def render_palpites_do_grupo() -> None:
                             data.append({
                                 "Participante": lp.participant_name,
                                 "Palpite": f"{lp.predicted_home_goals} x {lp.predicted_away_goals}",
-                                "Pontos Ganhos": points_gained,
+                                "Pontos Ganhos": str(points_gained) if points_gained is not None else "—",
                                 "Envio": lp.submitted_at.replace("T", " ") if lp.submitted_at else "—"
                             })
                             

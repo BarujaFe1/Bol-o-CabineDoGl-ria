@@ -24,7 +24,7 @@ def calculate_live_prediction_points(prediction: LivePrediction, match: LiveMatc
     scoring_rules = config.get("live_scoring", {})
     exact_score_points = int(scoring_rules.get("exact_score", 5))
     outcome_points = int(scoring_rules.get("outcome", 3))
-    goal_one_team_points = int(scoring_rules.get("goal_one_team", 1))
+    goal_one_team_points = int(scoring_rules.get("one_team_goals", 1))
     goal_diff_points = int(scoring_rules.get("goal_difference", 1))
     
     hit_exact = (p_h == o_h) and (p_a == o_a)
@@ -36,7 +36,7 @@ def calculate_live_prediction_points(prediction: LivePrediction, match: LiveMatc
     breakdown = []
     points = 0
     
-    exact_mode = config.get("exact_score_mode", "isolated_max")
+    exact_mode = config.get("live_scoring", {}).get("exact_score_mode", "isolated_max")
     
     if hit_exact:
         if exact_mode == "isolated_max":
