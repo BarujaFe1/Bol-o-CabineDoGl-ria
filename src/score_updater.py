@@ -8,19 +8,29 @@ from src.bolao.storage import load_matches, save_matches, load_live_predictions,
 from src.bolao.utils import canonical_team
 from src.bolao.live_scoring import calculate_live_prediction_points
 
-API_KEY = os.environ.get("FOOTBALL_DATA_API_KEY", "")
+def _get_api_key() -> str:
+    try:
+        import streamlit as st
+        st_key = st.secrets.get("FOOTBALL_DATA_API_KEY")
+        if st_key:
+            return st_key
+    except Exception:
+        pass
+    return os.environ.get("FOOTBALL_DATA_API_KEY", "")
+
 BASE_URL = "https://api.football-data.org/v4"
-HEADERS = {"X-Auth-Token": API_KEY} if API_KEY else {}
 
 def fetch_matches(status_filter: str = "IN_PLAY,FINISHED,PAUSED") -> list[dict]:
     """Busca jogos da Copa 2026 por status."""
-    if not API_KEY:
+    api_key = _get_api_key()
+    if not api_key:
         logging.warning("[score_updater] Chave FOOTBALL_DATA_API_KEY não configurada.")
         return []
     url = f"{BASE_URL}/competitions/WC/matches"
     params = {"season": 2026, "status": status_filter}
+    headers = {"X-Auth-Token": api_key}
     try:
-        resp = requests.get(url, headers=HEADERS, params=params, timeout=15)
+        resp = requests.get(url, headers=headers, params=params, timeout=15)
         resp.raise_for_status()
         return resp.json().get("matches", [])
     except requests.exceptions.RequestException as e:
@@ -32,7 +42,8 @@ def run_score_sync(supabase_client=None) -> dict:
     Função principal de sincronização de placares e recálculo de pontuações.
     Lê a agenda do football-data.org e atualiza o estado local e/ou Supabase.
     """
-    if not API_KEY:
+    api_key = _get_api_key()
+    if not api_key:
         return {"erro": "Chave FOOTBALL_DATA_API_KEY não configurada nas variáveis de ambiente ou nos secrets.", "atualizados": 0, "ao_vivo": 0}
 
     matches_api = fetch_matches()
@@ -144,7 +155,8 @@ def run_score_sync(supabase_client=None) -> dict:
 
 def has_live_matches_today(supabase_client=None) -> bool:
     """Verifica rapidamente se há jogos ao vivo no momento."""
-    if not API_KEY:
+    api_key = _get_api_key()
+    if not api_key:
         return False
     matches = fetch_matches(status_filter="IN_PLAY,PAUSED")
     return len(matches) > 0

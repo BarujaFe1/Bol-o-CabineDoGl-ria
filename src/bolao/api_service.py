@@ -31,7 +31,13 @@ class APIFootballService:
     base_url = "https://v3.football.api-sports.io"
 
     def __init__(self, api_key: str | None = None):
-        self.api_key = api_key or os.getenv("APIFOOTBALL_KEY") or os.getenv("API_FOOTBALL_KEY")
+        st_key = None
+        try:
+            import streamlit as st
+            st_key = st.secrets.get("APIFOOTBALL_KEY") or st.secrets.get("API_FOOTBALL_KEY")
+        except Exception:
+            pass
+        self.api_key = api_key or st_key or os.getenv("APIFOOTBALL_KEY") or os.getenv("API_FOOTBALL_KEY")
 
     def _headers(self) -> dict[str, str]:
         return {"x-apisports-key": self.api_key or ""}

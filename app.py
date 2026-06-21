@@ -1454,8 +1454,19 @@ def admin_official_results() -> None:
     with tabs[2]:
         from src.bolao.api_service import APIFootballService
         service = APIFootballService()
+        
+        st.markdown("""
+        **Sincronização de Resultados da Copa 2026:**
+        * Este botão utiliza a **API-Football** para carregar a simulação oficial completa (incluindo chaves de mata-mata) para o **Modo Clássico**.
+        * Para o ranking **Jogo a Jogo** (placares em tempo real), a sincronização é automatizada via **football-data.org** na aba **Jogos e Agenda** do Admin.
+        """)
+        
         if not service.enabled():
             st.warning("APIFOOTBALL_KEY não configurada. Configure em variável de ambiente ou nos secrets do Streamlit Cloud.")
+            st.info("💡 **Dica:** Para habilitar este recurso na nuvem, adicione a chave no painel de Secrets do seu Streamlit Cloud:\n"
+                    "```toml\n"
+                    "APIFOOTBALL_KEY = \"sua_chave_aqui\"\n"
+                    "```")
         if st.button("Sincronizar API-FOOTBALL", width="stretch"):
             with st.spinner("Consultando API..."):
                 response = service.fetch_world_cup_2026()

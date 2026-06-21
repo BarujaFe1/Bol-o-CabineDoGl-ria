@@ -217,8 +217,15 @@ def admin_matches_agenda() -> None:
         st.caption("Insira o placar oficial de um jogo finalizado para calcular os pontos de todos os palpites recebidos.")
 
         # Sincronização automatizada via football-data.org
-        import os
-        fd_api_key = os.environ.get("FOOTBALL_DATA_API_KEY", "")
+        fd_api_key = ""
+        try:
+            import streamlit as st
+            fd_api_key = st.secrets.get("FOOTBALL_DATA_API_KEY") or ""
+        except Exception:
+            pass
+        if not fd_api_key:
+            import os
+            fd_api_key = os.environ.get("FOOTBALL_DATA_API_KEY", "")
         if fd_api_key:
             from src.score_updater import run_score_sync, has_live_matches_today
             col_sync1, col_sync2 = st.columns([3, 1])
