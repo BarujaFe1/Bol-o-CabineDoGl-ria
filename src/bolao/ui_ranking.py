@@ -1,19 +1,313 @@
 from __future__ import annotations
 
+import html
 import streamlit as st
 import pandas as pd
+import logging
+from typing import Any
+
 try:
     import plotly.express as px
     import plotly.graph_objects as go
     _HAS_PLOTLY = True
 except ImportError:
     _HAS_PLOTLY = False
+
 from .storage import load_matches, load_live_predictions, load_submissions, load_official, load_config, load_app_data_cached, sync_official_results_to_matches
-from .scoring import rank_predictions
+from .scoring import rank_predictions, ScoreConfig
 from .live_scoring import calculate_live_ranking, calculate_live_prediction_points
-from .ui_components import podium, render_badge, render_empty_state, render_responsive_table
-from .utils import normalize_participant_key
+from .ui_components import render_empty_state
+from .utils import normalize_participant_key, avatar_url
 from .achievements import calculate_achievements
+
+# ─── Streamlit Cache Decorators for Performance ──────────────────────────────
+
+@st.cache_data(ttl=60)
+def get_classic_scores_cached(submissions, official, _score_config):
+    """Calcula e cacheia o ranking clássico por 60 segundos."""
+    return rank_predictions(submissions, official, _score_config)
+
+@st.cache_data(ttl=60)
+def get_live_scores_cached(live_preds, matches, config):
+    """Calcula e cacheia o ranking jogo a jogo por 60 segundos."""
+    return calculate_live_ranking(live_preds, matches, config)
+
+# ─── Responsive HTML/CSS Podium Component ─────────────────────────────────────
+
+def render_podio_html(top_scores: list, modo: str = "live") -> None:
+    """
+    Renderiza o pódio Top 3 com visual premium e responsivo.
+    A ordem física no HTML é 2º, 1º, 3º. O CSS order garante o empilhamento correto no mobile (1º, 2º, 3º).
+    """
+    if not top_scores:
+        return
+
+    cards = []
+    order_positions = [2, 1, 3]  # Ordem visual no desktop (2º à esquerda, 1º no centro, 3º à direita)
+
+    for pos in order_positions:
+        if len(top_scores) >= pos:
+            score = top_scores[pos - 1]
+            
+            # Extração de campos correspondentes ao modo
+            if modo == "classic":
+                name = score.participant
+                pts = score.total
+                detail = f"🎯 {score.exact_scores} exatos · Grupos: {score.group_points} pts"
+            elif modo == "combined":
+                name = score["participant"]
+                pts = score["total"]
+                detail = f"🏆 Clássico: {score['classic_points']} pts | 🎯 Jogo a Jogo: {score['live_points']} pts"
+            elif modo == "canarinho":
+                name = score["name"]
+                pts = score["total"]
+                detail = f"⚽ Gols: {score['gols_acertados']} · 🅰️ Assist: {score['assists_acertadas']}"
+            else:  # live ou rodada/fase
+                name = score.get("participant", score.get("name", "Participante"))
+                pts = score.get("total", 0)
+                detail = f"🎯 {score.get('exact_scores', 0)} exatos · 🏁 Vencedores: {score.get('outcomes', 0)}"
+
+            medal = {1: "🥇", 2: "🥈", 3: "🥉"}[pos]
+            css_class = {1: "first", 2: "second", 3: "third"}[pos]
+            p_avatar = avatar_url(name)
+
+            cards.append(f"""
+            <div class="custom-podium-card {css_class}">
+                <div class="medal">{medal}</div>
+                <div class="podium-rank">{pos}º lugar</div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px 0;">
+                    <img src="{p_avatar}" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15);" />
+                    <span class="podium-name">{html.escape(name)}</span>
+                </div>
+                <div class="podium-points">{pts} pts</div>
+                <div class="podium-note">{html.escape(detail)}</div>
+            </div>
+            """)
+        else:
+            cards.append('<div class="custom-podium-card-placeholder"></div>')
+
+    st.markdown(f"""
+    <style>
+    .custom-podium {{
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 16px;
+      margin: 24px 0 32px;
+      width: 100%;
+    }}
+    .custom-podium-card {{
+      background: linear-gradient(135deg, var(--panel-strong) 0%, var(--panel) 100%);
+      border-radius: 20px;
+      padding: 20px 16px;
+      text-align: center;
+      flex: 1;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease;
+      border: 1px solid var(--line);
+    }}
+    .custom-podium-card.first {{
+      background: linear-gradient(135deg, var(--panel-strong) 0%, var(--gold-bg) 100%);
+      border: 2px solid var(--gold) !important;
+      padding: 36px 20px;
+      transform: scale(1.06);
+      z-index: 2;
+      order: 2;
+    }}
+    .custom-podium-card.second {{
+      border: 2px solid rgba(180, 180, 180, 0.4) !important;
+      order: 1;
+    }}
+    .custom-podium-card.third {{
+      border: 2px solid rgba(196, 126, 60, 0.35) !important;
+      order: 3;
+    }}
+    .custom-podium-card-placeholder {{
+      flex: 1;
+      visibility: hidden;
+      order: 3;
+    }}
+    .medal {{
+      font-size: 38px;
+      margin-bottom: 4px;
+    }}
+    .podium-rank {{
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gold);
+    }}
+    .podium-name {{
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+    }}
+    .podium-points {{
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--green);
+      margin: 4px 0;
+    }}
+    .podium-note {{
+      font-size: 12px;
+      color: var(--muted);
+    }}
+    @media (max-width: 600px) {{
+      .custom-podium {{
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }}
+      .custom-podium-card.first {{
+        transform: none;
+        order: 1;
+        padding: 24px 20px;
+      }}
+      .custom-podium-card.second {{
+        order: 2;
+      }}
+      .custom-podium-card.third {{
+        order: 3;
+      }}
+      .custom-podium-card-placeholder {{
+        display: none;
+      }}
+    }}
+    </style>
+    <div class="custom-podium">
+        {"".join(cards)}
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ─── Participant Details Helper ──────────────────────────────────────────────
+
+TIPO_ACERTO_DISPLAY = {
+    "exato": "🎯 Exato",
+    "vencedor": "✅ Vencedor",
+    "empate": "➖ Empate",
+    "saldo": "📊 Saldo de Gols",
+    "gols": "⚽ Gols",
+    "erro": "❌ Errou",
+    "Aguardando resultado oficial": "⏳ Pendente",
+    "Palpite atrasado (inválido)": "🚫 Atrasado",
+}
+
+def render_detalhe_participante_card(user_name: str, live_preds: list, matches: list, config: dict) -> None:
+    """Renderiza a ficha detalhada e análise de palpites de um participante."""
+    user_key = normalize_participant_key(user_name)
+    user_preds = [p for p in live_preds if (p.participant_key or normalize_participant_key(p.participant_name)) == user_key]
+
+    if not user_preds:
+        st.info("Nenhum palpite enviado por este participante ainda.")
+        return
+
+    det_rows = []
+    correct_outcomes = 0
+    exact_scores = 0
+    gols_mandante = 0
+    gols_visitante = 0
+    saldo_gols = 0
+    total_jogos = 0
+
+    for p in user_preds:
+        m = next((mm for mm in matches if mm.match_id == p.match_id), None)
+        if m:
+            res = calculate_live_prediction_points(p, m, config)
+            pts = res["points"]
+            flags = res["flags"]
+            
+            tipo_acerto = "⏳ Pendente"
+            if m.status == "result_approved":
+                total_jogos += 1
+                if flags.get("exact"):
+                    tipo_acerto = "🎯 Exato"
+                    exact_scores += 1
+                elif flags.get("outcome"):
+                    tipo_acerto = "✅ Vencedor"
+                    correct_outcomes += 1
+                else:
+                    tipo_acerto = "❌ Errou"
+                
+                if p.predicted_home_goals == m.official_home_goals:
+                    gols_mandante += 1
+                if p.predicted_away_goals == m.official_away_goals:
+                    gols_visitante += 1
+                if (p.predicted_home_goals - p.predicted_away_goals) == (m.official_home_goals - m.official_away_goals):
+                    saldo_gols += 1
+
+            det_rows.append({
+                "jogo": f"{m.home_team} x {m.away_team}",
+                "Fase": m.round_label,
+                "palpite": f"{p.predicted_home_goals} x {p.predicted_away_goals}",
+                "resultado": f"{m.official_home_goals} x {m.official_away_goals}" if m.status == "result_approved" else "Aguardando",
+                "tipo_acerto": tipo_acerto,
+                "pontos": pts if m.status == "result_approved" else 0
+            })
+
+    # Resumo com metrics
+    st.markdown("##### 📊 Resumo de Desempenho")
+    col_a, col_b, col_c, col_d = st.columns(4)
+    col_a.metric("Jogos Palpitados", len(user_preds))
+    col_b.metric("🎯 Placares Exatos", exact_scores)
+    col_c.metric("🏁 Vencedor Correto", correct_outcomes)
+    col_d.metric("⚽ Aproveitamento", f"{int(exact_scores + correct_outcomes) / total_jogos * 100:.0f}%" if total_jogos > 0 else "0%")
+
+    st.markdown("##### 📝 Detalhamento por Jogo")
+    if det_rows:
+        df_det = pd.DataFrame(det_rows)
+        st.dataframe(
+            df_det,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "jogo": st.column_config.TextColumn("Partida", width="medium"),
+                "Fase": st.column_config.TextColumn("Fase/Rodada", width="small"),
+                "palpite": st.column_config.TextColumn("Seu Palpite", width="small"),
+                "resultado": st.column_config.TextColumn("Resultado Real", width="small"),
+                "tipo_acerto": st.column_config.TextColumn("Tipo de Acerto", width="small"),
+                "pontos": st.column_config.NumberColumn("Pontos Ganhos", width="small"),
+            }
+        )
+
+        # Gráfico Radar e Forças/Fraquezas
+        if _HAS_PLOTLY and total_jogos > 0:
+            st.markdown("##### 🎯 Perfil Estatístico do Participante")
+            
+            radar_vals = {
+                "Placares Exatos": exact_scores,
+                "Vencedores": correct_outcomes,
+                "Gols Mandante": gols_mandante,
+                "Gols Visitante": gols_visitante,
+                "Saldo de Gols": saldo_gols,
+            }
+            max_val = max(radar_vals.values()) if any(radar_vals.values()) else 1
+            
+            fig_radar = go.Figure()
+            fig_radar.add_trace(go.Scatterpolar(
+                r=list(radar_vals.values()),
+                theta=list(radar_vals.keys()),
+                fill="toself",
+                name=user_name,
+                line_color="#2dd67b",
+            ))
+            fig_radar.update_layout(
+                polar=dict(
+                    radialaxis=dict(visible=True, range=[0, max_val + 1]),
+                    bgcolor="rgba(0,0,0,0)",
+                ),
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+                font_color="#e0e0e0",
+                height=350,
+                margin=dict(t=20, b=20),
+            )
+            st.plotly_chart(fig_radar, use_container_width=True)
+
+
+# ─── Main Interface Function ──────────────────────────────────────────────────
 
 def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
     synced = sync_official_results_to_matches()
@@ -30,13 +324,23 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
     if synced > 0:
         st.toast(f"✅ Resultados oficiais sincronizados: {synced} jogos atualizados!", icon="⚽")
     
-    # Calcular conquistas sociais em tempo real
+    # Calcular conquistas sociais
     achievements = calculate_achievements(ctx)
 
     st.markdown("### 🏆 Rankings do Bolão")
-    st.caption("Acompanhe a classificação em tempo real nos diferentes modos da Copa.")
+    st.caption("Classificação geral e estatísticas em tempo real nos diferentes modos da Copa.")
 
-    # KPI Summary Grid
+    # Instanciar ScoreConfig se necessário
+    if score_config is None:
+        from .constants import DEFAULT_WEIGHTED_RULES, DEFAULT_UNIFORM_RULES, DEFAULT_V2_RULES
+        score_config = ScoreConfig(
+            mode=config.get("scoring_mode", "v2"),
+            weighted_rules=config.get("weighted_rules", dict(DEFAULT_WEIGHTED_RULES)),
+            uniform_rules=config.get("uniform_rules", dict(DEFAULT_UNIFORM_RULES)),
+            v2_rules=config.get("v2_rules", dict(DEFAULT_V2_RULES)),
+        )
+
+    # Grid de KPIs no topo
     col_k1, col_k2, col_k3 = st.columns(3)
     with col_k1:
         st.metric("Total Participantes (Clássico)", len(submissions))
@@ -45,7 +349,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
         st.metric("Total Participantes (Jogo a Jogo)", unique_live)
     with col_k3:
         approved_count = len([m for m in matches if m.status == "result_approved"])
-        st.metric("Jogos Concluídos (Jogo a Jogo)", f"{approved_count}/{len(matches)}")
+        st.metric("Jogos Concluídos", f"{approved_count}/{len(matches)}")
 
     ranking_tabs = st.tabs([
         "🎯 Jogo a Jogo",
@@ -57,24 +361,95 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
         "📊 Estatísticas"
     ])
 
-    # Se precisar instanciar a configuração de score
-    if score_config is None:
-        from .scoring import ScoreConfig
-        from .constants import DEFAULT_WEIGHTED_RULES, DEFAULT_UNIFORM_RULES, DEFAULT_V2_RULES
-        score_config = ScoreConfig(
-            mode=config.get("scoring_mode", "v2"),
-            weighted_rules=config.get("weighted_rules", dict(DEFAULT_WEIGHTED_RULES)),
-            uniform_rules=config.get("uniform_rules", dict(DEFAULT_UNIFORM_RULES)),
-            v2_rules=config.get("v2_rules", dict(DEFAULT_V2_RULES)),
-        )
+    # ─────────────────────────────────────────────────────────────────────────
+    # Tab 0: Jogo a Jogo
+    # ─────────────────────────────────────────────────────────────────────────
+    with ranking_tabs[0]:
+        st.markdown("#### 🎯 Modo Jogo a Jogo — Classificação Geral")
+        st.caption("Ranking baseado no acúmulo de pontos rodada a rodada ao longo da Copa.")
 
-    # 1. Clássico Tab
+        live_scores = get_live_scores_cached(live_preds, matches, config)
+        if not live_scores:
+            st.info("Nenhum palpite computado ou jogos ainda não encerrados.")
+        else:
+            # 1. Pódio visual
+            st.markdown("##### 🎖️ Pódio do Bolão")
+            render_podio_html(live_scores, "live")
+
+            # 2. Filtro de Busca Textual
+            search_live = st.text_input("🔍 Buscar participante (Jogo a Jogo)", placeholder="Digite o nome...", key="search_live_name")
+            filtered_live = [s for s in live_scores if search_live.lower() in s["participant"].lower()] if search_live else live_scores
+
+            # Montagem das linhas para st.dataframe
+            live_rows = []
+            for s in filtered_live:
+                pkey = s["participant_key"]
+                user_badges = achievements.get(pkey, [])
+                badge_str = " ".join([f"{b['icon']}" for b in user_badges]) if user_badges else "—"
+                
+                live_rows.append({
+                    "Posição": s["position"],
+                    "Participante": s["participant"],
+                    "Pontos": s["total"],
+                    "Pontos de Jogos": s.get("match_points", 0),
+                    "Goleadores Brasil": s.get("brasil_points", 0),
+                    "Artilheiro Dia": s.get("artilheiro_dia_points", 0),
+                    "Artilheiro Rodada": s.get("artilheiro_rodada_points", 0),
+                    "🎯 Exatos": s["exact_scores"],
+                    "🏁 Vencedor": s["outcomes"],
+                    "Palpites": s["predictions_count"],
+                    "Aproveitamento": f"{int(s['hit_rate'] * 100)}%",
+                    "Conquistas": badge_str
+                })
+
+            df_live = pd.DataFrame(live_rows)
+            
+            # 3. Tabela Completa (ProgressColumn)
+            st.markdown("##### 📋 Classificação Completa")
+            st.dataframe(
+                df_live,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Posição": st.column_config.NumberColumn("Pos.", width="small"),
+                    "Participante": st.column_config.TextColumn("Participante", width="medium"),
+                    "Pontos": st.column_config.ProgressColumn(
+                        "Total Pontos",
+                        min_value=0,
+                        max_value=int(df_live["Pontos"].max()) if not df_live.empty else 1,
+                        format="%d"
+                    ),
+                    "Pontos de Jogos": st.column_config.NumberColumn("🎮 Jogos", width="small"),
+                    "Goleadores Brasil": st.column_config.NumberColumn("🇧🇷 Brasil", width="small"),
+                    "Artilheiro Dia": st.column_config.NumberColumn("☀️ Dia", width="small"),
+                    "Artilheiro Rodada": st.column_config.NumberColumn("📅 Rodada", width="small"),
+                    "🎯 Exatos": st.column_config.NumberColumn("🎯 Exatos", width="small"),
+                    "🏁 Vencedor": st.column_config.NumberColumn("🏁 Vencedor", width="small"),
+                    "Palpites": st.column_config.NumberColumn("⚽ Palpites", width="small"),
+                    "Aproveitamento": st.column_config.TextColumn("📈 Aprov.", width="small"),
+                    "Conquistas": st.column_config.TextColumn("🎖️ Conquistas", width="medium"),
+                }
+            )
+
+            # 4. Detalhes por Participante
+            st.markdown("---")
+            st.markdown("#### 🔍 Ficha Detalhada do Participante")
+            selected_user = st.selectbox(
+                "Escolha um participante para ver o histórico detalhado:",
+                options=[s["participant"] for s in live_scores],
+                key="live_detail_user"
+            )
+            render_detalhe_participante_card(selected_user, live_preds, matches, config)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Tab 1: Clássico
+    # ─────────────────────────────────────────────────────────────────────────
     with ranking_tabs[1]:
-        st.markdown("#### 🏆 Modo Clássico — Palpite pré-Copa")
-        st.caption("Participantes que preencheram a cartela inteira antes do início do torneio.")
-        
+        st.markdown("#### 🏆 Modo Clássico — Palpites pré-Copa")
+        st.caption("Classificação baseada nos palpites de cartela completa preenchidos antes do início da Copa.")
+
         if not official:
-            st.info("O resultado oficial do Modo Clássico ainda não foi cadastrado. Exibindo apenas a lista de inscritos por ordem de envio.")
+            st.info("O resultado oficial do Modo Clássico ainda não foi cadastrado. Exibindo inscritos por data de envio.")
             if submissions:
                 classic_list = []
                 for p in submissions:
@@ -87,36 +462,18 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         "Código": p.submission_id[:8] if p.submission_id else "—",
                         "Conquistas": badge_str
                     })
-                
-                def render_classic_inscrito_card(item):
-                    from src.bolao.utils import avatar_url
-                    p_avatar = avatar_url(item['Participante'])
-                    st.markdown(
-                        f"""
-                        <div class="card" style="margin-bottom: 12px; padding: 16px;">
-                            <div style="display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 15px; color: var(--ink);">
-                                <img src="{p_avatar}" style="width: 32px; height: 32px; border-radius: 50%;" />
-                                {item['Participante']}
-                            </div>
-                            <div style="font-size: 13px; color: var(--muted); margin-top: 4px;">
-                                ⏱️ Enviado: {item['Enviado em']} | 🔑 Código: {item['Código']}
-                                <br>🎖️ Conquistas: {item['Conquistas']}
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                render_responsive_table(pd.DataFrame(classic_list), render_classic_inscrito_card, "classic_inscritos")
-            else:
-                st.info("Nenhum palpite clássico enviado ainda.")
+                st.dataframe(pd.DataFrame(classic_list), use_container_width=True, hide_index=True)
         else:
-            classic_scores = rank_predictions(submissions, official, score_config)
-            podium(classic_scores)
+            classic_scores = get_classic_scores_cached(submissions, official, score_config)
             
+            # 1. Pódio
+            st.markdown("##### 🎖️ Pódio - Modo Clássico")
+            render_podio_html(classic_scores, "classic")
+
+            # 2. Busca e Tabela
             search_name = st.text_input("🔍 Buscar participante (Clássico)", placeholder="Digite o nome...", key="search_classic_name")
             filtered = [s for s in classic_scores if search_name.lower() in s.participant.lower()] if search_name else classic_scores
-            
-            # Render Classic Ranking DataFrame
+
             rows = []
             for idx, s in enumerate(filtered, start=1):
                 pkey = normalize_participant_key(s.participant)
@@ -132,414 +489,45 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     "Placares Exatos": s.exact_scores,
                     "Conquistas": badge_str
                 })
-            
-            def render_classic_ranking_card(r):
-                from src.bolao.utils import avatar_url
-                p_avatar = avatar_url(r['Participante'])
-                
-                pos = r['Posição']
-                medal = ""
-                bg_color = "var(--panel)"
-                border_color = "var(--line)"
-                pos_style = "color: var(--ink);"
-                
-                if pos == 1:
-                    medal = "🥇 "
-                    bg_color = "rgba(255, 215, 0, 0.08)"
-                    border_color = "#ffd700"
-                    pos_style = "color: #ffd700; font-size: 20px;"
-                elif pos == 2:
-                    medal = "🥈 "
-                    bg_color = "rgba(192, 192, 192, 0.08)"
-                    border_color = "#c0c0c0"
-                    pos_style = "color: #c0c0c0; font-size: 18px;"
-                elif pos == 3:
-                    medal = "🥉 "
-                    bg_color = "rgba(205, 127, 50, 0.08)"
-                    border_color = "#cd7f32"
-                    pos_style = "color: #cd7f32; font-size: 17px;"
 
-                st.markdown(
-                    f"""
-                    <div class="card" style="margin-bottom: 12px; padding: 16px; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {border_color}; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.05); font-weight: 800; {pos_style}">
-                                    {medal if medal else f"{pos}"}
-                                </div>
-                                <img src="{p_avatar}" style="width: 32px; height: 32px; border-radius: 50%;" />
-                                <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Participante']}</span>
-                            </div>
-                            <span class="badge success" style="font-size:14px; font-weight: 900; padding: 6px 12px; background-color: var(--green-bg); color: var(--green); border-radius: 20px;">{r['Pontos']} pts</span>
-                        </div>
-                        <div style="font-size: 13px; color: var(--muted); line-height: 1.5; margin-left: 46px;">
-                            📋 <b>Grupos:</b> {r['Fase de Grupos']} pts · ⚔️ <b>Mata-Mata:</b> {r['Mata-Mata']} pts
-                            <br>🏆 <b>Campeã Correta:</b> {r['Campeão correto']} · 🎯 <b>Exatos:</b> {r['Placares Exatos']}
-                            <br>🎖️ <b>Conquistas:</b> {r['Conquistas']}
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-            render_responsive_table(pd.DataFrame(rows), render_classic_ranking_card, "classic_ranking")
+            df_classic = pd.DataFrame(rows)
+            st.markdown("##### 📋 Tabela Geral - Clássico")
+            st.dataframe(
+                df_classic,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Posição": st.column_config.NumberColumn("Pos.", width="small"),
+                    "Participante": st.column_config.TextColumn("Participante", width="medium"),
+                    "Pontos": st.column_config.ProgressColumn(
+                        "Total Pontos",
+                        min_value=0,
+                        max_value=int(df_classic["Pontos"].max()) if not df_classic.empty else 1,
+                        format="%d"
+                    ),
+                    "Fase de Grupos": st.column_config.NumberColumn("📋 Grupos", width="small"),
+                    "Mata-Mata": st.column_config.NumberColumn("⚔️ Mata-Mata", width="small"),
+                    "Campeão correto": st.column_config.TextColumn("🏆 Campeão", width="small"),
+                    "Placares Exatos": st.column_config.NumberColumn("🎯 Exatos", width="small"),
+                    "Conquistas": st.column_config.TextColumn("🎖️ Conquistas", width="medium"),
+                }
+            )
 
-    # 2. Jogo a Jogo Tab
-    with ranking_tabs[0]:
-        st.markdown("#### 🎯 Jogo a Jogo")
-        st.caption("Ranking baseado no acerto individual de placares rodada a rodada.")
-
-        live_scores = calculate_live_ranking(live_preds, matches, config)
-        if not live_scores:
-            st.info("Nenhum palpite computado ou jogos ainda não foram encerrados no Modo Jogo a Jogo.")
-        else:
-            # Render Podium
-            st.markdown("##### 🎖️ Top 3 — Jogo a Jogo")
-            podium(live_scores)
-
-            # ── Bar Chart: Points Distribution ──
-            st.markdown("##### 📊 Distribuição de Pontos")
-            df_chart = pd.DataFrame(live_scores)
-            if _HAS_PLOTLY:
-                fig_bar = px.bar(
-                    df_chart,
-                    x="participant",
-                    y="total",
-                    color="total",
-                    color_continuous_scale="viridis",
-                    labels={"participant": "Participante", "total": "Pontos"},
-                    text="total",
-                    height=350,
-                )
-                fig_bar.update_traces(textposition="outside")
-                fig_bar.update_layout(
-                    plot_bgcolor="rgba(0,0,0,0)",
-                    paper_bgcolor="rgba(0,0,0,0)",
-                    font_color="#e0e0e0",
-                    xaxis_tickangle=-45,
-                    showlegend=False,
-                )
-                st.plotly_chart(fig_bar, use_container_width=True)
-            else:
-                st.dataframe(df_chart[["participant", "total"]].rename(columns={"participant": "Participante", "total": "Pontos"}), width="stretch", hide_index=True)
-
-            # ── Detailed Stats per participant ──
-            st.markdown("##### 📈 Estatísticas por Participante")
-            stats_rows = []
-            for s in live_scores:
-                pkey = s["participant_key"]
-                user_preds = [p for p in live_preds if (p.participant_key or normalize_participant_key(p.participant_name)) == pkey]
-                total_pred_goals = sum(p.predicted_home_goals + p.predicted_away_goals for p in user_preds)
-                correct_outcomes = s["outcomes"]
-                approved_count = s["possible_matches"]
-                user_badges = achievements.get(pkey, [])
-                badge_str = " ".join([f"{b['icon']}" for b in user_badges[:3]]) if user_badges else "—"
-
-                # Count how many predictions were correct in different categories
-                gols_mandante_certos = 0
-                gols_visitante_certos = 0
-                diff_certos = 0
-                for p in user_preds:
-                    m = next((mm for mm in matches if mm.match_id == p.match_id), None)
-                    if m and m.status == "result_approved" and m.official_home_goals is not None:
-                        if p.predicted_home_goals == m.official_home_goals:
-                            gols_mandante_certos += 1
-                        if p.predicted_away_goals == m.official_away_goals:
-                            gols_visitante_certos += 1
-                        if (p.predicted_home_goals - p.predicted_away_goals) == (m.official_home_goals - m.official_away_goals):
-                            diff_certos += 1
-
-                stats_rows.append({
-                    "Participante": s["participant"],
-                    "Pontos": s["total"],
-                    "🎯 Exatos": s["exact_scores"],
-                    "🏁 Vencedor": correct_outcomes,
-                    "🥅 Gols Mandante": gols_mandante_certos,
-                    "🥅 Gols Visitante": gols_visitante_certos,
-                    "📊 Saldo": diff_certos,
-                    "📈 Aprov.": f"{int(s['hit_rate'] * 100)}%",
-                    "🎖️": badge_str,
-                })
-
-            def render_stats_card(r):
-                st.markdown(
-                    f"""<div class="card" style="margin-bottom:10px;padding:14px;border-left:5px solid var(--green);">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <b style="font-size:15px;color:var(--ink);">{r['Participante']}</b>
-                            <span class="badge success">{r['Pontos']} pts</span>
-                        </div>
-                        <div style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5;">
-                            🎯 Placares Exatos: {r['🎯 Exatos']} · 🏁 Vencedores: {r['🏁 Vencedor']}
-                            <br>🥅 Gols Mandante: {r['🥅 Gols Mandante']} · Gols Visitante: {r['🥅 Gols Visitante']}
-                            <br>📊 Saldo de Gols: {r['📊 Saldo']} · 📈 Aproveitamento: {r['📈 Aprov.']}
-                            <br>🎖️ {r['🎖️']}
-                        </div>
-                    </div>""",
-                    unsafe_allow_html=True,
-                )
-            render_responsive_table(pd.DataFrame(stats_rows), render_stats_card, "live_stats_ranking")
-
-            # ── Match hits chart ──
-            st.markdown("##### 🎯 Acertos por Categoria")
-            cat_df = pd.DataFrame(stats_rows)
-            if not cat_df.empty:
-                cat_melt = cat_df.melt(
-                    id_vars=["Participante"],
-                    value_vars=["🎯 Exatos", "🏁 Vencedor", "🥅 Gols Mandante", "🥅 Gols Visitante", "📊 Saldo"],
-                    var_name="Categoria",
-                    value_name="Acertos",
-                )
-                if _HAS_PLOTLY:
-                    fig_cat = px.bar(
-                        cat_melt,
-                        x="Participante",
-                        y="Acertos",
-                        color="Categoria",
-                        barmode="group",
-                        height=400,
-                        color_discrete_sequence=px.colors.qualitative.Set2,
-                    )
-                    fig_cat.update_layout(
-                        plot_bgcolor="rgba(0,0,0,0)",
-                        paper_bgcolor="rgba(0,0,0,0)",
-                        font_color="#e0e0e0",
-                        legend=dict(orientation="h", yanchor="bottom", y=1.02),
-                    )
-                    st.plotly_chart(fig_cat, use_container_width=True)
-                else:
-                    st.dataframe(cat_melt.pivot_table(index="Participante", columns="Categoria", values="Acertos", fill_value=0), width="stretch")
-
-            st.markdown("<br>", unsafe_allow_html=True)
-            search_live = st.text_input("🔍 Buscar participante (Jogo a Jogo)", placeholder="Digite o nome...", key="search_live_name")
-            filtered_live = [s for s in live_scores if search_live.lower() in s["participant"].lower()] if search_live else live_scores
-
-            # Build table with achievements
-            live_rows = []
-            for s in filtered_live:
-                pkey = s["participant_key"]
-                user_badges = achievements.get(pkey, [])
-                badge_str = " ".join([f"{b['icon']} {b['name']}" for b in user_badges]) if user_badges else "—"
-                
-                live_rows.append({
-                    "Posição": s["position"],
-                    "Participante": s["participant"],
-                    "Pontos": s["total"],
-                    "Pontos de Jogos": s.get("match_points", 0),
-                    "Pontos Goleadores Brasil": s.get("brasil_points", 0),
-                    "Pontos Artilheiro Dia": s.get("artilheiro_dia_points", 0),
-                    "Pontos Artilheiro Rodada": s.get("artilheiro_rodada_points", 0),
-                    "Placares Exatos": s["exact_scores"],
-                    "Acertos Vencedor": s["outcomes"],
-                    "Palpites Salvos": s["predictions_count"],
-                    "Palpites Perdidos": s["missed_predictions"],
-                    "Aproveitamento": f"{int(s['hit_rate'] * 100)}%",
-                    "Conquistas": badge_str
-                })
-            
-            def render_live_ranking_card(r):
-                from src.bolao.utils import avatar_url
-                p_avatar = avatar_url(r['Participante'])
-                
-                pos = r['Posição']
-                medal = ""
-                bg_color = "var(--panel)"
-                border_color = "var(--line)"
-                pos_style = "color: var(--ink);"
-                
-                if pos == 1:
-                    medal = "🥇 "
-                    bg_color = "rgba(255, 215, 0, 0.08)"
-                    border_color = "#ffd700"
-                    pos_style = "color: #ffd700; font-size: 20px;"
-                elif pos == 2:
-                    medal = "🥈 "
-                    bg_color = "rgba(192, 192, 192, 0.08)"
-                    border_color = "#c0c0c0"
-                    pos_style = "color: #c0c0c0; font-size: 18px;"
-                elif pos == 3:
-                    medal = "🥉 "
-                    bg_color = "rgba(205, 127, 50, 0.08)"
-                    border_color = "#cd7f32"
-                    pos_style = "color: #cd7f32; font-size: 17px;"
-
-                st.markdown(
-                    f"""
-                    <div class="card" style="margin-bottom: 12px; padding: 16px; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {border_color}; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.05); font-weight: 800; {pos_style}">
-                                    {medal if medal else f"{pos}"}
-                                </div>
-                                <img src="{p_avatar}" style="width: 32px; height: 32px; border-radius: 50%;" />
-                                <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Participante']}</span>
-                            </div>
-                            <span class="badge success" style="font-size:14px; font-weight: 900; padding: 6px 12px; background-color: var(--green-bg); color: var(--green); border-radius: 20px;">{r['Pontos']} pts</span>
-                        </div>
-                        <div style="font-size: 13px; color: var(--muted); line-height: 1.5; margin-left: 46px;">
-                            🎯 <b>Placares:</b> {r['Placares Exatos']} exatos · {r['Acertos Vencedor']} vencedor ({r['Aproveitamento']} aprov.)
-                            <br>⚽ <b>Palpites:</b> {r['Palpites Salvos']} salvos / {r['Palpites Perdidos']} perdidos
-                            <br>📋 <b>Detalhamento:</b>
-                            <span style="display: inline-block; background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; margin-right: 4px; margin-top: 4px; font-size: 12px;">🎮 Jogos: <b>{r['Pontos de Jogos']}</b> pts</span>
-                            <span style="display: inline-block; background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; margin-right: 4px; margin-top: 4px; font-size: 12px;">🇧🇷 Brasil: <b>{r['Pontos Goleadores Brasil']}</b> pts</span>
-                            <span style="display: inline-block; background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; margin-right: 4px; margin-top: 4px; font-size: 12px;">☀️ Dia: <b>{r['Pontos Artilheiro Dia']}</b> pts</span>
-                            <span style="display: inline-block; background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; margin-top: 4px; font-size: 12px;">📅 Rodada: <b>{r['Pontos Artilheiro Rodada']}</b> pts</span>
-                            <br>🎖️ <b>Conquistas:</b> {r['Conquistas']}
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-            render_responsive_table(pd.DataFrame(live_rows), render_live_ranking_card, "live_ranking")
-
-            # Details expansion
-            st.markdown("<br>", unsafe_allow_html=True)
-            selected_user = st.selectbox("Selecione um participante para ver o detalhamento de palpites jogo a jogo:", options=[s["participant"] for s in live_scores], key="live_detail_user")
-            user_key = normalize_participant_key(selected_user)
-            
-            user_preds = [p for p in live_preds if (p.participant_key or normalize_participant_key(p.participant_name)) == user_key]
-            
-            det_rows = []
-            for p in user_preds:
-                m = next((m for m in matches if m.match_id == p.match_id), None)
-                if m:
-                    res = calculate_live_prediction_points(p, m, config)
-                    det_rows.append({
-                        "Jogo": f"{m.home_team} x {m.away_team}",
-                        "Fase/Rodada": m.round_label,
-                        "Palpite": f"{p.predicted_home_goals} x {p.predicted_away_goals}",
-                        "Resultado Oficial": f"{m.official_home_goals} x {m.official_away_goals}" if m.status == "result_approved" else "Aguardando",
-                        "Pontos Ganhos": res["points"] if m.status == "result_approved" else None,
-                        "Breakdown": " · ".join(res["breakdown"]) if m.status == "result_approved" else "Pendente"
-                    })
-            user_score = None
-            u_gm = 0
-            u_gv = 0
-            u_sd = 0
-            if det_rows:
-                st.dataframe(pd.DataFrame(det_rows), width="stretch", hide_index=True)
-
-                # Compute per-participant metrics for the selected user
-                user_score = next((s for s in live_scores if s["participant_key"] == user_key), None)
-                for p in user_preds:
-                    m = next((mm for mm in matches if mm.match_id == p.match_id), None)
-                    if m and m.status == "result_approved" and m.official_home_goals is not None:
-                        if p.predicted_home_goals == m.official_home_goals:
-                            u_gm += 1
-                        if p.predicted_away_goals == m.official_away_goals:
-                            u_gv += 1
-                        if (p.predicted_home_goals - p.predicted_away_goals) == (m.official_home_goals - m.official_away_goals):
-                            u_sd += 1
-
-                # ── Radar chart: per-participant profile ──
-                if _HAS_PLOTLY and user_score:
-                    radar_vals = {
-                        "Placares Exatos": user_score["exact_scores"],
-                        "Vencedores": user_score["outcomes"],
-                        "Gols Mandante": u_gm,
-                        "Gols Visitante": u_gv,
-                        "Saldo de Gols": u_sd,
-                    }
-                    max_val = max(radar_vals.values()) if any(radar_vals.values()) else 1
-                    fig_radar = go.Figure()
-                    fig_radar.add_trace(go.Scatterpolar(
-                        r=list(radar_vals.values()),
-                        theta=list(radar_vals.keys()),
-                        fill="toself",
-                        name=selected_user,
-                        line_color="#22c55e",
-                    ))
-                    fig_radar.update_layout(
-                        polar=dict(
-                            radialaxis=dict(visible=True, range=[0, max_val + 1]),
-                            bgcolor="rgba(0,0,0,0)",
-                        ),
-                        plot_bgcolor="rgba(0,0,0,0)",
-                        paper_bgcolor="rgba(0,0,0,0)",
-                        font_color="#e0e0e0",
-                        height=350,
-                        margin=dict(t=10, b=10),
-                    )
-                    st.plotly_chart(fig_radar, use_container_width=True)
-
-                # ── Strengths & Weaknesses analysis ──
-                st.markdown("###### 💪 Forças & Fraquezas")
-                if user_score:
-                    metrics = {
-                        "Placares Exatos": user_score["exact_scores"],
-                        "Acertar Vencedor": user_score["outcomes"],
-                        "Gols do Mandante": u_gm,
-                        "Gols do Visitante": u_gv,
-                        "Saldo de Gols": u_sd,
-                    }
-                    avg_metrics = {}
-                    all_live = list(live_scores)
-                    for key in metrics:
-                        vals = []
-                        for s in all_live:
-                            sk = s["participant_key"]
-                            sp = [p for p in live_preds if (p.participant_key or normalize_participant_key(p.participant_name)) == sk]
-                            gm = sum(
-                                1 for p in sp
-                                if (m := next((mm for mm in matches if mm.match_id == p.match_id), None))
-                                and m.status == "result_approved" and m.official_home_goals is not None
-                                and p.predicted_home_goals == m.official_home_goals
-                            )
-                            gv = sum(
-                                1 for p in sp
-                                if (m := next((mm for mm in matches if mm.match_id == p.match_id), None))
-                                and m.status == "result_approved" and m.official_away_goals is not None
-                                and p.predicted_away_goals == m.official_away_goals
-                            )
-                            sd = sum(
-                                1 for p in sp
-                                if (m := next((mm for mm in matches if mm.match_id == p.match_id), None))
-                                and m.status == "result_approved" and m.official_home_goals is not None
-                                and (p.predicted_home_goals - p.predicted_away_goals) == (m.official_home_goals - m.official_away_goals)
-                            )
-                            if key == "Placares Exatos":
-                                vals.append(s["exact_scores"])
-                            elif key == "Acertar Vencedor":
-                                vals.append(s["outcomes"])
-                            elif key == "Gols do Mandante":
-                                vals.append(gm)
-                            elif key == "Gols do Visitante":
-                                vals.append(gv)
-                            elif key == "Saldo de Gols":
-                                vals.append(sd)
-                        avg_metrics[key] = sum(vals) / len(vals) if vals else 0
-
-                    strengths = []
-                    weaknesses = []
-                    for cat, val in metrics.items():
-                        avg = avg_metrics.get(cat, 0)
-                        if avg > 0 and val > avg * 1.2:
-                            strengths.append(cat)
-                        elif avg > 0 and val < avg * 0.8:
-                            weaknesses.append(cat)
-                        elif avg == 0 and val > 0:
-                            strengths.append(cat)
-
-                    if strengths:
-                        st.success(f"💪 **Forças:** {' · '.join(strengths)}")
-                    if weaknesses:
-                        st.warning(f"⚠️ **Fraquezas:** {' · '.join(weaknesses)}")
-                    if not strengths and not weaknesses:
-                        st.info("📊 Desempenho próximo da média do grupo em todas as categorias.")
-            else:
-                st.info("Nenhum palpite enviado por este participante ainda.")
-
-    # 3. Combined Ranking Tab
+    # ─────────────────────────────────────────────────────────────────────────
+    # Tab 2: Combinado
+    # ─────────────────────────────────────────────────────────────────────────
     with ranking_tabs[2]:
-        st.markdown("#### 🌟 Ranking Geral Combinado")
-        st.caption("Classificação geral que unifica os pontos do Modo Clássico e do Modo Jogo a Jogo.")
+        st.markdown("#### 🔗 Ranking Geral Combinado")
+        st.caption("Classificação geral ponderada unificando os pontos do Modo Clássico e do Modo Jogo a Jogo.")
         
         combined_enabled = config.get("combined_ranking_enabled", False)
         if not combined_enabled:
-            st.warning("⚠️ O Ranking Geral Combinado ainda não está ativado. O administrador pode ativá-lo e configurar os pesos nas Configurações.")
+            st.warning("⚠️ O Ranking Geral Combinado ainda não está ativado. O administrador pode ativá-lo nas Configurações.")
         elif not official:
             st.info("O resultado oficial clássico é necessário para computar o ranking geral.")
         else:
-            classic_scores = rank_predictions(submissions, official, score_config)
-            live_scores = calculate_live_ranking(live_preds, matches, config)
+            classic_scores = get_classic_scores_cached(submissions, official, score_config)
+            live_scores = get_live_scores_cached(live_preds, matches, config)
             
             combined_rules = config.get("combined_ranking", {})
             classic_weight = combined_rules.get("classic_weight", 1.0)
@@ -547,10 +535,8 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             include_classic_only = combined_rules.get("include_classic_only_players", True)
             include_live_only = combined_rules.get("include_live_only_players", True)
             
-            # Combine metrics by key
             classic_dict = {normalize_participant_key(s.participant): s for s in classic_scores}
             live_dict = {s["participant_key"]: s for s in live_scores}
-            
             all_keys = set(classic_dict.keys()).union(live_dict.keys())
             
             combined_list = []
@@ -558,7 +544,6 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                 c_score = classic_dict.get(pkey)
                 l_score = live_dict.get(pkey)
                 
-                # Regras de inclusão baseadas em config
                 if c_score and not l_score and not include_classic_only:
                     continue
                 if l_score and not c_score and not include_live_only:
@@ -567,7 +552,6 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                 name = c_score.participant if c_score else (l_score["participant"] if l_score else "—")
                 c_pts = c_score.total if c_score else 0
                 l_pts = l_score["total"] if l_score else 0
-                
                 combined_pts = c_pts * classic_weight + l_pts * live_weight
                 
                 combined_list.append({
@@ -578,21 +562,17 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     "total": combined_pts
                 })
                 
-            # Sort combined ranking
-            combined_list.sort(key=lambda s: (
-                -s["total"],
-                -s["classic_points"],
-                -s["live_points"],
-                s["participant"].lower()
-            ))
+            combined_list.sort(key=lambda s: (-s["total"], -s["classic_points"], -s["live_points"], s["participant"].lower()))
             
-            # Build combined table rows
+            # Pódio
+            render_podio_html(combined_list, "combined")
+
+            # Tabela
             comb_rows = []
             for idx, s in enumerate(combined_list, start=1):
                 pkey = s["participant_key"]
                 user_badges = achievements.get(pkey, [])
                 badge_str = " ".join([b['icon'] for b in user_badges]) if user_badges else "—"
-                
                 comb_rows.append({
                     "Posição": idx,
                     "Participante": s["participant"],
@@ -602,55 +582,28 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     "Conquistas": badge_str
                 })
             
-            def render_combined_ranking_card(r):
-                from src.bolao.utils import avatar_url
-                p_avatar = avatar_url(r['Participante'])
-                
-                pos = r['Posição']
-                medal = ""
-                bg_color = "var(--panel)"
-                border_color = "var(--line)"
-                pos_style = "color: var(--ink);"
-                
-                if pos == 1:
-                    medal = "🥇 "
-                    bg_color = "rgba(255, 215, 0, 0.08)"
-                    border_color = "#ffd700"
-                    pos_style = "color: #ffd700; font-size: 20px;"
-                elif pos == 2:
-                    medal = "🥈 "
-                    bg_color = "rgba(192, 192, 192, 0.08)"
-                    border_color = "#c0c0c0"
-                    pos_style = "color: #c0c0c0; font-size: 18px;"
-                elif pos == 3:
-                    medal = "🥉 "
-                    bg_color = "rgba(205, 127, 50, 0.08)"
-                    border_color = "#cd7f32"
-                    pos_style = "color: #cd7f32; font-size: 17px;"
+            df_comb = pd.DataFrame(comb_rows)
+            st.markdown("##### 📋 Tabela Geral - Combinado")
+            st.dataframe(
+                df_comb,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Posição": st.column_config.NumberColumn("Pos.", width="small"),
+                    "Participante": st.column_config.TextColumn("Participante", width="medium"),
+                    "Pontos Combinados": st.column_config.ProgressColumn(
+                        "Pontos Combinados",
+                        min_value=0,
+                        max_value=int(df_comb["Pontos Combinados"].max()) if not df_comb.empty else 1,
+                        format="%d"
+                    ),
+                    "Pontos Clássico": st.column_config.NumberColumn("🏆 Clássico", width="small"),
+                    "Pontos Jogo a Jogo": st.column_config.NumberColumn("🎯 Jogo a Jogo", width="small"),
+                    "Conquistas": st.column_config.TextColumn("🎖️ Conquistas", width="medium"),
+                }
+            )
 
-                st.markdown(
-                    f"""
-                    <div class="card" style="margin-bottom: 12px; padding: 16px; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {border_color}; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.05); font-weight: 800; {pos_style}">
-                                    {medal if medal else f"{pos}"}
-                                </div>
-                                <img src="{p_avatar}" style="width: 32px; height: 32px; border-radius: 50%;" />
-                                <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Participante']}</span>
-                            </div>
-                            <span class="badge success" style="font-size:14px; font-weight: 900; padding: 6px 12px; background-color: var(--green-bg); color: var(--green); border-radius: 20px;">{r['Pontos Combinados']} pts</span>
-                        </div>
-                        <div style="font-size: 13px; color: var(--muted); line-height: 1.5; margin-left: 46px;">
-                            📋 <b>Pontos Clássico:</b> {r['Pontos Clássico']} pts · 🎯 <b>Pontos Jogo a Jogo:</b> {r['Pontos Jogo a Jogo']} pts
-                            <br>🎖️ <b>Conquistas:</b> {r['Conquistas']}
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-            render_responsive_table(pd.DataFrame(comb_rows), render_combined_ranking_card, "combined_ranking")
-            
+            # Stories Share
             if len(combined_list) >= 3:
                 st.markdown("---")
                 col_story, _ = st.columns([2, 2])
@@ -683,14 +636,15 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                             return buf.getvalue()
                             
                         img_bytes = gerar_imagem_podio(combined_list[:3])
-                        st.download_button("⬇️ Baixar imagem", data=img_bytes, file_name="podio_bolao.png", mime="image/png", width="stretch")
+                        st.download_button("⬇️ Baixar imagem", data=img_bytes, file_name="podio_bolao.png", mime="image/png", use_container_width=True)
 
-    # 4. Por Rodada / Fase Tab
+    # ─────────────────────────────────────────────────────────────────────────
+    # Tab 3: Por Rodada / Fase
+    # ─────────────────────────────────────────────────────────────────────────
     with ranking_tabs[3]:
         st.markdown("#### 📅 Classificação Filtrada — Jogo a Jogo")
-        st.caption("Visualize a classificação específica de uma rodada ou fase do mata-mata no Jogo a Jogo.")
+        st.caption("Consulte a pontuação específica e pódio de uma rodada ou fase do mata-mata.")
         
-        # Filtros de rodadas existentes
         all_rounds = sorted(list(set(m.round_label for m in matches if m.status == "result_approved")))
         all_phases = sorted(list(set(m.phase for m in matches if m.status == "result_approved")))
         
@@ -709,15 +663,12 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                 filter_option = st.selectbox("Selecione a Fase", all_phases, key="filter_phase_selection")
                 
         if filter_option != "Nenhuma" and (all_rounds or all_phases):
-            # Filtrar jogos correspondentes
             if filter_type == "Por Rodada":
                 selected_matches = [m for m in matches if m.round_label == filter_option and m.status == "result_approved"]
             else:
                 selected_matches = [m for m in matches if m.phase == filter_option and m.status == "result_approved"]
                 
             selected_match_ids = {m.match_id for m in selected_matches}
-            
-            # Recalcular ranking apenas para esses palpites
             filtered_preds = [lp for lp in live_preds if lp.match_id in selected_match_ids]
             
             sub_live_scores = calculate_live_ranking(filtered_preds, selected_matches, config)
@@ -725,7 +676,9 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             if not sub_live_scores:
                 st.info("Nenhum palpite para esta seleção de jogos.")
             else:
-                st.markdown(f"##### Ranking filtrado: {filter_option}")
+                st.markdown(f"##### 🎖️ Pódio: {filter_option}")
+                render_podio_html(sub_live_scores, "live")
+                
                 sub_rows = []
                 for s in sub_live_scores:
                     pkey = s["participant_key"]
@@ -736,42 +689,40 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         "Posição": s["position"],
                         "Participante": s["participant"],
                         "Pontos": s["total"],
-                        "Placares Exatos": s["exact_scores"],
+                        "🎯 Exatos": s["exact_scores"],
                         "Conquistas": badge_str
                     })
                 
-                def render_filtered_ranking_card(r):
-                    from src.bolao.utils import avatar_url
-                    p_avatar = avatar_url(r['Participante'])
-                    st.markdown(
-                        f"""
-                        <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <img src="{p_avatar}" style="width: 32px; height: 32px; border-radius: 50%;" />
-                                    <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Posição']}º. {r['Participante']}</span>
-                                </div>
-                                <span class="badge success" style="font-size:12px; font-weight: bold; padding: 4px 8px;">{r['Pontos']} pts</span>
-                            </div>
-                            <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
-                                🎯 Placares Exatos: {r['Placares Exatos']}
-                                <br>🎖️ Conquistas: {r['Conquistas']}
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                render_responsive_table(pd.DataFrame(sub_rows), render_filtered_ranking_card, f"filtered_ranking_{filter_option}")
+                df_sub = pd.DataFrame(sub_rows)
+                st.markdown(f"##### 📋 Classificação Filtrada: {filter_option}")
+                st.dataframe(
+                    df_sub,
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "Posição": st.column_config.NumberColumn("Pos.", width="small"),
+                        "Participante": st.column_config.TextColumn("Participante", width="medium"),
+                        "Pontos": st.column_config.ProgressColumn(
+                            "Pontos Obtidos",
+                            min_value=0,
+                            max_value=int(df_sub["Pontos"].max()) if not df_sub.empty else 1,
+                            format="%d"
+                        ),
+                        "🎯 Exatos": st.column_config.NumberColumn("🎯 Exatos", width="small"),
+                        "Conquistas": st.column_config.TextColumn("🎖️ Conquistas", width="medium"),
+                    }
+                )
 
-    # 5. Canarinho Tab
+    # ─────────────────────────────────────────────────────────────────────────
+    # Tab 4: Canarinho
+    # ─────────────────────────────────────────────────────────────────────────
     with ranking_tabs[4]:
         st.markdown("#### 🇧🇷 Ranking Canarinho")
-        st.caption("Classificação baseada apenas nas partidas da Seleção Brasileira (Placar + Goleadores + Assistências).")
+        st.caption("Classificação baseada apenas nas partidas e pontos extras da Seleção Brasileira.")
         
         def calculate_ranking_canarinho(live_predictions: list, matches: list, config: dict) -> list[dict]:
             from src.bolao.storage import load_brasil_palpites_goleadores, load_brasil_resultados_goleadores
             from src.bolao.live_scoring import calculate_live_prediction_points, calcular_pontos_goleadores
-            from src.bolao.utils import normalize_participant_key
             
             brazil_matches = {m.match_id: m for m in matches if ("Brasil" in m.home_team or "Brasil" in m.away_team) and m.status == "result_approved"}
             goleadores_palpites = load_brasil_palpites_goleadores()
@@ -858,6 +809,10 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
         if not canarinho_ranking:
             st.info("Nenhum jogo do Brasil com resultado aprovado ainda.")
         else:
+            # Pódio
+            render_podio_html(canarinho_ranking, "canarinho")
+
+            # Tabela
             can_rows = []
             for s in canarinho_ranking:
                 can_rows.append({
@@ -867,34 +822,36 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     "Placar Pts": s["placar_points"],
                     "Goleador Pts": s["goleador_points"],
                     "Assist Pts": s["assist_points"],
-                    "Gols acertados": s["gols_acertados"],
-                    "Assists acertadas": s["assists_acertadas"]
+                    "Gols": s["gols_acertados"],
+                    "Assists": s["assists_acertadas"]
                 })
             
-            def render_canarinho_card(r):
-                from src.bolao.utils import avatar_url
-                p_avatar = avatar_url(r['Participante'])
-                st.markdown(
-                    f"""
-                    <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <img src="{p_avatar}" style="width: 32px; height: 32px; border-radius: 50%;" />
-                                <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Posição']}º. {r['Participante']}</span>
-                            </div>
-                            <span class="badge success" style="font-size:12px; font-weight: bold; padding: 4px 8px;">{r['Pts']} pts</span>
-                        </div>
-                        <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
-                            ⚽ Gols Acertados: {r['Gols acertados']} | 🅰️ Assists Acertadas: {r['Assists acertadas']}
-                            <br>📋 Placar Pts: {r['Placar Pts']} | Scorer Pts: {r['Goleador Pts']} | Assist Pts: {r['Assist Pts']}
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-            render_responsive_table(pd.DataFrame(can_rows), render_canarinho_card, "canarinho_ranking_table")
+            df_can = pd.DataFrame(can_rows)
+            st.markdown("##### 📋 Tabela Geral - Canarinho")
+            st.dataframe(
+                df_can,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Posição": st.column_config.NumberColumn("Pos.", width="small"),
+                    "Participante": st.column_config.TextColumn("Participante", width="medium"),
+                    "Pts": st.column_config.ProgressColumn(
+                        "Total Pontos",
+                        min_value=0,
+                        max_value=int(df_can["Pts"].max()) if not df_can.empty else 1,
+                        format="%d"
+                    ),
+                    "Placar Pts": st.column_config.NumberColumn("🎮 Jogos", width="small"),
+                    "Goleador Pts": st.column_config.NumberColumn("⚽ Scorer", width="small"),
+                    "Assist Pts": st.column_config.NumberColumn("🅰️ Assist", width="small"),
+                    "Gols": st.column_config.NumberColumn("🥅 Gols", width="small"),
+                    "Assists": st.column_config.NumberColumn("🅰️ Assists", width="small"),
+                }
+            )
 
-    # 6. Evolução Tab
+    # ─────────────────────────────────────────────────────────────────────────
+    # Tab 5: Evolução (Gráfico de Linha de Pontos Acumulados)
+    # ─────────────────────────────────────────────────────────────────────────
     with ranking_tabs[5]:
         st.markdown("#### 📈 Evolução da Pontuação")
         st.caption("Gráfico mostrando o acúmulo de pontos ao longo dos jogos concluídos.")
@@ -907,7 +864,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
         if not approved_by_date:
             st.info("Nenhum jogo concluído com resultado aprovado ainda.")
         elif not _HAS_PLOTLY:
-            st.info("Gráfico de evolução requer Plotly (pip install plotly).")
+            st.info("Gráfico de evolução requer Plotly.")
         else:
             pkeys_in_ranking = {s["participant_key"] for s in live_scores}
             evolution = {}
@@ -924,9 +881,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     points_per_match.append({"match": f"{m.home_team[:3]}x{m.away_team[:3]}", "points": cumulative, "participant": p_name})
                 evolution[pkey] = points_per_match
 
-            df_evo = pd.DataFrame(
-                [item for pts_list in evolution.values() for item in pts_list]
-            )
+            df_evo = pd.DataFrame([item for pts_list in evolution.values() for item in pts_list])
             if not df_evo.empty:
                 fig_evo = px.line(
                     df_evo, x="match", y="points", color="participant",
@@ -993,7 +948,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     )
                     st.plotly_chart(fig_pos, use_container_width=True)
 
-        # Still load snapshots if they exist
+        # Snapshots
         from src.bolao.storage import load_ranking_snapshots
         df_snapshots = pd.DataFrame(load_ranking_snapshots())
         if not df_snapshots.empty:
@@ -1015,7 +970,9 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             )
             st.plotly_chart(fig_snap, use_container_width=True)
 
-    # 7. Estatísticas Tab
+    # ─────────────────────────────────────────────────────────────────────────
+    # Tab 6: Estatísticas Gerais do Grupo
+    # ─────────────────────────────────────────────────────────────────────────
     with ranking_tabs[6]:
         st.markdown("#### 📊 Estatísticas Gerais do Grupo")
         st.caption("Visão agregada e insights dos palpites enviados para a Copa do Mundo 2026.")
@@ -1023,10 +980,8 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
         total_live_preds = len(live_preds)
         approved_match_ids = {m.match_id for m in matches if m.status == "result_approved"}
 
-        # Aggregate stats
         exact_count = 0
         outcome_count = 0
-        total_pontos = 0
         total_gols_palpitados = 0
         gols_mandante_acertados = 0
         gols_visitante_acertados = 0
@@ -1039,8 +994,6 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                 continue
             total_gols_palpitados += lp.predicted_home_goals + lp.predicted_away_goals
             res = calculate_live_prediction_points(lp, m, config)
-            pts = res["points"]
-            total_pontos += pts
             if res["flags"].get("exact"):
                 exact_count += 1
             if res["flags"].get("outcome"):
@@ -1074,7 +1027,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
         with col_t3:
             st.metric("📊 Saldos de Gols Certos", saldos_acertados)
 
-        # ── Pie Chart: Acerto vs Erro ──
+        # Pie Chart: Acerto vs Erro
         st.markdown("##### 🎯 Proporção de Acertos")
         labels = ["Exatos", "Só Vencedor", "Erros"]
         values = [
@@ -1101,7 +1054,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     pct = val / total * 100 if total else 0
                     st.write(f"**{lbl}:** {val} ({pct:.1f}%)")
 
-        # ── Palpites por Jogo ──
+        # Palpites por Jogo
         st.markdown("##### 📋 Palpites por Jogo")
         jogo_rows = []
         for mid, count in sorted(palpites_por_jogo.items(), key=lambda x: -x[1]):
@@ -1140,7 +1093,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
         else:
             st.info("Nenhuma campeã selecionada pelos participantes ainda.")
             
-        # F12 — "Nosso Craque"
+        # Nosso Craque
         from src.bolao.storage import load_brasil_palpites_classicos
         classic_br = load_brasil_palpites_classicos()
         if classic_br:
@@ -1173,9 +1126,8 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                 else:
                     st.caption("Nenhum palpite para artilheiro geral ainda.")
                     
-        # F18 — Ranking de Azar
+        # Ranking de Azar
         def calcular_ranking_azar(live_predictions: list, matches: list, config: dict) -> list:
-            from src.bolao.live_scoring import calculate_live_prediction_points
             approved_matches = {m.match_id: m for m in matches if m.status == "result_approved"}
             contador = {}
             for lp in live_predictions:
@@ -1199,6 +1151,9 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                 st.write(f"{idx}º. **{nome}**: {quases} quases 😭")
         else:
             st.caption("Ninguém ficou no quase ainda.")
+
+
+# ─── Navigation & Session State Functions ────────────────────────────────────
 
 def obter_posicao_atual(nome: str) -> int | None:
     from .storage import load_config, load_app_data_cached

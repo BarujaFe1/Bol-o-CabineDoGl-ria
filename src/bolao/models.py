@@ -135,6 +135,7 @@ class LiveMatch:
     modo_relampago_ativo: bool = False
     placar_intervalo_mandante: int | None = None
     placar_intervalo_visitante: int | None = None
+    api_match_id: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -159,6 +160,7 @@ class LiveMatch:
             "modo_relampago_ativo": self.modo_relampago_ativo,
             "placar_intervalo_mandante": self.placar_intervalo_mandante,
             "placar_intervalo_visitante": self.placar_intervalo_visitante,
+            "api_match_id": self.api_match_id,
         }
 
     @classmethod
@@ -185,7 +187,9 @@ class LiveMatch:
             modo_relampago_ativo=bool(d.get("modo_relampago_ativo", False)),
             placar_intervalo_mandante=d.get("placar_intervalo_mandante") if d.get("placar_intervalo_mandante") is None else int(d.get("placar_intervalo_mandante")),
             placar_intervalo_visitante=d.get("placar_intervalo_visitante") if d.get("placar_intervalo_visitante") is None else int(d.get("placar_intervalo_visitante")),
+            api_match_id=d.get("api_match_id") if d.get("api_match_id") is None else int(d.get("api_match_id")),
         )
+
 
 
 @dataclass

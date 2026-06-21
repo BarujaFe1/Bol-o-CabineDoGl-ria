@@ -216,22 +216,49 @@ def admin_matches_agenda() -> None:
         st.markdown("#### Aprovação de Resultados e Recálculo de Pontos")
         st.caption("Insira o placar oficial de um jogo finalizado para calcular os pontos de todos os palpites recebidos.")
 
-        # API-Football automated sync
-        from .api_service import APIFootballService
-        service = APIFootballService()
-        if service.enabled():
-            if st.button("🔄 Sincronizar Todos os Placares Automaticamente via API-Football", key="btn_sync_api_results_auto", type="primary", use_container_width=True):
-                with st.spinner("Conectando ao API-Football e atualizando resultados..."):
-                    res = service.sync_matches_scores_with_api()
-                if res.ok:
-                    st.success(res.message)
-                    import time
-                    time.sleep(1.0)
-                    st.rerun()
-                else:
-                    st.error(res.message)
+        # Sincronização automatizada via football-data.org
+        import os
+        fd_api_key = os.environ.get("FOOTBALL_DATA_API_KEY", "")
+        if fd_api_key:
+            from src.score_updater import run_score_sync, has_live_matches_today
+            
+            col_sync1, col_sync2 = st.columns([3, 1])
+            with col_sync1:
+                if st.button("🔄 Sincronizar Todos os Placares Automaticamente (football-data.org)", key="btn_sync_fd_results", type="primary", use_container_width=True):
+                    with st.spinner("Buscando resultados na API football-data.org..."):
+                        resultado = run_score_sync()
+                    if "erro" in resultado:
+                        st.error(f"❌ {resultado['erro']}")
+                    else:
+                        st.success(f"✅ {resultado['atualizados']} jogos atualizados | {resultado['ao_vivo']} ao vivo")
+                        import time
+                        time.sleep(1.0)
+                        st.rerun()
+            with col_sync2:
+                # Botão rápido para forçar o recálculo do cache
+                if st.button("🧹 Limpar Cache", key="btn_clear_cache_sync", use_container_width=True):
+                    st.cache_data.clear()
+                    st.toast("Cache limpo com sucesso!", icon="🧹")
+
+            # Auto-refresh condicional se houver partida ao vivo
+            if 'live_check' not in st.session_state:
+                try:
+                    st.session_state.live_check = has_live_matches_today()
+                except Exception:
+                    st.session_state.live_check = False
+
+            if st.session_state.live_check:
+                from streamlit_autorefresh import st_autorefresh
+                st_autorefresh(interval=180_000, key="live_refresh_fd")
+                st.caption("🟢 **Auto-refresh ativo (a cada 3 minutos)** pois há jogos ao vivo no momento.")
+                try:
+                    run_score_sync()
+                except Exception as e:
+                    import logging
+                    logging.error(f"[admin] Auto-refresh sync failed: {e}")
         else:
-            st.info("💡 Para atualizar placares automaticamente via API, configure a chave APIFOOTBALL_KEY nas variáveis de ambiente ou nos Secrets.")
+            st.info("💡 Para atualizar placares via **football-data.org** automaticamente, configure a chave `FOOTBALL_DATA_API_KEY` nas variáveis de ambiente ou nos Secrets do Streamlit Cloud.")
+
         
         st.markdown("---")
 

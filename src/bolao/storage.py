@@ -186,11 +186,14 @@ def _maybe_create_tables(client, missing_tables: list[str]) -> None:
                 away_goals INT,
                 official_home_goals INT,
                 official_away_goals INT,
+                api_match_id INT UNIQUE,
                 created_at TIMESTAMPTZ DEFAULT NOW(),
                 updated_at TIMESTAMPTZ DEFAULT NOW()
             );
+            ALTER TABLE bolao_matches ADD COLUMN IF NOT EXISTS api_match_id INTEGER UNIQUE;
             """
         )
+
         client.execute_sql(
             """
             CREATE TABLE IF NOT EXISTS bolao_events (
