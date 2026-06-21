@@ -92,6 +92,7 @@ def podium(scores: list[Any]) -> None:
     if not top:
         st.info("O pódio aparecerá quando houver ranking calculado.")
         return
+    import textwrap
     order = [(2, "🥈", "second"), (1, "🥇", "first"), (3, "🥉", "third")]
     cards = []
     for pos, medal, css in order:
@@ -111,20 +112,19 @@ def podium(scores: list[Any]) -> None:
                 exacts = score.get("exact_scores") if isinstance(score, dict) else getattr(score, 'exact_scores')
                 detail_str = f"{exacts} exatos · {score.get('predictions_count', 0) if isinstance(score, dict) else 0} jogos"
                 
-            cards.append(
-                f"""
-<div class="podium-card {css}">
-  <div class="medal">{medal}</div>
-  <div class="podium-rank">{pos}º lugar</div>
-  <div class="podium-name">{html.escape(participant_name)}</div>
-  <div class="podium-points">{total_points} pts</div>
-  <div class="podium-note">{html.escape(detail_str)}</div>
-</div>
-                """
-            )
+            card_html = textwrap.dedent(f"""
+            <div class="podium-card {css}">
+              <div class="medal">{medal}</div>
+              <div class="podium-rank">{pos}º lugar</div>
+              <div class="podium-name">{html.escape(participant_name)}</div>
+              <div class="podium-points">{total_points} pts</div>
+              <div class="podium-note">{html.escape(detail_str)}</div>
+            </div>
+            """).strip()
+            cards.append(card_html)
         else:
             cards.append('<div></div>')
-    st.markdown(f'<div class="podium">{"".join(cards)}</div>', unsafe_allow_html=True)
+    st.html(f'<div class="podium">{"".join(cards)}</div>')
 
 def badges(labels: list[str]) -> None:
     st.markdown("".join(f'<span class="badge">{html.escape(x)}</span>' for x in labels), unsafe_allow_html=True)

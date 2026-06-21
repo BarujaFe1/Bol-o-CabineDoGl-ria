@@ -1,5 +1,13 @@
 from __future__ import annotations
 
+import sys
+import types
+_current = sys.modules.get(__name__)
+if _current:
+    for alias in ["src.bolao.storage", "bolao.storage", "storage"]:
+        if alias not in sys.modules:
+            sys.modules[alias] = _current
+
 import os
 import shutil
 from pathlib import Path
@@ -13,7 +21,23 @@ from dataclasses import dataclass, field
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = ROOT / "data"
+
+def _resolve_data_dir() -> Path:
+    is_supabase = False
+    try:
+        url = st.secrets.get("SUPABASE_URL")
+        key = st.secrets.get("SUPABASE_SERVICE_ROLE_KEY")
+        if url and url != "SUA_SUPABASE_URL_AQUI" and url.startswith("https://") and key:
+            is_supabase = True
+    except Exception:
+        pass
+    
+    if is_supabase:
+        import tempfile
+        return Path(tempfile.gettempdir()) / "bolao_data"
+    return ROOT / "data"
+
+DATA_DIR = _resolve_data_dir()
 STATE_DIR = DATA_DIR / "state"
 SUBMISSIONS_DIR = STATE_DIR / "submissions"
 UPLOADS_DIR = STATE_DIR / "uploads"

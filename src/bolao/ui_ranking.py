@@ -42,6 +42,7 @@ def render_podio_html(top_scores: list, modo: str = "live") -> None:
     if not top_scores:
         return
 
+    import textwrap
     cards = []
     order_positions = [2, 1, 3]  # Ordem visual no desktop (2º à esquerda, 1º no centro, 3º à direita)
 
@@ -71,7 +72,7 @@ def render_podio_html(top_scores: list, modo: str = "live") -> None:
             css_class = {1: "first", 2: "second", 3: "third"}[pos]
             p_avatar = avatar_url(name)
 
-            cards.append(f"""
+            card_html = textwrap.dedent(f"""
             <div class="custom-podium-card {css_class}">
                 <div class="medal">{medal}</div>
                 <div class="podium-rank">{pos}º lugar</div>
@@ -82,11 +83,12 @@ def render_podio_html(top_scores: list, modo: str = "live") -> None:
                 <div class="podium-points">{pts} pts</div>
                 <div class="podium-note">{html.escape(detail)}</div>
             </div>
-            """)
+            """).strip()
+            cards.append(card_html)
         else:
             cards.append('<div class="custom-podium-card-placeholder"></div>')
 
-    st.markdown(f"""
+    podium_html_content = textwrap.dedent(f"""
     <style>
     .custom-podium {{
       display: flex;
@@ -179,7 +181,8 @@ def render_podio_html(top_scores: list, modo: str = "live") -> None:
     <div class="custom-podium">
         {"".join(cards)}
     </div>
-    """, unsafe_allow_html=True)
+    """)
+    st.html(podium_html_content)
 
 
 # ─── Participant Details Helper ──────────────────────────────────────────────
@@ -260,7 +263,7 @@ def render_detalhe_participante_card(user_name: str, live_preds: list, matches: 
         df_det = pd.DataFrame(det_rows)
         st.dataframe(
             df_det,
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "jogo": st.column_config.TextColumn("Partida", width="medium"),
@@ -304,7 +307,7 @@ def render_detalhe_participante_card(user_name: str, live_preds: list, matches: 
                 height=350,
                 margin=dict(t=20, b=20),
             )
-            st.plotly_chart(fig_radar, use_container_width=True)
+            st.plotly_chart(fig_radar, width="stretch")
 
 
 # ─── Main Interface Function ──────────────────────────────────────────────────
@@ -408,7 +411,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             st.markdown("##### 📋 Classificação Completa")
             st.dataframe(
                 df_live,
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
                 column_config={
                     "Posição": st.column_config.NumberColumn("Pos.", width="small"),
@@ -462,7 +465,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         "Código": p.submission_id[:8] if p.submission_id else "—",
                         "Conquistas": badge_str
                     })
-                st.dataframe(pd.DataFrame(classic_list), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(classic_list), width="stretch", hide_index=True)
         else:
             classic_scores = get_classic_scores_cached(submissions, official, score_config)
             
@@ -494,7 +497,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             st.markdown("##### 📋 Tabela Geral - Clássico")
             st.dataframe(
                 df_classic,
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
                 column_config={
                     "Posição": st.column_config.NumberColumn("Pos.", width="small"),
@@ -586,7 +589,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             st.markdown("##### 📋 Tabela Geral - Combinado")
             st.dataframe(
                 df_comb,
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
                 column_config={
                     "Posição": st.column_config.NumberColumn("Pos.", width="small"),
@@ -636,7 +639,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                             return buf.getvalue()
                             
                         img_bytes = gerar_imagem_podio(combined_list[:3])
-                        st.download_button("⬇️ Baixar imagem", data=img_bytes, file_name="podio_bolao.png", mime="image/png", use_container_width=True)
+                        st.download_button("⬇️ Baixar imagem", data=img_bytes, file_name="podio_bolao.png", mime="image/png", width="stretch")
 
     # ─────────────────────────────────────────────────────────────────────────
     # Tab 3: Por Rodada / Fase
@@ -697,7 +700,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                 st.markdown(f"##### 📋 Classificação Filtrada: {filter_option}")
                 st.dataframe(
                     df_sub,
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True,
                     column_config={
                         "Posição": st.column_config.NumberColumn("Pos.", width="small"),
@@ -830,7 +833,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             st.markdown("##### 📋 Tabela Geral - Canarinho")
             st.dataframe(
                 df_can,
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
                 column_config={
                     "Posição": st.column_config.NumberColumn("Pos.", width="small"),
@@ -897,7 +900,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     xaxis_tickangle=-45,
                     hovermode="x unified",
                 )
-                st.plotly_chart(fig_evo, use_container_width=True)
+                st.plotly_chart(fig_evo, width="stretch")
 
             st.markdown("##### 📋 Evolução do Ranking (Posições por Jogo)")
             approved_count = len(approved_by_date)
@@ -946,7 +949,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                         height=400,
                         hovermode="x unified",
                     )
-                    st.plotly_chart(fig_pos, use_container_width=True)
+                    st.plotly_chart(fig_pos, width="stretch")
 
         # Snapshots
         from src.bolao.storage import load_ranking_snapshots
@@ -968,7 +971,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                 font_color="#e0e0e0",
                 legend=dict(orientation="h", yanchor="bottom", y=1.02)
             )
-            st.plotly_chart(fig_snap, use_container_width=True)
+            st.plotly_chart(fig_snap, width="stretch")
 
     # ─────────────────────────────────────────────────────────────────────────
     # Tab 6: Estatísticas Gerais do Grupo
@@ -1047,7 +1050,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     legend=dict(orientation="h", yanchor="bottom", y=1.02),
                 )
                 fig_pie.update_traces(textposition="inside", textinfo="percent+label")
-                st.plotly_chart(fig_pie, use_container_width=True)
+                st.plotly_chart(fig_pie, width="stretch")
             else:
                 total = sum(values)
                 for lbl, val in zip(labels, values):
@@ -1080,7 +1083,7 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     xaxis_tickangle=-45,
                     showlegend=False,
                 )
-                st.plotly_chart(fig_jogos, use_container_width=True)
+                st.plotly_chart(fig_jogos, width="stretch")
             else:
                 st.dataframe(df_jogos.head(20), width="stretch", hide_index=True)
 

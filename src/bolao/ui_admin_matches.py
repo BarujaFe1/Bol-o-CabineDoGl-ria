@@ -221,10 +221,9 @@ def admin_matches_agenda() -> None:
         fd_api_key = os.environ.get("FOOTBALL_DATA_API_KEY", "")
         if fd_api_key:
             from src.score_updater import run_score_sync, has_live_matches_today
-            
             col_sync1, col_sync2 = st.columns([3, 1])
             with col_sync1:
-                if st.button("🔄 Sincronizar Todos os Placares Automaticamente (football-data.org)", key="btn_sync_fd_results", type="primary", use_container_width=True):
+                if st.button("🔄 Sincronizar Todos os Placares Automaticamente (football-data.org)", key="btn_sync_fd_results", type="primary", width="stretch"):
                     with st.spinner("Buscando resultados na API football-data.org..."):
                         resultado = run_score_sync()
                     if "erro" in resultado:
@@ -236,7 +235,7 @@ def admin_matches_agenda() -> None:
                         st.rerun()
             with col_sync2:
                 # Botão rápido para forçar o recálculo do cache
-                if st.button("🧹 Limpar Cache", key="btn_clear_cache_sync", use_container_width=True):
+                if st.button("🧹 Limpar Cache", key="btn_clear_cache_sync", width="stretch"):
                     st.cache_data.clear()
                     st.toast("Cache limpo com sucesso!", icon="🧹")
 

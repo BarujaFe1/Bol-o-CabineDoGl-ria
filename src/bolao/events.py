@@ -7,10 +7,7 @@ from typing import Any
 import streamlit as st
 from .utils import now_iso, read_json, write_json
 
-ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = ROOT / "data"
-STATE_DIR = DATA_DIR / "state"
-EVENTS_PATH = STATE_DIR / "events.json"
+from .storage import DATA_DIR, STATE_DIR, EVENTS_PATH
 
 def append_event(kind: str, message: str, metadata: dict | None = None, visibility: str = "public") -> None:
     """

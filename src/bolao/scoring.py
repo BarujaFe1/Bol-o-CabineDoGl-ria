@@ -1,5 +1,13 @@
 from __future__ import annotations
 
+import sys
+import types
+_current = sys.modules.get(__name__)
+if _current:
+    for alias in ["src.bolao.scoring", "bolao.scoring", "scoring"]:
+        if alias not in sys.modules:
+            sys.modules[alias] = _current
+
 from dataclasses import dataclass
 from typing import Any
 
