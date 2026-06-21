@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 import urllib.parse
 from datetime import datetime
-from .storage import load_matches, load_live_predictions, load_submissions, load_official, load_config, load_app_data_cached
+from .storage import load_matches, load_live_predictions, load_submissions, load_official, load_config, load_app_data_cached, load_registered_participants, load_archived_participants
 from .live_scoring import calculate_live_prediction_points, calculate_live_ranking
 from .scoring import rank_predictions
 from .utils import normalize_participant_key
@@ -12,6 +12,7 @@ from .ui_components import render_page_header, render_kpi_grid, render_empty_sta
 from .achievements import calculate_achievements
 from .social import build_duel_share_text, build_taunt_text
 from .ui_live_matches import is_match_open_for_prediction
+from .constants import SCORING_MODE_OPTIONS, SCORING_MODE_LABELS, DEFAULT_V2_RULES
 
 def render_central_do_bolao() -> None:
     render_page_header("Central", "Central Social do Bolão", "Painel esportivo com os principais destaques, sequências e zoeiras do grupo.", "📣")
@@ -732,9 +733,53 @@ def render_transparencia() -> None:
 
 def render_regras_do_bolao() -> None:
     render_page_header("Regras", "Regras e Como Funciona o Bolão", "Instruções completas para participar e pontuar nos dois modos.", "📖")
-    
+
+    config = load_config()
+    ctx = load_app_data_cached()
+
+    active_parts = load_registered_participants(include_archived=False)
+    matches = ctx.matches
+    total_live_preds = len(ctx.live_predictions)
+    now = datetime.now().isoformat()
+    open_count = len([m for m in matches if is_match_open_for_prediction(m, now)])
+    pending_count = len([m for m in matches if m.status != "result_approved"])
+    approved_count = len([m for m in matches if m.status == "result_approved"])
+
+    mode_key = config.get("scoring_mode", "v2")
+    mode_label = SCORING_MODE_OPTIONS.get(mode_key, mode_key)
+    exact_mode_key = config.get("exact_score_mode", "isolated_max")
+    exact_mode_label = SCORING_MODE_LABELS.get(exact_mode_key, exact_mode_key)
+    live_scoring = config.get("live_scoring", {})
+    lock_mins = int(config.get("live_lock_minutes_before_match", 10))
+
+    st.markdown("### 📡 Status do Bolão — Transparente e em Tempo Real")
+    st.caption("Informações atualizadas automaticamente. Sem segredos.")
+
+    cols = st.columns(4)
+    with cols[0]:
+        st.metric("Participantes Ativos", len(active_parts))
+    with cols[1]:
+        st.metric("Jogos Abertos", open_count)
+    with cols[2]:
+        st.metric("Jogos Finalizados", approved_count)
+    with cols[3]:
+        st.metric("Palpites Enviados", total_live_preds)
+
+    status_lock = "🔒 Fechado" if config.get("is_bolao_locked", False) else "✅ Aberto"
+    deadline = config.get("submission_deadline", "") or "Sem prazo definido"
+    status_label = config.get("status_label", "Recebendo palpites")
+
+    st.info(
+        f"**Status:** {status_label} | **Submissões Clássicas:** {status_lock} | "
+        f"**Prazo:** {deadline} | "
+        f"**Modo de Pontuação:** {mode_label} | "
+        f"**Bloqueio Jogo a Jogo:** {lock_mins} min antes"
+    )
+
+    st.markdown("---")
+
     st.markdown(
-        """
+        f"""
         ### 🏆 Dois Modos de Disputa Independentes e Paralelos
         
         O **Bolão da Cabine do Glória** oferece dois modos de participação. Você pode competir em apenas um deles, ou em ambos simultaneamente!
@@ -753,27 +798,71 @@ def render_regras_do_bolao() -> None:
         ### 2. ⚽ MODO JOGO A JOGO
         Palpite individualmente em cada partida da Copa:
         * **Preenchimento:** Na aba **Jogos de Hoje**, informe seus placares jogo por jogo.
-        * **Prazos:** Você pode enviar ou alterar seu palpite até **10 minutos antes** do início de cada partida.
-        * **Privacidade:** Os palpites de um jogo ficam ocultos e só são revelados ao grupo após o bloqueio das apostas daquele jogo (10 minutos antes do jogo começar).
+        * **Prazos:** Você pode enviar ou alterar seu palpite até **{lock_mins} minutos antes** do início de cada partida.
+        * **Privacidade:** Os palpites de um jogo ficam ocultos e só são revelados ao grupo após o bloqueio das apostas daquele jogo ({lock_mins} minutos antes do jogo começar).
         * **Ranking:** Gera o **Ranking Jogo a Jogo** focado na precisão de placares individuais.
         
         ---
         
         ### 📊 Critérios de Pontuação do Modo Jogo a Jogo
-        
+
         Os pontos por partida no Modo Jogo a Jogo são calculados da seguinte forma:
-        * **Placar Exato:** **5 pontos** (se acertar em cheio o placar exato).
-        * **Resultado Correto (Vitória/Empate):** **3 pontos** (se acertar o vencedor ou empate, mas errar o placar).
-        * **Gols de um Time:** **1 ponto** por time (se acertar a quantidade de gols marcada por um dos times).
-        * **Saldo de Gols:** **1 ponto** (se acertar a diferença de gols entre os times).
+        * **Placar Exato:** **{live_scoring.get('exact_score', 5)} pontos** (se acertar em cheio o placar exato).
+        * **Resultado Correto (Vitória/Empate):** **{live_scoring.get('outcome', 3)} pontos** (se acertar o vencedor ou empate, mas errar o placar).
+        * **Gols de um Time:** **{live_scoring.get('goal_one_team', 1)} ponto{'s' if live_scoring.get('goal_one_team', 1) != 1 else ''}** por time (se acertar a quantidade de gols marcada por um dos times).
+        * **Saldo de Gols:** **{live_scoring.get('goal_difference', 1)} ponto{'s' if live_scoring.get('goal_difference', 1) != 1 else ''}** (se acertar a diferença de gols entre os times).
+
+        **Modo de pontuação:** _{exact_mode_label}_
+        """
+    )
+
+    v2_rules = config.get("v2_rules", dict(DEFAULT_V2_RULES))
+    st.markdown(
+        f"""
+        ---
         
-        *Nota: No modo padrão (isolated_max), se você acertar o placar exato, recebe a pontuação máxima de 5 pontos (não acumula os bônus secundários). Caso contrário, soma-se os bônus aplicáveis de resultado, gols e saldo.*
+        ### 🏆 Pontuação do Modo Clássico (Fase de Grupos)
+        
+        Os pontos na fase de grupos seguem o sistema **{mode_label}**:
+        
+        | Critério | Pontos |
+        |---|---|
+        | Placar Exato | **{v2_rules.get('group_exact', 5)}** |
+        | Resultado + Saldo de Gols | **{v2_rules.get('group_result_gd', 3)}** |
+        | Apenas Resultado (Vencedor/Empate) | **{v2_rules.get('group_result', 2)}** |
+        | Gols de um Time | **{v2_rules.get('group_team_goals', 1)}** |
+        
+        **Bônus criativos (cumulativos):** Soma de Gols (+{v2_rules.get('group_sum_goals', 0)}), Ambas Marcam (+{v2_rules.get('group_both_scored', 0)}), Mais de 2.5 Gols (+{v2_rules.get('group_over_2_5', 0)})
+        
+        ### 🏆 Pontuação do Modo Clássico (Mata-mata)
+        
+        | Fase | Pontos por time classificado |
+        |---|---|
+        | Oitavas de Final | **{v2_rules.get('ko_oitavas', 2)}** |
+        | Quartas de Final | **{v2_rules.get('ko_quartas', 2)}** |
+        | Semifinais | **{v2_rules.get('ko_semifinais', 3)}** |
+        | Final | **{v2_rules.get('ko_final', 4)}** |
+        | Campeão | **{v2_rules.get('ko_champion', 6)}** |
         
         ---
         
         ### 🥈 RANKING GERAL (Combinado)
-        Se ativado pelo administrador, o **Ranking Geral** exibe a consolidação das pontuações dos dois rankings (Clássico + Jogo a Jogo) com base nos pesos configurados:
-        * Pontuação Geral = `(Pontos Clássico * Peso Clássico) + (Pontos Jogo a Jogo * Peso Jogo a Jogo)`.
+        """
+    )
+
+    combined_enabled = config.get("combined_ranking_enabled", False)
+    if combined_enabled:
+        weights = config.get("combined_ranking_weights", {"classic": 1.0, "live": 1.0})
+        st.markdown(
+            f"O **Ranking Geral** está ativado! Pontuação = `(Clássico × {weights.get('classic', 1.0)}) + (Jogo a Jogo × {weights.get('live', 1.0)})`."
+        )
+    else:
+        st.markdown(
+            "O **Ranking Geral** está desativado no momento. Apenas os rankings isolados (Clássico e Jogo a Jogo) estão disponíveis."
+        )
+
+    st.markdown(
+        """
         * Participantes que jogam apenas um modo aparecem com 0 pontos no outro modo.
         """
     )

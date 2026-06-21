@@ -110,6 +110,41 @@ TEAM_ALIASES = {
 
 ALL_TEAMS = list(TEAM_ALIASES.keys())
 
+# ── Label mappers for UI (never expose internal keys to users) ──
+
+SCORING_LABELS = {
+    "group_1": "Acertar 1\u00ba Lugar do Grupo",
+    "group_2": "Acertar 2\u00ba Lugar do Grupo",
+    "group_3_best": "Acertar 3\u00ba Lugar (Melhor Terceiro)",
+    "best_third": "Acertar Melhor Terceiro Classificado",
+    "fase_32": "Classificar Fase das 32",
+    "oitavas": "Classificar Oitavas de Final",
+    "quartas": "Classificar Quartas de Final",
+    "semifinais": "Classificar Semifinais",
+    "final": "Classificar Final",
+    "champion_bonus": "B\u00f4nus de Campe\u00e3o",
+    "decision_points": "Pontos por Decis\u00e3o",
+}
+
+STATUS_LABELS = {
+    "scheduled": "Agendado",
+    "locked": "Fechado",
+    "live": "Ao Vivo",
+    "finished": "Finalizado",
+    "result_approved": "Resultado Aprovado",
+}
+
+SCORING_MODE_LABELS = {
+    "isolated_max": "M\u00e1ximo Isolado (placar exato bloqueia ac\u00famulo)",
+    "additive": "Cumulativo (soma todos os crit\u00e9rios acertados)",
+}
+
+SCORING_MODE_OPTIONS = {
+    "v2": "V2 (Recomendado)",
+    "ponderado": "Ponderado (Legado)",
+    "uniforme": "Uniforme (Legado)",
+}
+
 DEFAULT_WEIGHTED_RULES = {
     "group_1": 5,
     "group_2": 3,

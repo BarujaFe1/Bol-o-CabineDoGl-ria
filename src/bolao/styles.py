@@ -792,17 +792,36 @@ div[data-testid="stNumberInput"] button {{
 }}
 
 a[data-testid*="LinkButton"] {{
-  background-color: #1a472a !important;
+  background-color: var(--green) !important;
   color: #ffffff !important;
-  border: 1px solid #2d6a4f !important;
+  border: 1px solid var(--line) !important;
   border-radius: 8px !important;
+  font-weight: 600 !important;
+  min-height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }}
 a[data-testid*="LinkButton"]:hover {{
-  background-color: #2d6a4f !important;
+  background-color: var(--green-hover) !important;
   color: #ffd700 !important;
+  text-decoration: none !important;
 }}
 a[data-testid*="LinkButton"] p {{
   color: inherit !important;
+}}
+
+button[data-testid*="baseButton-download"] {{
+  background-color: var(--green) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  min-height: 44px !important;
+}}
+button[data-testid*="baseButton-download"]:hover {{
+  background-color: var(--green-hover) !important;
+  color: #ffd700 !important;
 }}
 </style>
     """

@@ -22,6 +22,10 @@ from src.bolao.constants import (
     GROUPS,
     PHASE_LABELS,
     PHASES,
+    SCORING_LABELS,
+    SCORING_MODE_LABELS,
+    SCORING_MODE_OPTIONS,
+    STATUS_LABELS,
 )
 from src.bolao.exporters import details_dataframe, discord_ranking, podium_html, ranking_csv, ranking_json, ranking_to_dataframe
 from src.bolao.models import Match, Prediction
@@ -1259,9 +1263,10 @@ def admin_participants() -> None:
                              
                              from src.bolao.events import append_event
                              append_event(
-                                 kind="live_prediction_edited_by_admin",
-                                 message=f"O administrador editou/criou o palpite jogo a jogo de {selected_name} no jogo {selected_m.home_team} x {selected_m.away_team} para {new_h}x{new_a}."
-                             )
+                                  kind="live_prediction_edited_by_admin",
+                                  message=f"O administrador editou/criou o palpite jogo a jogo de {selected_name} no jogo {selected_m.home_team} x {selected_m.away_team} para {new_h}x{new_a}.",
+                                  visibility="admin"
+                              )
                              
                              st.success(f"Palpite jogo a jogo para {selected_m.home_team} x {selected_m.away_team} atualizado com sucesso!")
                              st.cache_data.clear()
@@ -1643,6 +1648,27 @@ def admin_exports() -> None:
                     except Exception as e:
                         st.error(f"Erro ao restaurar backup: {e}")
 
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        with st.container(border=True):
+            st.markdown("### 📥 Restaurar Apenas Palpites e Participantes (JSON)")
+            st.caption("Faça upload de um arquivo de backup para restaurar apenas os participantes cadastrados e seus palpites (Modo Clássico e Jogo a Jogo), mantendo intactas as partidas, os resultados oficiais e as configurações atuais.")
+            uploaded_partial_backup = st.file_uploader("Selecione o arquivo de backup para palpites (.json)", type=["json"], key="uploader_backup_parcial")
+            if uploaded_partial_backup is not None:
+                st.warning("⚠️ Atenção: Esta ação irá mesclar/importar os palpites e os participantes contidos no backup sem apagar os resultados oficiais ou a agenda vigentes na nuvem.")
+                word_partial_confirm = st.text_input("Digite IMPORTAR para confirmar a ação:", key="word_partial_restore_confirm")
+                if st.button("Executar Importação de Palpites", type="primary", key="btn_run_partial_restore", disabled=word_partial_confirm != "IMPORTAR", width="stretch"):
+                    try:
+                        backup_data = json.load(uploaded_partial_backup)
+                        from src.bolao.storage import import_participants_predictions_only
+                        import_participants_predictions_only(backup_data)
+                        st.success("Palpites e participantes importados com sucesso! Recarregando aplicação...")
+                        import time
+                        time.sleep(1.0)
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro ao importar palpites: {e}")
+
 
     with exp_tabs[1]:
         with st.container(border=True):
@@ -1703,7 +1729,7 @@ def admin_artilheiro_results() -> None:
     tab_dia, tab_rodada, tab_scoring = st.tabs([
         "📅 Artilheiro do Dia",
         "📆 Artilheiro da Rodada",
-        "🏆 Scoring & Acertos",
+        "🏆 Pontuação e Acertos",
     ])
 
     # ── Tab: Artilheiro do Dia ──────────────────────────────────────────
@@ -1840,12 +1866,14 @@ def admin_settings() -> None:
             help="Exemplo: 11/06/2026 15:00 ou deixe em branco se não houver prazo rígido."
         )
         
-        mode_options = ["v2", "ponderado", "uniforme"]
+        mode_options = list(SCORING_MODE_OPTIONS.keys())
+        mode_labels = list(SCORING_MODE_OPTIONS.values())
         current_mode = config.get("scoring_mode", "v2")
         if current_mode not in mode_options:
             current_mode = "v2"
         mode_idx = mode_options.index(current_mode)
-        config["scoring_mode"] = st.radio("Modo de pontuação do Clássico", mode_options, index=mode_idx, horizontal=True)
+        selected_label = st.radio("Modo de pontuação do Clássico", mode_labels, index=mode_idx, horizontal=True)
+        config["scoring_mode"] = mode_options[mode_labels.index(selected_label)]
 
     # Accordion 2: Configurações do Jogo a Jogo
     with st.expander("🎯 Configurações do Jogo a Jogo", expanded=False):
@@ -1869,12 +1897,18 @@ def admin_settings() -> None:
             goal_one_team_val = st.number_input("Acertar Gols de um Time", min_value=0, max_value=50, value=int(live_scoring.get("goal_one_team", 1)), step=1)
             goal_difference_val = st.number_input("Acertar Saldo de Gols", min_value=0, max_value=50, value=int(live_scoring.get("goal_difference", 1)), step=1)
         with col_l3:
-            exact_score_mode = st.radio(
+            exact_mode_options = list(SCORING_MODE_LABELS.keys())
+            exact_mode_labels = list(SCORING_MODE_LABELS.values())
+            current_mode = config.get("exact_score_mode", "isolated_max")
+            mode_idx = 0
+            if current_mode in exact_mode_options:
+                mode_idx = exact_mode_options.index(current_mode)
+            selected_label = st.radio(
                 "Modo do Placar Exato",
-                options=["isolated_max", "additive"],
-                index=0 if config.get("exact_score_mode", "isolated_max") == "isolated_max" else 1,
-                help="isolated_max: ganha apenas os pontos do placar exato se acertar tudo. additive: ganha os pontos de placar exato + todos os outros bônus que coincidam."
+                options=exact_mode_labels,
+                index=mode_idx,
             )
+            exact_score_mode = exact_mode_options[exact_mode_labels.index(selected_label)]
         
         config["live_scoring"] = {
             "exact_score": exact_score_val,
@@ -2018,14 +2052,15 @@ def admin_settings() -> None:
         cols = st.columns(3)
         for idx, key in enumerate(DEFAULT_WEIGHTED_RULES.keys()):
             with cols[idx % 3]:
-                weighted[key] = st.number_input(key, min_value=0, max_value=50, value=int(weighted.get(key, DEFAULT_WEIGHTED_RULES[key])), step=1)
+                label = SCORING_LABELS.get(key, key)
+                weighted[key] = st.number_input(label, min_value=0, max_value=50, value=int(weighted.get(key, DEFAULT_WEIGHTED_RULES[key])), step=1)
         config["weighted_rules"] = weighted
 
         st.markdown("---")
         st.markdown("#### Pontuação uniforme (Legado) [Modo Clássico]")
         uniform = config.get("uniform_rules", dict(DEFAULT_UNIFORM_RULES))
-        uniform["decision_points"] = st.number_input("Pontos por decisão", min_value=1, max_value=50, value=int(uniform.get("decision_points", 1)), step=1)
-        uniform["champion_bonus"] = st.number_input("Bônus da campeã", min_value=0, max_value=100, value=int(uniform.get("champion_bonus", 0)), step=1)
+        uniform["decision_points"] = st.number_input(SCORING_LABELS.get("decision_points", "Pontos por Decisão"), min_value=1, max_value=50, value=int(uniform.get("decision_points", 1)), step=1)
+        uniform["champion_bonus"] = st.number_input(SCORING_LABELS.get("champion_bonus", "Bônus de Campeão"), min_value=0, max_value=100, value=int(uniform.get("champion_bonus", 0)), step=1)
         config["uniform_rules"] = uniform
 
     # Accordion: Módulo Brasil & Modo Relâmpago (F05-F08, F19, F20)
@@ -2095,7 +2130,7 @@ def admin_settings() -> None:
             from src.bolao.storage import save_live_predictions
             save_live_predictions([])
             from src.bolao.events import append_event
-            append_event("live_predictions_cleared", "Todos os palpites do modo jogo a jogo foram excluídos pelo administrador.")
+            append_event("live_predictions_cleared", "Todos os palpites do modo jogo a jogo foram excluídos pelo administrador.", visibility="admin")
             st.success("Todos os palpites jogo a jogo foram excluídos.")
             st.rerun()
 
@@ -2157,7 +2192,8 @@ def admin_edit_classic_page() -> None:
             
             append_event(
                 kind="submission_edited_by_admin",
-                message=f"O administrador editou o palpite clássico do participante {pred.participant}."
+                message=f"O administrador editou o palpite clássico do participante {pred.participant}.",
+                visibility="admin"
             )
             
             st.success(f"Alterações no palpite de {pred.participant} salvas com sucesso!")

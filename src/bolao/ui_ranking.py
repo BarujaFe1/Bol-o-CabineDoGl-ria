@@ -48,13 +48,13 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
         st.metric("Jogos Concluídos (Jogo a Jogo)", f"{approved_count}/{len(matches)}")
 
     ranking_tabs = st.tabs([
-        "Match Day (Jogo a Jogo)", 
-        "Classic Cup (Modo Clássico)", 
-        "Ranking Geral Combinado",
-        "Por Rodada / Fase",
+        "🎯 Jogo a Jogo",
+        "🏆 Clássico",
+        "🔗 Combinado",
+        "📅 Por Rodada / Fase",
         "🇧🇷 Canarinho",
         "📈 Evolução",
-        "Estatísticas"
+        "📊 Estatísticas"
     ])
 
     # Se precisar instanciar a configuração de score
@@ -68,9 +68,9 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             v2_rules=config.get("v2_rules", dict(DEFAULT_V2_RULES)),
         )
 
-    # 1. Classic Cup Tab
+    # 1. Clássico Tab
     with ranking_tabs[1]:
-        st.markdown("#### 🏆 Classic Cup — Palpite pré-Copa")
+        st.markdown("#### 🏆 Modo Clássico — Palpite pré-Copa")
         st.caption("Participantes que preencheram a cartela inteira antes do início do torneio.")
         
         if not official:
@@ -136,20 +136,46 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             def render_classic_ranking_card(r):
                 from src.bolao.utils import avatar_url
                 p_avatar = avatar_url(r['Participante'])
+                
+                pos = r['Posição']
+                medal = ""
+                bg_color = "var(--panel)"
+                border_color = "var(--line)"
+                pos_style = "color: var(--ink);"
+                
+                if pos == 1:
+                    medal = "🥇 "
+                    bg_color = "rgba(255, 215, 0, 0.08)"
+                    border_color = "#ffd700"
+                    pos_style = "color: #ffd700; font-size: 20px;"
+                elif pos == 2:
+                    medal = "🥈 "
+                    bg_color = "rgba(192, 192, 192, 0.08)"
+                    border_color = "#c0c0c0"
+                    pos_style = "color: #c0c0c0; font-size: 18px;"
+                elif pos == 3:
+                    medal = "🥉 "
+                    bg_color = "rgba(205, 127, 50, 0.08)"
+                    border_color = "#cd7f32"
+                    pos_style = "color: #cd7f32; font-size: 17px;"
+
                 st.markdown(
                     f"""
-                    <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="card" style="margin-bottom: 12px; padding: 16px; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {border_color}; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.05); font-weight: 800; {pos_style}">
+                                    {medal if medal else f"{pos}"}
+                                </div>
                                 <img src="{p_avatar}" style="width: 32px; height: 32px; border-radius: 50%;" />
-                                <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Posição']}º. {r['Participante']}</span>
+                                <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Participante']}</span>
                             </div>
-                            <span class="badge success" style="font-size:12px; font-weight: bold; padding: 4px 8px;">{r['Pontos']} pts</span>
+                            <span class="badge success" style="font-size:14px; font-weight: 900; padding: 6px 12px; background-color: var(--green-bg); color: var(--green); border-radius: 20px;">{r['Pontos']} pts</span>
                         </div>
-                        <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
-                            📋 Grupos: {r['Fase de Grupos']} pts | ⚔️ Mata-Mata: {r['Mata-Mata']} pts
-                            <br>🏆 Campeã Correta: {r['Campeão correto']} | 🎯 Exatos: {r['Placares Exatos']}
-                            <br>🎖️ Conquistas: {r['Conquistas']}
+                        <div style="font-size: 13px; color: var(--muted); line-height: 1.5; margin-left: 46px;">
+                            📋 <b>Grupos:</b> {r['Fase de Grupos']} pts · ⚔️ <b>Mata-Mata:</b> {r['Mata-Mata']} pts
+                            <br>🏆 <b>Campeã Correta:</b> {r['Campeão correto']} · 🎯 <b>Exatos:</b> {r['Placares Exatos']}
+                            <br>🎖️ <b>Conquistas:</b> {r['Conquistas']}
                         </div>
                     </div>
                     """,
@@ -157,9 +183,9 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                 )
             render_responsive_table(pd.DataFrame(rows), render_classic_ranking_card, "classic_ranking")
 
-    # 2. Match Day Tab
+    # 2. Jogo a Jogo Tab
     with ranking_tabs[0]:
-        st.markdown("#### 🎯 Match Day — Jogo a Jogo")
+        st.markdown("#### 🎯 Jogo a Jogo")
         st.caption("Ranking baseado no acerto individual de placares rodada a rodada.")
 
         live_scores = calculate_live_ranking(live_preds, matches, config)
@@ -297,6 +323,10 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
                     "Posição": s["position"],
                     "Participante": s["participant"],
                     "Pontos": s["total"],
+                    "Pontos de Jogos": s.get("match_points", 0),
+                    "Pontos Goleadores Brasil": s.get("brasil_points", 0),
+                    "Pontos Artilheiro Dia": s.get("artilheiro_dia_points", 0),
+                    "Pontos Artilheiro Rodada": s.get("artilheiro_rodada_points", 0),
                     "Placares Exatos": s["exact_scores"],
                     "Acertos Vencedor": s["outcomes"],
                     "Palpites Salvos": s["predictions_count"],
@@ -308,21 +338,51 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             def render_live_ranking_card(r):
                 from src.bolao.utils import avatar_url
                 p_avatar = avatar_url(r['Participante'])
+                
+                pos = r['Posição']
+                medal = ""
+                bg_color = "var(--panel)"
+                border_color = "var(--line)"
+                pos_style = "color: var(--ink);"
+                
+                if pos == 1:
+                    medal = "🥇 "
+                    bg_color = "rgba(255, 215, 0, 0.08)"
+                    border_color = "#ffd700"
+                    pos_style = "color: #ffd700; font-size: 20px;"
+                elif pos == 2:
+                    medal = "🥈 "
+                    bg_color = "rgba(192, 192, 192, 0.08)"
+                    border_color = "#c0c0c0"
+                    pos_style = "color: #c0c0c0; font-size: 18px;"
+                elif pos == 3:
+                    medal = "🥉 "
+                    bg_color = "rgba(205, 127, 50, 0.08)"
+                    border_color = "#cd7f32"
+                    pos_style = "color: #cd7f32; font-size: 17px;"
+
                 st.markdown(
                     f"""
-                    <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--green);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="card" style="margin-bottom: 12px; padding: 16px; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {border_color}; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.05); font-weight: 800; {pos_style}">
+                                    {medal if medal else f"{pos}"}
+                                </div>
                                 <img src="{p_avatar}" style="width: 32px; height: 32px; border-radius: 50%;" />
-                                <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Posição']}º. {r['Participante']}</span>
+                                <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Participante']}</span>
                             </div>
-                            <span class="badge success" style="font-size:12px; font-weight: bold; padding: 4px 8px;">{r['Pontos']} pts</span>
+                            <span class="badge success" style="font-size:14px; font-weight: 900; padding: 6px 12px; background-color: var(--green-bg); color: var(--green); border-radius: 20px;">{r['Pontos']} pts</span>
                         </div>
-                        <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
-                            🎯 Placares Exatos: {r['Placares Exatos']} | 🏁 Acertos Vencedor: {r['Acertos Vencedor']}
-                            <br>📊 Palpites: {r['Palpites Salvos']} salvos / {r['Palpites Perdidos']} perdidos
-                            <br>📈 Aproveitamento: {r['Aproveitamento']}
-                            <br>🎖️ Conquistas: {r['Conquistas']}
+                        <div style="font-size: 13px; color: var(--muted); line-height: 1.5; margin-left: 46px;">
+                            🎯 <b>Placares:</b> {r['Placares Exatos']} exatos · {r['Acertos Vencedor']} vencedor ({r['Aproveitamento']} aprov.)
+                            <br>⚽ <b>Palpites:</b> {r['Palpites Salvos']} salvos / {r['Palpites Perdidos']} perdidos
+                            <br>📋 <b>Detalhamento:</b>
+                            <span style="display: inline-block; background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; margin-right: 4px; margin-top: 4px; font-size: 12px;">🎮 Jogos: <b>{r['Pontos de Jogos']}</b> pts</span>
+                            <span style="display: inline-block; background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; margin-right: 4px; margin-top: 4px; font-size: 12px;">🇧🇷 Brasil: <b>{r['Pontos Goleadores Brasil']}</b> pts</span>
+                            <span style="display: inline-block; background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; margin-right: 4px; margin-top: 4px; font-size: 12px;">☀️ Dia: <b>{r['Pontos Artilheiro Dia']}</b> pts</span>
+                            <span style="display: inline-block; background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; margin-top: 4px; font-size: 12px;">📅 Rodada: <b>{r['Pontos Artilheiro Rodada']}</b> pts</span>
+                            <br>🎖️ <b>Conquistas:</b> {r['Conquistas']}
                         </div>
                     </div>
                     """,
@@ -545,19 +605,45 @@ def render_rankings_tabs(is_admin: bool = False, score_config = None) -> None:
             def render_combined_ranking_card(r):
                 from src.bolao.utils import avatar_url
                 p_avatar = avatar_url(r['Participante'])
+                
+                pos = r['Posição']
+                medal = ""
+                bg_color = "var(--panel)"
+                border_color = "var(--line)"
+                pos_style = "color: var(--ink);"
+                
+                if pos == 1:
+                    medal = "🥇 "
+                    bg_color = "rgba(255, 215, 0, 0.08)"
+                    border_color = "#ffd700"
+                    pos_style = "color: #ffd700; font-size: 20px;"
+                elif pos == 2:
+                    medal = "🥈 "
+                    bg_color = "rgba(192, 192, 192, 0.08)"
+                    border_color = "#c0c0c0"
+                    pos_style = "color: #c0c0c0; font-size: 18px;"
+                elif pos == 3:
+                    medal = "🥉 "
+                    bg_color = "rgba(205, 127, 50, 0.08)"
+                    border_color = "#cd7f32"
+                    pos_style = "color: #cd7f32; font-size: 17px;"
+
                 st.markdown(
                     f"""
-                    <div class="card" style="margin-bottom: 12px; padding: 16px; border-left: 5px solid var(--gold);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="card" style="margin-bottom: 12px; padding: 16px; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {border_color}; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.05); font-weight: 800; {pos_style}">
+                                    {medal if medal else f"{pos}"}
+                                </div>
                                 <img src="{p_avatar}" style="width: 32px; height: 32px; border-radius: 50%;" />
-                                <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Posição']}º. {r['Participante']}</span>
+                                <span style="font-weight: 800; font-size: 16px; color: var(--ink);">{r['Participante']}</span>
                             </div>
-                            <span class="badge success" style="font-size:12px; font-weight: bold; padding: 4px 8px;">{r['Pontos Combinados']} pts</span>
+                            <span class="badge success" style="font-size:14px; font-weight: 900; padding: 6px 12px; background-color: var(--green-bg); color: var(--green); border-radius: 20px;">{r['Pontos Combinados']} pts</span>
                         </div>
-                        <div style="font-size: 13px; color: var(--muted); line-height: 1.4;">
-                            📋 Pontos Clássico: {r['Pontos Clássico']} pts | 🎯 Pontos Jogo a Jogo: {r['Pontos Jogo a Jogo']} pts
-                            <br>🎖️ Conquistas: {r['Conquistas']}
+                        <div style="font-size: 13px; color: var(--muted); line-height: 1.5; margin-left: 46px;">
+                            📋 <b>Pontos Clássico:</b> {r['Pontos Clássico']} pts · 🎯 <b>Pontos Jogo a Jogo:</b> {r['Pontos Jogo a Jogo']} pts
+                            <br>🎖️ <b>Conquistas:</b> {r['Conquistas']}
                         </div>
                     </div>
                     """,

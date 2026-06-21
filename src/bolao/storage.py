@@ -8,7 +8,7 @@ import streamlit as st
 
 from .constants import DEFAULT_UNIFORM_RULES, DEFAULT_V2_RULES, DEFAULT_WEIGHTED_RULES
 from .models import Prediction, LiveMatch, LivePrediction, ActivityEvent
-from .utils import now_iso, read_json, safe_filename, stable_id, write_json, normalize_participant_key
+from .utils import now_iso, read_json, safe_filename, stable_id, write_json, normalize_participant_key, format_display_name
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -29,6 +29,8 @@ ARCHIVED_PARTICIPANTS_PATH = STATE_DIR / "archived_participants.json"
 import sys as _sys
 
 _log_supabase = True
+
+_submissions_synced = False
 
 
 def _warn(msg: str) -> None:
@@ -406,26 +408,44 @@ def _sync_local_to_supabase(client) -> None:
             except Exception:
                 pass
 
-        # Sync official result
+        # Sync official result safely comparing timestamps
         if OFFICIAL_PATH.exists():
             try:
-                data = read_json(OFFICIAL_PATH, {})
-                if data and "participant" in data:
-                    prediction = Prediction.from_dict(data)
-                    prediction.participant = "Resultado oficial"
+                # Query Supabase official result first
+                sb_result = client.table("bolao_official").select("*").eq("id", "official").execute()
+                sb_official = Prediction.from_dict(sb_result.data[0]) if sb_result.data else None
+                
+                local_data = read_json(OFFICIAL_PATH, {})
+                local_official = Prediction.from_dict(local_data) if local_data and "participant" in local_data else None
+                
+                should_sync = False
+                if local_official:
+                    if not sb_official:
+                        should_sync = True
+                    else:
+                        local_sub = local_official.submitted_at or ""
+                        sb_sub = sb_official.submitted_at or ""
+                        if local_sub > sb_sub:
+                            should_sync = True
+                            
+                if should_sync and local_official:
+                    local_official.participant = "Resultado oficial"
                     client.table("bolao_official").upsert({
                         "id": "official",
-                        "participant": prediction.participant,
-                        "groups": prediction.groups,
-                        "best_thirds": prediction.best_thirds,
-                        "knockout": {k: [m.to_dict() if hasattr(m, 'to_dict') else m for m in v] for k, v in prediction.knockout.items()},
-                        "champion": prediction.champion,
-                        "submission_id": prediction.submission_id,
-                        "submitted_at": prediction.submitted_at,
-                        "status": prediction.status,
-                        "meta": prediction.meta,
+                        "participant": local_official.participant,
+                        "groups": local_official.groups,
+                        "best_thirds": local_official.best_thirds,
+                        "knockout": {k: [m.to_dict() if hasattr(m, 'to_dict') else m for m in v] for k, v in local_official.knockout.items()},
+                        "champion": local_official.champion,
+                        "submission_id": local_official.submission_id,
+                        "submitted_at": local_official.submitted_at,
+                        "status": local_official.status,
+                        "meta": local_official.meta,
                         "updated_at": now_iso(),
                     }, on_conflict="id").execute()
+                elif sb_official:
+                    # Supabase is newer/equal, sync local file from Supabase
+                    write_json(OFFICIAL_PATH, sb_official.to_dict())
             except Exception:
                 pass
 
@@ -675,11 +695,17 @@ def default_config() -> dict:
     }
 
 
-
 @st.cache_data(ttl=15, show_spinner=False)
 def load_config() -> dict:
     ensure_state()
     backend = get_storage_backend()
+
+    local_data = read_json(CONFIG_PATH, {})
+    local_merged = default_config()
+    local_merged.update(local_data or {})
+    local_merged["weighted_rules"] = {**DEFAULT_WEIGHTED_RULES, **(local_merged.get("weighted_rules") or {})}
+    local_merged["uniform_rules"] = {**DEFAULT_UNIFORM_RULES, **(local_merged.get("uniform_rules") or {})}
+    local_merged["v2_rules"] = {**DEFAULT_V2_RULES, **(local_merged.get("v2_rules") or {})}
 
     if backend == "supabase":
         client = _get_supabase_client()
@@ -694,21 +720,21 @@ def load_config() -> dict:
                     merged["uniform_rules"] = {**DEFAULT_UNIFORM_RULES, **(merged.get("uniform_rules") or {})}
                     merged["v2_rules"] = {**DEFAULT_V2_RULES, **(merged.get("v2_rules") or {})}
                     return merged
+                else:
+                    # Sync config from local to Supabase
+                    try:
+                        client.table("bolao_config").upsert({"key": "main", "value": local_merged, "updated_at": now_iso()}, on_conflict="key").execute()
+                    except Exception:
+                        pass
             except Exception:
                 _warn("load_config: Supabase read failed — falling back to JSON")
 
-    data = read_json(CONFIG_PATH, {})
-    merged = default_config()
-    merged.update(data or {})
-    merged["weighted_rules"] = {**DEFAULT_WEIGHTED_RULES, **(merged.get("weighted_rules") or {})}
-    merged["uniform_rules"] = {**DEFAULT_UNIFORM_RULES, **(merged.get("uniform_rules") or {})}
-    merged["v2_rules"] = {**DEFAULT_V2_RULES, **(merged.get("v2_rules") or {})}
-    return merged
+    return local_merged
 
 
 def save_config(config: dict) -> None:
     st.cache_data.clear()
-    append_event("config_changed", "Configurações do bolão foram atualizadas.")
+    append_event("config_changed", "Configurações do bolão foram atualizadas.", visibility="admin")
     ensure_state()
     write_json(CONFIG_PATH, config)
     backend = get_storage_backend()
@@ -739,27 +765,70 @@ def load_submissions(include_archived: bool = False) -> list[Prediction]:
             subs = [p for p in subs if normalize_participant_key(p.participant) not in archived_keys]
         return subs
 
+    local_subs = _from_files()
+
     if backend == "supabase":
         client = _get_supabase_client()
         if client:
             try:
                 result = client.table("bolao_submissions").select("*").execute()
+                sb_preds = []
                 if result.data:
-                    from .utils import normalize_participant_key
-                    preds = [Prediction.from_dict(row) for row in result.data if row.get("active") is not False]
-                    # Merge with local files — keep participants that Supabase doesn't have
-                    local_by_key = {normalize_participant_key(p.participant): p for p in _from_files()}
-                    sb_keys = {normalize_participant_key(p.participant) for p in preds}
-                    for lk, lp in local_by_key.items():
-                        if lk not in sb_keys:
-                            preds.append(lp)
-                    if not include_archived:
-                        preds = [p for p in preds if normalize_participant_key(p.participant) not in archived_keys]
-                    return preds
+                    sb_preds = [Prediction.from_dict(row) for row in result.data if row.get("active") is not False]
+                
+                from .utils import normalize_participant_key
+                # Merge local and Supabase submissions
+                merged = {}
+                # Add local first
+                for p in local_subs:
+                    merged[normalize_participant_key(p.participant)] = p
+                # Add/overwrite with Supabase if Supabase has it and is newer
+                for p in sb_preds:
+                    pkey = normalize_participant_key(p.participant)
+                    if pkey not in merged:
+                        merged[pkey] = p
+                    else:
+                        local_p = merged[pkey]
+                        lp_time = local_p.submitted_at or ""
+                        sb_time = p.submitted_at or ""
+                        if sb_time >= lp_time:
+                            merged[pkey] = p
+
+                preds = list(merged.values())
+                if not include_archived:
+                    preds = [p for p in preds if normalize_participant_key(p.participant) not in archived_keys]
+
+                # Sync missing or newer local submissions back to Supabase
+                to_sync = []
+                for lp in local_subs:
+                    pkey = normalize_participant_key(lp.participant)
+                    sb_match = next((sp for sp in sb_preds if normalize_participant_key(sp.participant) == pkey), None)
+                    if not sb_match or (lp.submitted_at or "") > (sb_match.submitted_at or ""):
+                        to_sync.append(lp)
+
+                if to_sync:
+                    try:
+                        for lp in to_sync:
+                            client.table("bolao_submissions").upsert({
+                                "id": lp.submission_id,
+                                "participant": lp.participant,
+                                "groups": lp.groups,
+                                "best_thirds": lp.best_thirds,
+                                "knockout": {k: [m.to_dict() if hasattr(m, 'to_dict') else m for m in v] for k, v in lp.knockout.items()},
+                                "champion": lp.champion,
+                                "submission_id": lp.submission_id,
+                                "submitted_at": lp.submitted_at,
+                                "status": lp.status,
+                                "meta": lp.meta,
+                            }, on_conflict="id").execute()
+                    except Exception:
+                        pass
+
+                return preds
             except Exception:
                 pass
 
-    return _from_files()
+    return local_subs
 
 
 def save_submission(prediction: Prediction, overwrite: bool = True) -> Path:
@@ -839,7 +908,7 @@ def delete_submission(submission_id: str) -> bool:
                 pass
                 
     if deleted:
-        append_event("submission_deleted", f"Palpite de {participant_name} foi excluído.")
+        append_event("submission_deleted", f"Palpite de {participant_name} foi excluído.", visibility="admin")
     return deleted
 
 
@@ -848,27 +917,68 @@ def load_official() -> Prediction | None:
     ensure_state()
     backend = get_storage_backend()
 
+    local_official = None
+    if OFFICIAL_PATH.exists():
+        try:
+            local_official = Prediction.from_dict(read_json(OFFICIAL_PATH, {}))
+        except Exception:
+            pass
+
     if backend == "supabase":
         client = _get_supabase_client()
         if client:
             try:
                 result = client.table("bolao_official").select("*").eq("id", "official").execute()
                 if result.data:
-                    return Prediction.from_dict(result.data[0])
+                    sb_official = Prediction.from_dict(result.data[0])
+                    # If local official is newer, return it and sync to Supabase
+                    if local_official and (local_official.submitted_at or "") > (sb_official.submitted_at or ""):
+                        try:
+                            client.table("bolao_official").upsert({
+                                "id": "official",
+                                "participant": local_official.participant,
+                                "groups": local_official.groups,
+                                "best_thirds": local_official.best_thirds,
+                                "knockout": {k: [m.to_dict() if hasattr(m, 'to_dict') else m for m in v] for k, v in local_official.knockout.items()},
+                                "champion": local_official.champion,
+                                "submission_id": local_official.submission_id,
+                                "submitted_at": local_official.submitted_at,
+                                "status": local_official.status,
+                                "meta": local_official.meta,
+                                "updated_at": now_iso(),
+                            }, on_conflict="id").execute()
+                        except Exception:
+                            pass
+                        return local_official
+                    return sb_official
+                elif local_official:
+                    # Sync to Supabase
+                    try:
+                        client.table("bolao_official").upsert({
+                            "id": "official",
+                            "participant": local_official.participant,
+                            "groups": local_official.groups,
+                            "best_thirds": local_official.best_thirds,
+                            "knockout": {k: [m.to_dict() if hasattr(m, 'to_dict') else m for m in v] for k, v in local_official.knockout.items()},
+                            "champion": local_official.champion,
+                            "submission_id": local_official.submission_id,
+                            "submitted_at": local_official.submitted_at,
+                            "status": local_official.status,
+                            "meta": local_official.meta,
+                            "updated_at": now_iso(),
+                        }, on_conflict="id").execute()
+                    except Exception:
+                        pass
+                    return local_official
             except Exception:
                 pass
 
-    if not OFFICIAL_PATH.exists():
-        return None
-    try:
-        return Prediction.from_dict(read_json(OFFICIAL_PATH, {}))
-    except Exception:
-        return None
+    return local_official
 
 
 def save_official(prediction: Prediction) -> Path:
     st.cache_data.clear()
-    append_event("official_saved", "Resultado oficial do bolão foi cadastrado/atualizado.")
+    append_event("official_saved", "Resultado oficial do bolão foi cadastrado/atualizado.", visibility="admin")
     ensure_state()
     prediction.participant = "Resultado oficial"
     if not prediction.submitted_at:
@@ -917,6 +1027,10 @@ def export_all_state() -> dict:
         "brasil_palpites_classicos": load_brasil_palpites_classicos(),
         "ranking_snapshots": load_ranking_snapshots(),
         "comentarios_jogo": read_json(COMENTARIOS_JOGO_PATH, []),
+        "artilheiro_palpites_dia": load_artilheiro_palpites_dia(),
+        "artilheiro_palpites_rodada": load_artilheiro_palpites_rodada(),
+        "artilheiro_resultado_dia": load_artilheiro_resultado_dia(),
+        "artilheiro_resultado_rodada": load_artilheiro_resultado_rodada(),
         "timestamp": now_iso(),
         "app_version": "2026-live-mode-v1"
     }
@@ -924,7 +1038,7 @@ def export_all_state() -> dict:
 
 def import_all_state(data: dict) -> None:
     st.cache_data.clear()
-    append_event("state_imported", "Um backup completo do bolão foi importado pelo administrador.")
+    append_event("state_imported", "Um backup completo do bolão foi importado pelo administrador.", visibility="admin")
     ensure_state()
 
     # 1. Config
@@ -1030,11 +1144,149 @@ def import_all_state(data: dict) -> None:
     if "comentarios_jogo" in data:
         write_json(COMENTARIOS_JOGO_PATH, data["comentarios_jogo"])
 
+    if "artilheiro_palpites_dia" in data:
+        write_json(ARTILHEIRO_DIA_PATH, data["artilheiro_palpites_dia"])
+    if "artilheiro_palpites_rodada" in data:
+        write_json(ARTILHEIRO_RODADA_PATH, data["artilheiro_palpites_rodada"])
+    if "artilheiro_resultado_dia" in data:
+        write_json(ARTILHEIRO_RESULTADO_DIA_PATH, data["artilheiro_resultado_dia"])
+    if "artilheiro_resultado_rodada" in data:
+        write_json(ARTILHEIRO_RESULTADO_RODADA_PATH, data["artilheiro_resultado_rodada"])
+
+
+def import_participants_predictions_only(data: dict) -> None:
+    st.cache_data.clear()
+    append_event("partial_state_imported", "Palpites e participantes importados parcialmente do backup pelo administrador.", visibility="admin")
+    ensure_state()
+
+    from .utils import normalize_participant_key
+    backend = get_storage_backend()
+
+    # 1. Submissions (classic predictions)
+    if "submissions" in data and data["submissions"]:
+        # We load current submissions to avoid deleting them.
+        existing_subs = {normalize_participant_key(s.participant): s for s in load_submissions(include_archived=True)}
+        
+        for sub in data["submissions"]:
+            pred = Prediction.from_dict(sub)
+            pkey = normalize_participant_key(pred.participant)
+            if pkey not in existing_subs:
+                save_submission(pred, overwrite=True)
+            else:
+                # Compare timestamps
+                ext_sub = existing_subs[pkey]
+                time_backup = pred.submitted_at or ""
+                time_ext = ext_sub.submitted_at or ""
+                if time_backup > time_ext:
+                    save_submission(pred, overwrite=True)
+
+    # 2. Live predictions
+    if "live_predictions" in data and data["live_predictions"]:
+        # Load current live predictions
+        existing_preds = {}
+        for lp in load_live_predictions(include_archived=True):
+            pkey = lp.participant_key or normalize_participant_key(lp.participant_name)
+            existing_preds[(pkey, str(lp.match_id))] = lp
+            
+        merged_preds = list(existing_preds.values())
+        for lp_data in data["live_predictions"]:
+            lp = LivePrediction.from_dict(lp_data)
+            pkey = lp.participant_key or normalize_participant_key(lp.participant_name)
+            key = (pkey, str(lp.match_id))
+            if key not in existing_preds:
+                merged_preds.append(lp)
+            else:
+                ext_lp = existing_preds[key]
+                time_backup = lp.updated_at or lp.submitted_at or ""
+                time_ext = ext_lp.updated_at or ext_lp.submitted_at or ""
+                if time_backup > time_ext:
+                    # Replace the existing prediction in merged_preds
+                    merged_preds = [x if (x.participant_key or normalize_participant_key(x.participant_name)) != pkey or str(x.match_id) != str(lp.match_id) else lp for x in merged_preds]
+        save_live_predictions(merged_preds)
+
+    # 3. Registered participants
+    registered = load_registered_participants(include_archived=True)
+    registered_lower = {p.lower() for p in registered}
+    
+    new_parts = []
+    if "registered_participants" in data and data["registered_participants"]:
+        new_parts = data["registered_participants"]
+    else:
+        # Reconstruct from data["submissions"] and data["live_predictions"]
+        seen = set()
+        for sub in data.get("submissions", []):
+            pname = sub.get("participant")
+            if pname and pname not in seen:
+                seen.add(pname)
+                new_parts.append(pname)
+        for lp in data.get("live_predictions", []):
+            pname = lp.get("participant_name")
+            if pname and pname not in seen:
+                seen.add(pname)
+                new_parts.append(pname)
+                
+    for p in new_parts:
+        if p.lower() not in registered_lower:
+            registered.append(p)
+            registered_lower.add(p.lower())
+            
+    save_registered_participants(registered)
+
+    # 4. Brasil palpite goleadores
+    if "brasil_palpites_goleadores" in data and data["brasil_palpites_goleadores"]:
+        existing_bg = load_brasil_palpites_goleadores()
+        bg_dict = {(normalize_participant_key(x["participante_nome"]), x["jogo_id"]): x for x in existing_bg}
+        for bg in data["brasil_palpites_goleadores"]:
+            key = (normalize_participant_key(bg["participante_nome"]), bg["jogo_id"])
+            if key not in bg_dict:
+                existing_bg.append(bg)
+        write_json(BRASIL_PALPITES_GOLEADORES_PATH, existing_bg)
+        if backend == "supabase":
+            client = _get_supabase_client()
+            if client and _supabase_table_exists(client, "bolao_brasil_palpites_goleadores"):
+                try:
+                    client.table("bolao_brasil_palpites_goleadores").upsert(existing_bg, on_conflict="participante_nome,jogo_id").execute()
+                except Exception:
+                    pass
+
+    # 5. Artilheiro palpites dia
+    if "artilheiro_palpites_dia" in data and data["artilheiro_palpites_dia"]:
+        existing_ad = load_artilheiro_palpites_dia()
+        ad_dict = {(normalize_participant_key(x["participante_nome"]), x["data"]): x for x in existing_ad}
+        for ad in data["artilheiro_palpites_dia"]:
+            key = (normalize_participant_key(ad["participante_nome"]), ad["data"])
+            if key not in ad_dict:
+                existing_ad.append(ad)
+        write_json(ARTILHEIRO_DIA_PATH, existing_ad)
+        if backend == "supabase":
+            client = _get_supabase_client()
+            if client and _supabase_table_exists(client, "bolao_artilheiro_palpites_dia"):
+                try:
+                    client.table("bolao_artilheiro_palpites_dia").upsert(existing_ad, on_conflict="participante_nome,data").execute()
+                except Exception:
+                    pass
+
+    # 6. Artilheiro palpites rodada
+    if "artilheiro_palpites_rodada" in data and data["artilheiro_palpites_rodada"]:
+        existing_ar = load_artilheiro_palpites_rodada()
+        ar_dict = {(normalize_participant_key(x["participante_nome"]), x["rodada"]): x for x in existing_ar}
+        for ar in data["artilheiro_palpites_rodada"]:
+            key = (normalize_participant_key(ar["participante_nome"]), ar["rodada"])
+            if key not in ar_dict:
+                existing_ar.append(ar)
+        write_json(ARTILHEIRO_RODADA_PATH, existing_ar)
+        if backend == "supabase":
+            client = _get_supabase_client()
+            if client and _supabase_table_exists(client, "bolao_artilheiro_palpites_rodada"):
+                try:
+                    client.table("bolao_artilheiro_palpites_rodada").upsert(existing_ar, on_conflict="participante_nome,rodada").execute()
+                except Exception:
+                    pass
 
 
 def reset_state() -> None:
     st.cache_data.clear()
-    append_event("state_reset", "Todo o estado do bolão foi reiniciado pelo administrador.")
+    append_event("state_reset", "Todo o estado do bolão foi reiniciado pelo administrador.", visibility="admin")
     ensure_state()
 
     for path in SUBMISSIONS_DIR.glob("*.json"):
@@ -1064,7 +1316,7 @@ def reset_state() -> None:
 
 def load_demo_state() -> None:
     st.cache_data.clear()
-    append_event("demo_loaded", "Dados de demonstração foram carregados pelo administrador.")
+    append_event("demo_loaded", "Dados de demonstração foram carregados pelo administrador.", visibility="admin")
     ensure_state()
     backend = get_storage_backend()
 
@@ -1136,13 +1388,6 @@ def load_app_context(include_events: bool = False) -> AppDataContext:
     return ctx
 
 
-def _override_first_match_lock(matches_list: list[LiveMatch]) -> list[LiveMatch]:
-    for m in matches_list:
-        if m.match_id == "13379":
-            m.lock_at = "2026-06-11T17:00:00"
-    return matches_list
-
-
 @st.cache_data(ttl=15, show_spinner=False)
 def load_matches() -> list[LiveMatch]:
     ensure_state()
@@ -1154,7 +1399,7 @@ def load_matches() -> list[LiveMatch]:
             try:
                 result = client.table("bolao_matches").select("*").execute()
                 if result.data:
-                    return _override_first_match_lock([LiveMatch.from_dict(row) for row in result.data])
+                    return [LiveMatch.from_dict(row) for row in result.data]
             except Exception:
                 _warn("load_matches: Supabase read failed — falling back to JSON")
 
@@ -1169,7 +1414,7 @@ def load_matches() -> list[LiveMatch]:
                     # Supabase has matches — read from there to avoid overwriting
                     full = sb_client.table("bolao_matches").select("*").execute()
                     if full.data:
-                        return _override_first_match_lock([LiveMatch.from_dict(row) for row in full.data])
+                        return [LiveMatch.from_dict(row) for row in full.data]
             except Exception:
                 pass
 
@@ -1191,7 +1436,6 @@ def load_matches() -> list[LiveMatch]:
                 sort_order=idx
             )
             matches.append(m)
-        _override_first_match_lock(matches)
         save_matches(matches)
         return matches
 
@@ -1232,67 +1476,76 @@ def load_live_predictions(include_archived: bool = False) -> list[LivePrediction
     backend = get_storage_backend()
     archived_keys = set() if include_archived else get_archived_keys()
 
+    def _from_files():
+        from .utils import normalize_participant_key
+        if not LIVE_PREDICTIONS_PATH.exists():
+            return []
+        data = read_json(LIVE_PREDICTIONS_PATH, [])
+        preds = [LivePrediction.from_dict(p) for p in data]
+        
+        # Deduplicate loaded records
+        seen = {}
+        for p in preds:
+            pkey = p.participant_key or normalize_participant_key(p.participant_name)
+            key = (pkey, str(p.match_id))
+            if key not in seen or (p.updated_at or p.submitted_at or "") >= (seen[key].updated_at or seen[key].submitted_at or ""):
+                seen[key] = p
+        preds = list(seen.values())
+        if not include_archived:
+            preds = [p for p in preds if p.participant_key not in archived_keys]
+        return preds
+
+    local_preds = _from_files()
+
     if backend == "supabase":
         client = _get_supabase_client()
         if client and _supabase_table_exists(client, "bolao_live_predictions"):
             try:
                 result = client.table("bolao_live_predictions").select("*").execute()
-                preds = [LivePrediction.from_dict(row) for row in result.data if row.get("active") is not False]
+                sb_preds = [LivePrediction.from_dict(row) for row in result.data if row.get("active") is not False]
                 
-                # Deduplicate loaded records
                 from .utils import normalize_participant_key
-                seen = {}
-                for p in preds:
+                # Merge local and Supabase live predictions
+                merged = {}
+                for p in local_preds:
+                    pkey = p.participant_key or normalize_participant_key(p.participant_name)
+                    merged[(pkey, str(p.match_id))] = p
+                    
+                for p in sb_preds:
                     pkey = p.participant_key or normalize_participant_key(p.participant_name)
                     key = (pkey, str(p.match_id))
-                    if key not in seen or (p.updated_at or p.submitted_at or "") >= (seen[key].updated_at or seen[key].submitted_at or ""):
-                        seen[key] = p
-                preds = list(seen.values())
-                
+                    if key not in merged:
+                        merged[key] = p
+                    else:
+                        local_p = merged[key]
+                        lp_time = local_p.updated_at or local_p.submitted_at or ""
+                        sb_time = p.updated_at or p.submitted_at or ""
+                        if sb_time >= lp_time:
+                            merged[key] = p
+
+                preds = list(merged.values())
                 if not include_archived:
                     preds = [p for p in preds if p.participant_key not in archived_keys]
+
+                # Sync missing or newer local predictions back to Supabase
+                to_sync = []
+                for lp in local_preds:
+                    pkey = lp.participant_key or normalize_participant_key(lp.participant_name)
+                    sb_match = next((sp for sp in sb_preds if (sp.participant_key or normalize_participant_key(sp.participant_name)) == pkey and str(sp.match_id) == str(lp.match_id)), None)
+                    if not sb_match or (lp.updated_at or lp.submitted_at or "") > (sb_match.updated_at or sb_match.submitted_at or ""):
+                        to_sync.append(lp.to_dict())
+
+                if to_sync:
+                    try:
+                        client.table("bolao_live_predictions").upsert(to_sync, on_conflict="id").execute()
+                    except Exception:
+                        pass
+
                 return preds
             except Exception:
                 _warn("load_live_predictions: Supabase read failed — falling back to JSON")
 
-    if not LIVE_PREDICTIONS_PATH.exists():
-        # Defensive: try Supabase one more time before returning empty
-        sb_client = _get_supabase_client()
-        if sb_client:
-            try:
-                sb_result = sb_client.table("bolao_live_predictions").select("*").execute()
-                if sb_result.data:
-                    preds = [LivePrediction.from_dict(row) for row in sb_result.data if row.get("active") is not False]
-                    from .utils import normalize_participant_key
-                    seen = {}
-                    for p in preds:
-                        pkey = p.participant_key or normalize_participant_key(p.participant_name)
-                        key = (pkey, str(p.match_id))
-                        if key not in seen or (p.updated_at or p.submitted_at or "") >= (seen[key].updated_at or seen[key].submitted_at or ""):
-                            seen[key] = p
-                    preds = list(seen.values())
-                    if not include_archived:
-                        preds = [p for p in preds if p.participant_key not in archived_keys]
-                    return preds
-            except Exception:
-                pass
-        return []
-    data = read_json(LIVE_PREDICTIONS_PATH, [])
-    preds = [LivePrediction.from_dict(p) for p in data]
-    
-    # Deduplicate loaded records
-    from .utils import normalize_participant_key
-    seen = {}
-    for p in preds:
-        pkey = p.participant_key or normalize_participant_key(p.participant_name)
-        key = (pkey, str(p.match_id))
-        if key not in seen or (p.updated_at or p.submitted_at or "") >= (seen[key].updated_at or seen[key].submitted_at or ""):
-            seen[key] = p
-    preds = list(seen.values())
-
-    if not include_archived:
-        preds = [p for p in preds if p.participant_key not in archived_keys]
-    return preds
+    return local_preds
 
 
 def save_live_predictions(predictions: list[LivePrediction]) -> None:
@@ -1440,48 +1693,74 @@ def load_registered_participants(include_archived: bool = False) -> list[str]:
     backend = get_storage_backend()
     archived_keys = set() if include_archived else get_archived_keys()
 
-    parts_set = set()
+    seen_keys = set()
+    parts_list = []
+
+    def _seen(name):
+        if not name:
+            return
+        name = name.strip()
+        if not name:
+            return
+        display = format_display_name(name)
+        key = normalize_participant_key(display)
+        if key not in seen_keys:
+            seen_keys.add(key)
+            parts_list.append(display)
+
+    sb_parts = []
     if backend == "supabase":
         client = _get_supabase_client()
         if client:
             try:
                 result = client.table("bolao_config").select("value").eq("key", "registered_participants").execute()
                 if result.data:
-                    parts = result.data[0].get("value", [])
-                    for p in parts:
-                        if p:
-                            parts_set.add(p.strip())
+                    sb_parts = result.data[0].get("value", [])
             except Exception:
                 pass
+
+    local_parts = []
     if REGISTERED_PARTICIPANTS_PATH.exists():
-        parts = read_json(REGISTERED_PARTICIPANTS_PATH, [])
-        for p in parts:
-            if p:
-                parts_set.add(p.strip())
+        local_parts = read_json(REGISTERED_PARTICIPANTS_PATH, [])
+
+    # Process all lists
+    for p in sb_parts:
+        _seen(p)
+    for p in local_parts:
+        _seen(p)
 
     # Include any participant from live predictions (so Jogo a Jogo users are first class)
     try:
-        live_preds = load_live_predictions(include_archived=True)
-        for lp in live_preds:
-            if lp.participant_name:
-                parts_set.add(lp.participant_name.strip())
+        for lp in load_live_predictions(include_archived=True):
+            _seen(lp.participant_name)
     except Exception:
         pass
 
     # Include any participant from classic submissions
     try:
-        submissions = load_submissions(include_archived=True)
-        for s in submissions:
-            if s.participant:
-                parts_set.add(s.participant.strip())
+        for s in load_submissions(include_archived=True):
+            _seen(s.participant)
     except Exception:
         pass
 
     # Convert to sorted list and filter out archived keys
-    from .utils import normalize_participant_key
-    sorted_parts = sorted(list(parts_set), key=lambda x: x.lower())
+    sorted_parts = sorted(parts_list, key=lambda x: x.lower())
     if not include_archived:
         sorted_parts = [p for p in sorted_parts if normalize_participant_key(p) not in archived_keys]
+
+    # Sync merged list back to Supabase
+    if backend == "supabase":
+        client = _get_supabase_client()
+        if client:
+            try:
+                client.table("bolao_config").upsert({
+                    "key": "registered_participants",
+                    "value": sorted_parts,
+                    "updated_at": now_iso(),
+                }, on_conflict="key").execute()
+            except Exception:
+                pass
+
     return sorted_parts
 
 
@@ -1582,15 +1861,19 @@ def sync_official_results_to_matches() -> int:
     # Recalcular pontos de TODOS os palpites para matches aprovados
     # (sempre executa, mesmo sem novos syncs, pois palpites podem ter mudado)
     from .live_scoring import calculate_live_prediction_points
+    points_changed = False
     for lp in live_preds:
         if lp.match_id in matches_by_id and matches_by_id[lp.match_id].status == "result_approved":
             m = matches_by_id[lp.match_id]
             res = calculate_live_prediction_points(lp, m, config)
+            if res["points"] != lp.points or res["breakdown"] != lp.scoring_breakdown:
+                points_changed = True
             lp.points = res["points"]
             lp.scoring_breakdown = res["breakdown"]
 
-    save_matches(matches)
-    save_live_predictions(live_preds)
+    if updated > 0 or points_changed:
+        save_matches(matches)
+        save_live_predictions(live_preds)
     return updated
 
 
@@ -1630,7 +1913,7 @@ def archive_participant(name: str, reason: str = "cleanup_requested_by_admin", b
     updated_registered = [p for p in registered if normalize_participant_key(p) != key]
     save_registered_participants(updated_registered)
     
-    append_event("participant_archived", f"Participante {name_clean} foi arquivado.")
+    append_event("participant_archived", f"Participante {name_clean} foi arquivado.", visibility="admin")
     return True
 
 
@@ -1650,7 +1933,7 @@ def restore_participant(pkey: str) -> bool:
         registered.append(match["name"])
         save_registered_participants(registered)
         
-    append_event("participant_restored", f"Participante {match['name']} foi restaurado.")
+    append_event("participant_restored", f"Participante {match['name']} foi restaurado.", visibility="admin")
     return True
 
 # Helper paths for advanced features
@@ -1663,17 +1946,41 @@ COMENTARIOS_JOGO_PATH = STATE_DIR / "comentarios_jogo.json"
 def load_brasil_palpites_goleadores() -> list[dict]:
     ensure_state()
     backend = get_storage_backend()
+    local_data = []
+    if BRASIL_PALPITES_GOLEADORES_PATH.exists():
+        local_data = read_json(BRASIL_PALPITES_GOLEADORES_PATH, [])
+        
     if backend == "supabase":
         client = _get_supabase_client()
         if client:
             try:
                 res = client.table("brasil_palpites_goleadores").select("*").execute()
-                return res.data
+                sb_data = res.data
+                # Merge local and Supabase data
+                merged = {}
+                for p in local_data:
+                    merged[(p["participante_nome"], p["jogo_id"])] = p
+                for p in sb_data:
+                    key = (p["participante_nome"], p["jogo_id"])
+                    if key not in merged or p.get("updated_at", "") >= merged[key].get("updated_at", ""):
+                        merged[key] = p
+                
+                # Sync new/newer local data to Supabase
+                to_sync = []
+                for lp in local_data:
+                    key = (lp["participante_nome"], lp["jogo_id"])
+                    sb_match = next((sp for sp in sb_data if sp["participante_nome"] == lp["participante_nome"] and sp["jogo_id"] == lp["jogo_id"]), None)
+                    if not sb_match or lp.get("updated_at", "") > sb_match.get("updated_at", ""):
+                        to_sync.append(lp)
+                if to_sync:
+                    try:
+                        client.table("brasil_palpites_goleadores").upsert(to_sync, on_conflict="participante_nome,jogo_id").execute()
+                    except Exception:
+                        pass
+                return list(merged.values())
             except Exception:
                 pass
-    if BRASIL_PALPITES_GOLEADORES_PATH.exists():
-        return read_json(BRASIL_PALPITES_GOLEADORES_PATH, [])
-    return []
+    return local_data
 
 def save_brasil_palpite_goleadores(palpite: dict) -> None:
     ensure_state()
@@ -1697,18 +2004,36 @@ def save_brasil_palpite_goleadores(palpite: dict) -> None:
 def load_brasil_resultados_goleadores() -> dict[str, dict]:
     ensure_state()
     backend = get_storage_backend()
+    local_data = {}
+    if BRASIL_RESULTADOS_GOLEADORES_PATH.exists():
+        data = read_json(BRASIL_RESULTADOS_GOLEADORES_PATH, [])
+        local_data = {row["jogo_id"]: row for row in data}
+        
     if backend == "supabase":
         client = _get_supabase_client()
         if client:
             try:
                 res = client.table("brasil_resultados_goleadores").select("*").execute()
-                return {row["jogo_id"]: row for row in res.data}
+                sb_data = {row["jogo_id"]: row for row in res.data}
+                
+                merged = dict(local_data)
+                for jid, row in sb_data.items():
+                    if jid not in merged or row.get("updated_at", "") >= merged[jid].get("updated_at", ""):
+                        merged[jid] = row
+                
+                to_sync = []
+                for jid, lp in local_data.items():
+                    if jid not in sb_data or lp.get("updated_at", "") > sb_data[jid].get("updated_at", ""):
+                        to_sync.append(lp)
+                if to_sync:
+                    try:
+                        client.table("brasil_resultados_goleadores").upsert(to_sync, on_conflict="jogo_id").execute()
+                    except Exception:
+                        pass
+                return merged
             except Exception:
                 pass
-    if BRASIL_RESULTADOS_GOLEADORES_PATH.exists():
-        data = read_json(BRASIL_RESULTADOS_GOLEADORES_PATH, [])
-        return {row["jogo_id"]: row for row in data}
-    return {}
+    return local_data
 
 def save_brasil_resultado_goleadores(jogo_id: str, resultado: dict) -> None:
     ensure_state()
@@ -1728,17 +2053,38 @@ def save_brasil_resultado_goleadores(jogo_id: str, resultado: dict) -> None:
 def load_brasil_palpites_classicos() -> list[dict]:
     ensure_state()
     backend = get_storage_backend()
+    local_data = []
+    if BRASIL_PALPITES_CLASSICOS_PATH.exists():
+        local_data = read_json(BRASIL_PALPITES_CLASSICOS_PATH, [])
+        
     if backend == "supabase":
         client = _get_supabase_client()
         if client:
             try:
                 res = client.table("brasil_palpites_classicos").select("*").execute()
-                return res.data
+                sb_data = res.data
+                
+                merged = {p["participante_nome"]: p for p in local_data}
+                for p in sb_data:
+                    pname = p["participante_nome"]
+                    if pname not in merged or p.get("updated_at", "") >= merged[pname].get("updated_at", ""):
+                        merged[pname] = p
+                
+                to_sync = []
+                for lp in local_data:
+                    pname = lp["participante_nome"]
+                    sb_match = next((sp for sp in sb_data if sp["participante_nome"] == pname), None)
+                    if not sb_match or lp.get("updated_at", "") > sb_match.get("updated_at", ""):
+                        to_sync.append(lp)
+                if to_sync:
+                    try:
+                        client.table("brasil_palpites_classicos").upsert(to_sync, on_conflict="participante_nome").execute()
+                    except Exception:
+                        pass
+                return list(merged.values())
             except Exception:
                 pass
-    if BRASIL_PALPITES_CLASSICOS_PATH.exists():
-        return read_json(BRASIL_PALPITES_CLASSICOS_PATH, [])
-    return []
+    return local_data
 
 def save_brasil_palpite_classico(palpite: dict) -> None:
     ensure_state()
@@ -1762,17 +2108,38 @@ def save_brasil_palpite_classico(palpite: dict) -> None:
 def load_ranking_snapshots() -> list[dict]:
     ensure_state()
     backend = get_storage_backend()
+    local_data = []
+    if RANKING_SNAPSHOTS_PATH.exists():
+        local_data = read_json(RANKING_SNAPSHOTS_PATH, [])
+        
     if backend == "supabase":
         client = _get_supabase_client()
         if client:
             try:
                 res = client.table("ranking_snapshots").select("*").execute()
-                return res.data
+                sb_data = res.data
+                
+                merged = {(p["rodada"], p["participante_nome"]): p for p in local_data}
+                for p in sb_data:
+                    key = (p["rodada"], p["participante_nome"])
+                    if key not in merged or p.get("captured_at", "") >= merged[key].get("captured_at", ""):
+                        merged[key] = p
+                
+                to_sync = []
+                for lp in local_data:
+                    key = (lp["rodada"], lp["participante_nome"])
+                    sb_match = next((sp for sp in sb_data if sp["rodada"] == lp["rodada"] and sp["participante_nome"] == lp["participante_nome"]), None)
+                    if not sb_match or lp.get("captured_at", "") > sb_match.get("captured_at", ""):
+                        to_sync.append(lp)
+                if to_sync:
+                    try:
+                        client.table("ranking_snapshots").upsert(to_sync, on_conflict="rodada,participante_nome").execute()
+                    except Exception:
+                        pass
+                return list(merged.values())
             except Exception:
                 pass
-    if RANKING_SNAPSHOTS_PATH.exists():
-        return read_json(RANKING_SNAPSHOTS_PATH, [])
-    return []
+    return local_data
 
 def save_ranking_snapshots(snapshots: list[dict]) -> None:
     ensure_state()

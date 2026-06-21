@@ -1,17 +1,417 @@
 [
   {
-    "id": "bf14fd8c",
-    "timestamp": "2026-06-16T18:37:30",
+    "id": "6f5878a0",
+    "timestamp": "2026-06-21T18:23:02",
     "kind": "participant_restored",
     "message": "Participante Murilov foi restaurado.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "0e181a3d",
+    "timestamp": "2026-06-21T18:23:02",
+    "kind": "participant_archived",
+    "message": "Participante Murilov foi arquivado.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "b2404470",
+    "timestamp": "2026-06-21T18:23:00",
+    "kind": "submission_saved",
+    "message": "Palpite de Bob foi enviado/atualizado.",
     "visibility": "public",
     "metadata": {}
   },
   {
-    "id": "d858a951",
-    "timestamp": "2026-06-16T18:37:30",
-    "kind": "participant_archived",
-    "message": "Participante Murilov foi arquivado.",
+    "id": "8c13b8bc",
+    "timestamp": "2026-06-21T18:23:00",
+    "kind": "partial_state_imported",
+    "message": "Palpites e participantes importados parcialmente do backup pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "abb647a2",
+    "timestamp": "2026-06-21T18:23:00",
+    "kind": "official_saved",
+    "message": "Resultado oficial do bolão foi cadastrado/atualizado.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "e5cd1d0b",
+    "timestamp": "2026-06-21T18:23:00",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "d7595e78",
+    "timestamp": "2026-06-21T18:23:00",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "4f0462e8",
+    "timestamp": "2026-06-21T18:23:00",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "19ecce84",
+    "timestamp": "2026-06-21T18:23:00",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "9f5d1ca9",
+    "timestamp": "2026-06-21T18:23:00",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "5552307d",
+    "timestamp": "2026-06-21T18:22:29",
+    "kind": "submission_saved",
+    "message": "Palpite de Bob foi enviado/atualizado.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "3bdc0773",
+    "timestamp": "2026-06-21T18:22:29",
+    "kind": "partial_state_imported",
+    "message": "Palpites e participantes importados parcialmente do backup pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "6cd50d89",
+    "timestamp": "2026-06-21T18:22:29",
+    "kind": "official_saved",
+    "message": "Resultado oficial do bolão foi cadastrado/atualizado.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "4eabeb1c",
+    "timestamp": "2026-06-21T18:22:29",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "8fa27173",
+    "timestamp": "2026-06-21T18:22:29",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "87c40305",
+    "timestamp": "2026-06-21T18:22:29",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "c954aa6c",
+    "timestamp": "2026-06-21T18:22:28",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "10094db2",
+    "timestamp": "2026-06-21T18:22:28",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "3627d8d3",
+    "timestamp": "2026-06-21T18:22:21",
+    "kind": "submission_saved",
+    "message": "Palpite de Bob foi enviado/atualizado.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "eaec1778",
+    "timestamp": "2026-06-21T18:22:21",
+    "kind": "partial_state_imported",
+    "message": "Palpites e participantes importados parcialmente do backup pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "b28d8476",
+    "timestamp": "2026-06-21T18:22:21",
+    "kind": "official_saved",
+    "message": "Resultado oficial do bolão foi cadastrado/atualizado.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "1de8c535",
+    "timestamp": "2026-06-21T18:22:21",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "40b6edb6",
+    "timestamp": "2026-06-21T18:21:51",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "fb634071",
+    "timestamp": "2026-06-21T18:21:51",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "8cf6fe93",
+    "timestamp": "2026-06-21T18:21:50",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "f4c1f554",
+    "timestamp": "2026-06-21T18:21:50",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "37658105",
+    "timestamp": "2026-06-21T18:18:21",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "ad223e60",
+    "timestamp": "2026-06-21T18:18:21",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "b7b48f0b",
+    "timestamp": "2026-06-21T18:18:21",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "9e57a7c6",
+    "timestamp": "2026-06-21T18:18:21",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "5b040167",
+    "timestamp": "2026-06-21T18:08:24",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "0b4dbc53",
+    "timestamp": "2026-06-21T18:08:24",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "8551c972",
+    "timestamp": "2026-06-21T18:08:24",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "aca237eb",
+    "timestamp": "2026-06-21T18:08:24",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "3408fcdc",
+    "timestamp": "2026-06-17T07:43:54",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "ca29da37",
+    "timestamp": "2026-06-17T07:43:54",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "a8114c1f",
+    "timestamp": "2026-06-17T07:41:50",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "57ba52e6",
+    "timestamp": "2026-06-17T07:41:50",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
+    "id": "81a7341d",
+    "timestamp": "2026-06-17T07:25:54",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "6013ab81",
+    "timestamp": "2026-06-17T07:25:54",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "7537d304",
+    "timestamp": "2026-06-17T07:07:13",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "00017dbf",
+    "timestamp": "2026-06-17T07:07:13",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "e460ccc1",
+    "timestamp": "2026-06-17T06:59:27",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "92bd101d",
+    "timestamp": "2026-06-17T06:59:27",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "425112b2",
+    "timestamp": "2026-06-17T06:34:54",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "2b5c86b0",
+    "timestamp": "2026-06-17T06:34:54",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "76d79c67",
+    "timestamp": "2026-06-16T19:30:44",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "8e10ca67",
+    "timestamp": "2026-06-16T19:30:44",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "f6e8335e",
+    "timestamp": "2026-06-16T19:29:27",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "cea7ae8a",
+    "timestamp": "2026-06-16T19:29:27",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "f539610e",
+    "timestamp": "2026-06-16T19:10:13",
+    "kind": "config_changed",
+    "message": "Configurações do bolão foram atualizadas.",
+    "visibility": "public",
+    "metadata": {}
+  },
+  {
+    "id": "f33b9c16",
+    "timestamp": "2026-06-16T19:10:13",
+    "kind": "state_imported",
+    "message": "Um backup completo do bolão foi importado pelo administrador.",
     "visibility": "public",
     "metadata": {}
   },
@@ -396,406 +796,6 @@
     "timestamp": "2026-06-14T14:30:28",
     "kind": "state_imported",
     "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "f2dd7f11",
-    "timestamp": "2026-06-14T14:28:39",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "aae6dce4",
-    "timestamp": "2026-06-14T14:28:39",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "1bb71234",
-    "timestamp": "2026-06-14T14:27:28",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "baf9ab2f",
-    "timestamp": "2026-06-14T14:27:28",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "c8307477",
-    "timestamp": "2026-06-14T14:26:40",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "f76c3a33",
-    "timestamp": "2026-06-14T14:26:40",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "0e9933d0",
-    "timestamp": "2026-06-14T14:26:25",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "646cacc7",
-    "timestamp": "2026-06-14T14:26:25",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "7c67ee5f",
-    "timestamp": "2026-06-14T14:26:11",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "81641a05",
-    "timestamp": "2026-06-14T14:26:11",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "bf553cc9",
-    "timestamp": "2026-06-14T14:25:47",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "1323d6ad",
-    "timestamp": "2026-06-14T14:25:47",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "d83cab6b",
-    "timestamp": "2026-06-14T14:25:16",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "da0a1f69",
-    "timestamp": "2026-06-14T14:25:16",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "045041fa",
-    "timestamp": "2026-06-14T14:24:57",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "829ed7df",
-    "timestamp": "2026-06-14T14:24:57",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "f5c89dcf",
-    "timestamp": "2026-06-14T14:23:55",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "31084ab8",
-    "timestamp": "2026-06-14T14:23:55",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "143915db",
-    "timestamp": "2026-06-14T14:23:35",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "7b712b79",
-    "timestamp": "2026-06-14T14:23:35",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "2760efed",
-    "timestamp": "2026-06-14T14:22:37",
-    "kind": "participant_registered",
-    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "597e2fbb",
-    "timestamp": "2026-06-14T14:20:29",
-    "kind": "participant_registered",
-    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "8f8c725d",
-    "timestamp": "2026-06-14T14:20:29",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "9166c621",
-    "timestamp": "2026-06-14T14:20:29",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "f9676ef4",
-    "timestamp": "2026-06-14T14:10:58",
-    "kind": "participant_registered",
-    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "0a70bb33",
-    "timestamp": "2026-06-14T14:10:58",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "ccbed5e8",
-    "timestamp": "2026-06-14T14:10:58",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "179bd362",
-    "timestamp": "2026-06-14T14:10:42",
-    "kind": "participant_registered",
-    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "39628a55",
-    "timestamp": "2026-06-14T14:10:42",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "b91da8f8",
-    "timestamp": "2026-06-14T14:10:42",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "aa7abc2b",
-    "timestamp": "2026-06-14T14:09:39",
-    "kind": "participant_registered",
-    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "b2cf1d1f",
-    "timestamp": "2026-06-14T14:09:39",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "5b712c5e",
-    "timestamp": "2026-06-14T14:09:39",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "53270963",
-    "timestamp": "2026-06-14T14:09:23",
-    "kind": "participant_registered",
-    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "b4552afb",
-    "timestamp": "2026-06-14T14:09:23",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "1030a0f1",
-    "timestamp": "2026-06-14T14:09:23",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "241b14aa",
-    "timestamp": "2026-06-14T14:09:06",
-    "kind": "participant_registered",
-    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "27e9f386",
-    "timestamp": "2026-06-14T14:09:05",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "27d67618",
-    "timestamp": "2026-06-14T14:09:05",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "8e3e9840",
-    "timestamp": "2026-06-14T14:08:19",
-    "kind": "participant_registered",
-    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "cca33e01",
-    "timestamp": "2026-06-14T14:08:18",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "bdb64334",
-    "timestamp": "2026-06-14T14:08:18",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "54d10a94",
-    "timestamp": "2026-06-14T14:07:48",
-    "kind": "participant_registered",
-    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "0beab8b0",
-    "timestamp": "2026-06-14T14:07:48",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "600dfa51",
-    "timestamp": "2026-06-14T14:07:48",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "13f8128c",
-    "timestamp": "2026-06-14T13:48:04",
-    "kind": "participant_registered",
-    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "d146d88c",
-    "timestamp": "2026-06-14T13:48:04",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "dd5dcd9e",
-    "timestamp": "2026-06-14T13:48:04",
-    "kind": "state_imported",
-    "message": "Um backup completo do bolão foi importado pelo administrador.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "9ee22a1c",
-    "timestamp": "2026-06-14T13:47:26",
-    "kind": "participant_registered",
-    "message": "Participante Henrique O Terrível se registrou jogando Jogo a Jogo.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "ed1e6192",
-    "timestamp": "2026-06-14T13:47:26",
-    "kind": "config_changed",
-    "message": "Configurações do bolão foram atualizadas.",
     "visibility": "public",
     "metadata": {}
   }

@@ -195,7 +195,7 @@ def admin_matches_agenda() -> None:
                         existing_by_id[im.match_id] = im
                     
                     save_matches(list(existing_by_id.values()))
-                    append_event("matches_imported", f"Importado {len(imported_matches)} jogos via arquivo CSV.")
+                    append_event("matches_imported", f"Importado {len(imported_matches)} jogos via arquivo CSV.", visibility="admin")
                     st.success(f"Agenda importada com sucesso! Total de {len(imported_matches)} jogos.")
                     st.rerun()
             except Exception as e:
@@ -215,6 +215,25 @@ def admin_matches_agenda() -> None:
     with tabs[3]:
         st.markdown("#### Aprovação de Resultados e Recálculo de Pontos")
         st.caption("Insira o placar oficial de um jogo finalizado para calcular os pontos de todos os palpites recebidos.")
+
+        # API-Football automated sync
+        from .api_service import APIFootballService
+        service = APIFootballService()
+        if service.enabled():
+            if st.button("🔄 Sincronizar Todos os Placares Automaticamente via API-Football", key="btn_sync_api_results_auto", type="primary", use_container_width=True):
+                with st.spinner("Conectando ao API-Football e atualizando resultados..."):
+                    res = service.sync_matches_scores_with_api()
+                if res.ok:
+                    st.success(res.message)
+                    import time
+                    time.sleep(1.0)
+                    st.rerun()
+                else:
+                    st.error(res.message)
+        else:
+            st.info("💡 Para atualizar placares automaticamente via API, configure a chave APIFOOTBALL_KEY nas variáveis de ambiente ou nos Secrets.")
+        
+        st.markdown("---")
 
         pending_matches = [m for m in matches if m.status != "result_approved"]
         if not pending_matches:
@@ -306,7 +325,8 @@ def admin_matches_agenda() -> None:
                         # Log event
                         append_event(
                             kind="result_approved",
-                            message=f"Resultado oficial aprovado: {m.home_team} {goals_h} x {goals_a} {m.away_team}. Pontos recalculados para {len(match_preds)} participantes."
+                            message=f"Resultado oficial aprovado: {m.home_team} {goals_h} x {goals_a} {m.away_team}. Pontos recalculados para {len(match_preds)} participantes.",
+                            visibility="admin"
                         )
                         
                         st.success(f"Resultado de {m.home_team} {goals_h} x {goals_a} {m.away_team} aprovado! Pontos recalculados.")
@@ -561,7 +581,7 @@ def admin_palpites_jogo_a_jogo() -> None:
                         if st.button("🟢 Ligar (Forçar Aberto)", key=f"force_open_btn_{m.match_id}", width="stretch"):
                             m.bets_manual_closed = False
                             save_matches(matches)
-                            append_event("match_lock_override", f"Partida {m.home_team} x {m.away_team} alterada para Forçar Aberto.")
+                            append_event("match_lock_override", f"Partida {m.home_team} x {m.away_team} alterada para Forçar Aberto.", visibility="admin")
                             st.success("Apostas abertas!")
                             st.cache_data.clear()
                             st.rerun()
@@ -569,7 +589,7 @@ def admin_palpites_jogo_a_jogo() -> None:
                         if st.button("🔴 Desligar (Forçar Fechado)", key=f"force_close_btn_{m.match_id}", width="stretch"):
                             m.bets_manual_closed = True
                             save_matches(matches)
-                            append_event("match_lock_override", f"Partida {m.home_team} x {m.away_team} alterada para Forçar Fechado.")
+                            append_event("match_lock_override", f"Partida {m.home_team} x {m.away_team} alterada para Forçar Fechado.", visibility="admin")
                             st.success("Apostas fechadas!")
                             st.cache_data.clear()
                             st.rerun()
@@ -577,7 +597,7 @@ def admin_palpites_jogo_a_jogo() -> None:
                         if st.button("⚙️ Reset (Automático)", key=f"reset_lock_btn_{m.match_id}", width="stretch"):
                             m.bets_manual_closed = None
                             save_matches(matches)
-                            append_event("match_lock_override", f"Partida {m.home_team} x {m.away_team} alterada para Automático.")
+                            append_event("match_lock_override", f"Partida {m.home_team} x {m.away_team} alterada para Automático.", visibility="admin")
                             st.success("Resetado para Automático!")
                             st.cache_data.clear()
                             st.rerun()
@@ -633,7 +653,7 @@ def admin_palpites_jogo_a_jogo() -> None:
                                         updated_pred.is_locked = True
                                 save_live_predictions(all_preds)
                                 
-                            append_event("prediction_edited_by_admin", f"Palpites da partida {m.home_team} x {m.away_team} editados em massa.")
+                            append_event("prediction_edited_by_admin", f"Palpites da partida {m.home_team} x {m.away_team} editados em massa.", visibility="admin")
                             st.success("Todos os palpites salvos!")
                             st.cache_data.clear()
                             st.rerun()

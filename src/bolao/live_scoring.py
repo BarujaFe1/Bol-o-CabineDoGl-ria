@@ -168,6 +168,8 @@ def calculate_live_ranking(live_predictions: list[LivePrediction], matches: list
 
     for pkey, info in by_participant.items():
         total_points = 0
+        match_points = 0
+        brasil_points = 0
         exact_scores = 0
         outcomes = 0
         predictions_count = 0
@@ -183,6 +185,7 @@ def calculate_live_ranking(live_predictions: list[LivePrediction], matches: list
                 
                 res = calculate_live_prediction_points(p, m, config)
                 points = res["points"]
+                match_points += points
                 total_points += points
                 
                 if res["flags"].get("exact"):
@@ -195,6 +198,7 @@ def calculate_live_ranking(live_predictions: list[LivePrediction], matches: list
                     gk = p.participant_key or normalize_participant_key(p.participant_name)
                     gol_pts = goleadores_map.get((gk, p.match_id), 0)
                     if gol_pts:
+                        brasil_points += gol_pts
                         total_points += gol_pts
 
         # Add artilheiro do dia / rodada points
@@ -212,6 +216,10 @@ def calculate_live_ranking(live_predictions: list[LivePrediction], matches: list
             "participant": info["name"],
             "participant_key": pkey,
             "total": total_points,
+            "match_points": match_points,
+            "brasil_points": brasil_points,
+            "artilheiro_dia_points": art_dia,
+            "artilheiro_rodada_points": art_rod,
             "exact_scores": exact_scores,
             "outcomes": outcomes,
             "predictions_count": predictions_count,

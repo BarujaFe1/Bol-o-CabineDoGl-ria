@@ -174,7 +174,8 @@ def migrate_to_parallel_modes() -> dict:
     # 5. Registrar evento de migração
     append_event(
         kind="migration_executed",
-        message=f"Migração parallel_modes executada. {migrated_count} submissões clássicas atualizadas."
+        message=f"Migração parallel_modes executada. {migrated_count} submissões clássicas atualizadas.",
+        visibility="admin"
     )
     
     # Salvar estado no log de migrations
@@ -602,7 +603,8 @@ def run_participant_cleanup_migration() -> dict:
     # 3. Registrar evento e migração
     append_event(
         kind="migration_executed",
-        message=f"Migração de arquivamento executada. {archived_count} participantes arquivados."
+        message=f"Migração de arquivamento executada. {archived_count} participantes arquivados.",
+        visibility="admin"
     )
     
     migrations["participant_cleanup_migration_v2"] = now_iso()
