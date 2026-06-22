@@ -15,3 +15,5 @@ bolao_cabine_gloria_public_ocr/
 data/backups/
 .pytest_cache/
 *.csv
+*.exe
+screenshots/
