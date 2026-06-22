@@ -1,0 +1,28 @@
+name: Supabase & Streamlit Keep-Alive
+
+on:
+  schedule:
+    # Executa às 09:00 UTC (06:00 Horário de Brasília) a cada 2 dias
+    - cron: '0 9 */2 * *'
+  workflow_dispatch: # Permite execução manual pela interface do GitHub
+
+jobs:
+  keep_alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: acordar o Streamlit Cloud
+        run: |
+          echo "Waking up Streamlit Cloud app..."
+          curl -sI https://bolaodogloria.streamlit.app/ | head -n 1
+
+      - name: ping direto no Supabase (se configurado)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        run: |
+          if [ -n "$SUPABASE_URL" ]; then
+            echo "Pinging Supabase project directly..."
+            curl -sI "$SUPABASE_URL" | head -n 1
+          else
+            echo "SUPABASE_URL secret not configured in GitHub repository secrets. Skip direct ping."
+            echo "Waking up the Streamlit Cloud app above is already sufficient to wake up the DB."
+          fi

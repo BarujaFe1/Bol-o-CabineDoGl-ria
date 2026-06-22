@@ -1,5 +1,13 @@
 [
   {
+    "id": "1a2a5f10",
+    "timestamp": "2026-06-21T20:12:33",
+    "kind": "test_users_cleaned",
+    "message": "Usuarios de teste removidos: Testador Sanca, TestUser",
+    "visibility": "admin",
+    "metadata": {}
+  },
+  {
     "id": "18acf0ba",
     "timestamp": "2026-06-21T19:06:39",
     "kind": "participant_restored",
@@ -786,14 +794,6 @@
   {
     "id": "3623b468",
     "timestamp": "2026-06-16T14:13:03",
-    "kind": "official_saved",
-    "message": "Resultado oficial do bolão foi cadastrado/atualizado.",
-    "visibility": "public",
-    "metadata": {}
-  },
-  {
-    "id": "e1ac4054",
-    "timestamp": "2026-06-16T14:13:02",
     "kind": "official_saved",
     "message": "Resultado oficial do bolão foi cadastrado/atualizado.",
     "visibility": "public",

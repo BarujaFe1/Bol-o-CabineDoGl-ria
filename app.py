@@ -1721,8 +1721,8 @@ def admin_exports() -> None:
                 if st.button("Executar Importação de Palpites", type="primary", key="btn_run_partial_restore", disabled=word_partial_confirm != "IMPORTAR", width="stretch"):
                     try:
                         backup_data = json.load(uploaded_partial_backup)
-                        from src.bolao.storage import import_participants_predictions_only
-                        import_participants_predictions_only(backup_data)
+                        from src.bolao.storage import safe_import_predictions
+                        safe_import_predictions(backup_data)
                         st.success("Palpites e participantes importados com sucesso! Recarregando aplicação...")
                         import time
                         time.sleep(1.0)

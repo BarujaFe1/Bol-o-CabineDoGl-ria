@@ -139,9 +139,11 @@ def run_score_sync(supabase_client=None) -> dict:
     if updated_count > 0:
         save_matches(db_matches)
         save_live_predictions(all_preds)
+        from src.bolao.storage import sync_matches_to_official
+        synced_official = sync_matches_to_official()
         append_event(
             kind="api_results_synced",
-            message=f"Sincronização via API football-data.org: {updated_count} jogos finalizados/atualizados e palpites recalculados.",
+            message=f"Sincronização via API football-data.org: {updated_count} jogos finalizados/atualizados e palpites recalculados. {synced_official} jogos copiados para o Simulador Oficial.",
             visibility="admin"
         )
 

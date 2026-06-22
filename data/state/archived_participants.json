@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "name": "Testador Sanca",
+    "participant_key": "testador-sanca",
+    "archived_at": "2026-06-21T20:10:12",
+    "reason": "excluido_pelo_admin",
+    "had_classic_prediction": false,
+    "live_predictions_count": 0,
+    "backup_reference": "limpeza_test_users"
+  },
+  {
+    "name": "TestUser",
+    "participant_key": "testuser",
+    "archived_at": "2026-06-21T20:10:12",
+    "reason": "excluido_pelo_admin",
+    "had_classic_prediction": false,
+    "live_predictions_count": 0,
+    "backup_reference": "limpeza_test_users"
+  }
+]

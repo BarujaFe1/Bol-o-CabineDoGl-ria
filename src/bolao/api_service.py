@@ -192,10 +192,11 @@ class APIFootballService:
             if updated_count > 0 or live_count > 0:
                 save_matches(matches)
                 save_live_predictions(all_preds)
-                from .storage import append_event
+                from .storage import append_event, sync_matches_to_official
+                synced_off = sync_matches_to_official()
                 append_event(
                     kind="api_results_synced",
-                    message=f"Sincronização via API: {updated_count} jogos finalizados e {live_count} ao vivo atualizados.",
+                    message=f"Sincronização via API: {updated_count} jogos finalizados e {live_count} ao vivo atualizados. {synced_off} jogos copiados para o Simulador Oficial.",
                     visibility="admin"
                 )
             

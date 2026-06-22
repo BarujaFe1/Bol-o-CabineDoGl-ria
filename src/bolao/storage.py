@@ -1065,8 +1065,26 @@ def export_all_state() -> dict:
 
 def import_all_state(data: dict) -> None:
     st.cache_data.clear()
-    append_event("state_imported", "Um backup completo do bolão foi importado pelo administrador.", visibility="admin")
     ensure_state()
+
+    # Safety check: backup must have at least as much data as current state
+    current_lp = len(load_live_predictions(include_archived=True))
+    current_subs = len(load_submissions(include_archived=True))
+    backup_lp = len(data.get("live_predictions", []))
+    backup_subs = len(data.get("submissions", []))
+    backup_has_less = False
+    if backup_lp < current_lp and current_lp > 0:
+        backup_has_less = True
+    if backup_subs < current_subs and current_subs > 0:
+        backup_has_less = True
+    if backup_has_less:
+        append_event("state_import_blocked",
+                     "Importacao BLOQUEADA: backup tem MENOS dados que o estado atual "
+                     "(LP: {}/{}, Subs: {}/{})".format(backup_lp, current_lp, backup_subs, current_subs),
+                     visibility="admin")
+        return
+
+    append_event("state_imported", "Um backup completo do bolao foi importado pelo administrador.", visibility="admin")
 
     # 1. Config
     if "config" in data and data["config"]:
@@ -1902,6 +1920,119 @@ def sync_official_results_to_matches() -> int:
         save_matches(matches)
         save_live_predictions(live_preds)
     return updated
+
+
+def sync_matches_to_official() -> int:
+    """
+    Sincroniza os placares de bolao_matches (result_approved) de VOLTA para
+    bolao_official (meta.group_matches), permitindo que o Simulador Oficial
+    reflita automaticamente os resultados vindos da API.
+    Retorna quantos matches foram copiados.
+    """
+    from .worldcup_2026_data import GROUP_MATCHES
+    matches = load_matches()
+    official = load_official()
+    if not official:
+        official = Prediction(participant="Resultado oficial")
+    if "group_matches" not in official.meta:
+        official.meta["group_matches"] = {}
+
+    db_by_id = {m.match_id: m for m in matches}
+    updated = 0
+    for gm in GROUP_MATCHES:
+        m_id = gm["id"]
+        m = db_by_id.get(m_id)
+        if not m:
+            continue
+        if m.status != "result_approved" and m.official_home_goals is None:
+            continue
+        current = official.meta["group_matches"].get(m_id)
+        new_val = [m.official_home_goals, m.official_away_goals]
+        if current != new_val:
+            official.meta["group_matches"][m_id] = new_val
+            updated += 1
+
+    if updated > 0:
+        official.status = "rascunho"
+        save_official(official)
+    return updated
+
+
+def safe_import_predictions(data: dict) -> dict:
+    """
+    Importa previsoes de um backup com protecao contra perda de dados:
+    - NUNCA substitui previsoes existentes se o backup tiver MENOS dados
+    - So adiciona previsoes NOVAS (que nao existem no estado atual)
+    - Preserva todas as previsoes existentes
+    """
+    from .utils import normalize_participant_key
+    st.cache_data.clear()
+    ensure_state()
+
+    current_lp = load_live_predictions(include_archived=True)
+    backup_lp = data.get("live_predictions", [])
+
+    warnings = []
+    if len(backup_lp) < len(current_lp):
+        warnings.append("Backup tem MENOS previsoes live que o estado atual ({}/{}). Nenhuma previsao sera removida.".format(
+            len(backup_lp), len(current_lp)))
+
+    # Classic submissions: only add missing ones
+    existing_subs = {normalize_participant_key(s.participant): s
+                     for s in load_submissions(include_archived=True)}
+    added_subs = 0
+    for sub in data.get("submissions", []):
+        pred = Prediction.from_dict(sub)
+        pkey = normalize_participant_key(pred.participant)
+        if pkey not in existing_subs:
+            save_submission(pred, overwrite=True)
+            added_subs += 1
+
+    # Live predictions: only add missing, never replace
+    existing_by_key = {}
+    for lp in current_lp:
+        pkey = lp.participant_key or normalize_participant_key(lp.participant_name)
+        existing_by_key[(pkey, str(lp.match_id))] = lp
+
+    added_lp = 0
+    for lp_data in backup_lp:
+        lp = LivePrediction.from_dict(lp_data)
+        pkey = lp.participant_key or normalize_participant_key(lp.participant_name)
+        key = (pkey, str(lp.match_id))
+        if key not in existing_by_key:
+            current_lp.append(lp)
+            added_lp += 1
+
+    if added_lp > 0:
+        save_live_predictions(current_lp)
+
+    # Registered participants: add new ones only
+    registered = load_registered_participants(include_archived=True)
+    registered_lower = {p.lower() for p in registered}
+    new_parts = data.get("registered_participants", data.get("participants", []))
+    added_part = 0
+    for p in new_parts:
+        name = p if isinstance(p, str) else p.get("name", "")
+        if name.lower() not in registered_lower:
+            registered.append(name)
+            registered_lower.add(name.lower())
+            added_part += 1
+    if added_part > 0:
+        save_registered_participants(registered)
+
+    msg_parts = []
+    if added_subs:
+        msg_parts.append("{} submissao(classicas)".format(added_subs))
+    if added_lp:
+        msg_parts.append("{} previsao(live)".format(added_lp))
+    if added_part:
+        msg_parts.append("{} participante(s)".format(added_part))
+    summary = " + ".join(msg_parts) if msg_parts else "nenhuma mudanca"
+    append_event("partial_state_imported",
+                 "Importacao segura concluida: {}".format(summary),
+                 visibility="admin")
+    return {"added_subs": added_subs, "added_lp": added_lp,
+            "added_participants": added_part, "warnings": warnings}
 
 
 def archive_participant(name: str, reason: str = "cleanup_requested_by_admin", backup_ref: str = "") -> bool:
