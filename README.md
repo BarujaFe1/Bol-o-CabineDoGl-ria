@@ -1,238 +1,171 @@
 <div align="center">
   <img src="./assets/icon.png" alt="Bolão da Cabine do Glória Logo" width="120" height="120" />
+
   <h1>Bolão da Cabine do Glória</h1>
-  <p><strong>Copa do Mundo 2026 • Bolão inteligente com simulador interativo interno, conferência e ranking automático</strong></p>
+
+  <p><strong>Bolão Copa 2026 com simulador, conferência e ranking — Streamlit + Supabase.</strong></p>
+  <p><strong>World Cup 2026 pool with simulator, scoring and ranking — Streamlit + Supabase.</strong></p>
 
   <p>
-    <a href="#-português">Português</a> •
-    <a href="#-english">English</a> •
-    <a href="#-tecnologias--technologies">Tecnologias</a> •
-    <a href="#-como-executar--how-to-run">Como executar</a> •
-    <a href="#-deploy">Deploy</a> •
-    <a href="#-licença--license">Licença</a>
+    <a href="#pt-br">PT-BR</a>
+     · 
+    <a href="#english">English</a>
+     · 
+    <a href="#stack">Stack</a>
+     · 
+    <a href="#architecture">Architecture</a>
+     · 
+    <a href="#quick-start">Quick Start</a>
+     · 
+    <a href="#author">Author</a>
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/version-2.0.0-blue.svg" alt="Version 2.0.0" />
-    <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License MIT" />
-    <img src="https://img.shields.io/badge/Streamlit-FF4B4B.svg?style=flat-square&logo=streamlit&logoColor=white" alt="Streamlit" />
-    <img src="https://img.shields.io/badge/Python-3.11-3776AB.svg?style=flat-square&logo=python&logoColor=white" alt="Python 3.11" />
-    <img src="https://img.shields.io/badge/Supabase-ready-3ECF8E.svg?style=flat-square&logo=supabase&logoColor=white" alt="Supabase Ready" />
+    <img alt="Streamlit" src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" />
+    <img alt="Python-3.11" src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+    <img alt="Supabase" src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" />
+    <img alt="License-MIT" src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" />
+  </p>
+
+  <p>
+    <a href="https://github.com/BarujaFe1/Bol-o-CabineDoGl-ria"><strong>Repo</strong></a>
+     · 
+    <a href="https://barujafe.vercel.app/"><strong>Portfolio</strong></a>
+     · 
+    <a href="https://www.linkedin.com/in/barujafe/"><strong>LinkedIn</strong></a>
   </p>
 </div>
 
----
 
-# 🇧🇷 Português
-
-## 📋 Visão geral
-
-O **Bolão da Cabine do Glória** é uma aplicação web feita para criar, simular e acompanhar palpites da **Copa do Mundo 2026** com uma experiência simples, visual e 100% nativa.
-
-A ideia central é eliminar o trabalho manual com planilhas, JSONs e dependências de simuladores externos (como o do ge.globo) ou OCR de imagens. Todo o fluxo de preenchimento acontece diretamente dentro do sistema. O participante informa seu nome, simula os placares da fase de grupos, o sistema calcula a classificação e os melhores terceiros automaticamente, monta o chaveamento do mata-mata, e permite que o participante escolha os vencedores das rodadas eliminatórias até o campeão.
-
-> Um bolão feito para ser fácil para quem participa e poderoso para quem administra.
+> **Community app notice:** Streamlit app for a specific community pool. No GitHub homepage demo URL is set. Deploy on Streamlit Community Cloud with **your** Supabase secrets. Repo name encoding: `Bol-o-CabineDoGl-ria`.
 
 ---
 
-## 🧭 Fluxo do participante
+## PT-BR
 
-```text
-1. Identifique-se com seu nome
-       ↓
-2. Simule a Fase de Grupos (preencha os placares)
-       ↓
-3. Confira os Classificados (1º, 2º e ranking dos melhores 3ºs)
-       ↓
-4. Escolha o Mata-mata (selecione os vencedores de cada chave)
-       ↓
-5. Revise e envie seu palpite
+### Visão geral
+O **Bolão da Cabine do Glória** gerencia palpites da Copa 2026 com áreas pública/admin, regras de pontuação (incl. modo V2), simulador/apoio GE, artilheiro do dia/rodada, exportações e persistência Supabase.
+
+### Problema
+Bolões em planilha quebram com empates, revisões de placar e falta de ranking confiável para um grupo real.
+
+### Para quem
+O grupo **Cabine do Glória** / comunidades que querem um bolão operacional com admin e ranking.
+
+### Funcionalidades
+- Área pública de participação e fluxo de palpites
+- Área administrativa (placar oficial, config, artilheiros)
+- Múltiplos modos/regras de pontuação (V2 documentado)
+- Exportações (CSV/JSON/ranking Discord helpers)
+- Parser/apoio a texto de chaves (GE) no código
+- Screenshots de admin em `./screenshots`
+
+### Escopo e limites (honestos)
+- App de comunidade — não é produto SaaS multi-tenant genérico
+- Requer Supabase + senha admin configurados
+- Simulador/parser GE são apoio — valide placares oficiais
+
+---
+
+## English
+
+### Overview
+**Bolão da Cabine do Glória** runs a WC2026 pick’em with public/admin areas, scoring rules (incl. V2), simulator/GE helpers, daily/round scorers, exports and Supabase persistence.
+
+### Problem
+Spreadsheet pools break on ties, score revisions and unreliable rankings for a real group.
+
+### Who it is for
+The **Cabine do Glória** community / groups that need an operational pool with admin + ranking.
+
+### Features
+- Public participation and pick flow
+- Admin area (official scores, config, scorers)
+- Multiple scoring modes/rules (V2 documented)
+- Exports (CSV/JSON/Discord ranking helpers)
+- GE bracket text parser/helpers in code
+- Admin screenshots under `./screenshots`
+
+### Scope and honest limits
+- Community app — not generic multi-tenant SaaS
+- Needs Supabase + admin password configuration
+- GE simulator/parser are helpers — verify official scores
+
+---
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="./screenshots/admin_login.png" alt="Admin login" /><br /><sub><strong>Admin login</strong></sub></td>
+    <td width="50%"><img src="./screenshots/adm_ajuda.png" alt="Admin help" /><br /><sub><strong>Admin help</strong></sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="./screenshots/adm_artilheiro_artilheiro_da_rodada.png" alt="Top scorer round" /><br /><sub><strong>Top scorer round</strong></sub></td>
+    <td width="50%"><img src="./screenshots/adm_artilheiro_artilheiro_do_dia.png" alt="Top scorer day" /><br /><sub><strong>Top scorer day</strong></sub></td>
+  </tr>
+</table>
+
+
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| UI | Streamlit |
+| Language | Python 3.11+, Pandas |
+| Data | Supabase (production), local JSON/state helpers |
+
+---
+
+## Architecture
+
+```txt
+app.py                 Streamlit entry
+src/bolao/             domain (scoring, storage, UI, parsers)
+supabase_migrations/   SQL migrations
+screenshots/           admin UI evidence
 ```
 
 ---
 
-## ✨ Funcionalidades
-
-### 🌐 Área pública
-
-- **Início (Home):** apresentação clara do novo fluxo interativo, com botões para iniciar o palpite ou visualizar o ranking.
-- **Fazer palpite:** fluxo integrado de simulação por etapas (Fase de grupos, Classificados, Mata-mata e Envio).
-- **Ranking:** pódio interativo dos primeiros colocados, tabela de classificação geral de todos os participantes e detalhes de acertos.
-
-### 🔐 Área administrativa
-
-- **Dashboard:** estatísticas do bolão, carregamento de dados demo e limpeza de estado.
-- **Participantes:** visualização detalhada, edição manual e exclusão de palpites.
-- **Resultados oficiais:** simulação ou cadastro de resultados oficiais para sincronizar com os palpites dos usuários.
-- **Ranking administrativo:** controle total das pontuações e logs de auditoria.
-- **Exportações:** backup em CSV/JSON, formatação pronta de mensagens de ranking para Discord e exportação de pódio em HTML.
-- **Configurações:** controle dos pesos da pontuação, regras de pontuação V2 e status público da aplicação.
-
----
-
-## 🧮 Pontuação (Modo V2)
-
-O sistema utiliza preferencialmente o **Modo V2** de pontuação:
-- **Fase de grupos:** a pontuação considera os placares exatos dos jogos (peso configurável).
-- **Mata-mata:** a pontuação considera os classificados corretos escolhidos pelo usuário em cada uma das fases (Dezesseis-avos, Oitavas, Quartas, Semifinais, Terceiro Lugar e Final), além do acerto do Campeão.
-
-### Critérios de desempate
-1. Maior pontuação no mata-mata.
-2. Acerto do campeão.
-3. Maior pontuação na fase de grupos.
-4. Ordem alfabética.
-
----
-
-# 🇺🇸 English
-
-## 📋 Overview
-
-**Bolão da Cabine do Glória** is a web application designed to create, simulate, and track predictions for the **2026 FIFA World Cup** with a clean, responsive, and 100% native user experience.
-
-The core goal is to eliminate manual spreadsheets, JSON imports, external simulators, and image OCR. The entire flow happens within the system. The participant enters their name, enters scorelines for the group stage, views live standings and automatically computed best third-place qualifiers, fills out the knockout bracket, and confirms their prediction before submitting.
-
-> A prediction pool built to be easy for participants and powerful for administrators.
-
----
-
-## 🧭 Participant flow
-
-```text
-1. Identify yourself with your name
-       ↓
-2. Simulate the Group Stage (fill in the match scores)
-       ↓
-3. View Standings (1st, 2nd, and best 3rd-place teams)
-       ↓
-4. Pick the Knockout Bracket (select winners for each match)
-       ↓
-5. Review and submit your prediction
-```
-
----
-
-## ✨ Features
-
-### 🌐 Public area
-
-- **Home:** clear presentation of the simulation workflow and quick links to start or view the ranking.
-- **Make prediction:** integrated step-by-step simulation (Group stage, Standings, Knockouts, and Submission).
-- **Ranking:** interactive podium, general leaderboard, and score breakdowns.
-
-### 🔐 Admin area
-
-- **Dashboard:** pool KPIs, demo data loader, and state resets.
-- **Participants:** view, edit, or delete submitted predictions.
-- **Official results:** input official tournament results to update participant scores.
-- **Admin ranking:** detailed score audit logs.
-- **Exports:** CSV/JSON backups, Discord-ready leaderboard messages, and HTML podium code.
-- **Settings:** score weight configurations, V2 scoring rules, and public status toggle.
-
----
-
-## 🧮 Scoring (Mode V2)
-
-The system defaults to the **V2 Scoring Mode**:
-- **Group stage:** points awarded based on exact match scores (configurable weight).
-- **Knockout stage:** points awarded based on correctly predicting the qualified teams in each round (Round of 32, Round of 16, Quarterfinals, Semifinals, Third place, and Finals), plus the Champion.
-
-### Tie-breakers
-1. Higher knockout-stage score.
-2. Correct champion prediction.
-3. Higher group-stage score.
-4. Alphabetical order.
-
----
-
-# 🧰 Tecnologias / Technologies
-
-- [Streamlit](https://streamlit.io/) — interface web rápida e interativa.
-- [Python 3.11+](https://python.org/) — linguagem principal da aplicação.
-- [Supabase](https://supabase.com/) — persistência em produção.
-- CSV / JSON — exportação, backup e interoperabilidade.
-- *Nota: O processamento de imagens (OCR) via Tesseract e o parser de textos legados foram mantidos internamente apenas para fins de compatibilidade técnica e administrativa.*
-
----
-
-# ⚙️ Como executar / How to run
-
-## Pré-requisitos / Requirements
-
-- Python 3.11+
-- Windows PowerShell, Terminal, Bash ou shell compatível.
-
-## Instalação local / Local setup
+## Quick Start
 
 ```bash
-# Clone o repositório / Clone the repository
-git clone https://github.com/BarujaFe1/Bol-o-CabineDoGl-ria.git
-cd Bol-o-CabineDoGl-ria
-
-# Crie um ambiente virtual / Create virtual env
 python -m venv .venv
-
-# Ative o ambiente virtual / Activate virtual env
-# Windows:
 .venv\Scripts\activate
-# Linux/macOS:
-source .venv/bin/activate
-
-# Instale as dependências / Install dependencies
 pip install -r requirements.txt
-
-# Execute o app / Run the app
+cp .env.example .env   # or .streamlit/secrets.toml
 streamlit run app.py
 ```
 
-Acesse em seu navegador / Open in your browser:
-`http://localhost:8501`
+---
+
+## Technical decisions
+
+- **Streamlit** for fast community iteration
+- **Supabase** for shared persistence beyond local JSON
+- Explicit **scoring modes** + tie-breakers for fair rankings
 
 ---
 
-# ☁️ Deploy & Configuração de Banco de Dados
+## Roadmap
 
-Esta instância do bolão é independente da versão de Vargem Grande. Para que funcione corretamente, é necessário configurar um banco de dados **Supabase** exclusivo para o grupo de São Carlos (Sanca).
-
-## Pré-requisito: Configuração do Supabase (São Carlos)
-
-1. Crie uma conta ou projeto no [Supabase](https://supabase.com/).
-2. Obtenha a URL do projeto (`SUPABASE_URL`) e a chave do Service Role (`SUPABASE_SERVICE_ROLE_KEY`) nas configurações de API do Supabase.
-3. Ao rodar localmente ou no Streamlit Cloud, essas variáveis serão usadas para criar automaticamente as tabelas necessárias (`bolao_config`, `bolao_submissions` e `bolao_official`).
-
-## Configuração Local (.env ou secrets.toml)
-
-Para rodar localmente, copie o arquivo `.env.example` para `.env` (ou `.streamlit/secrets.toml.example` para `.streamlit/secrets.toml`) e preencha as variáveis de ambiente locais com placeholders ou dados do seu banco de desenvolvimento. **Nunca commite chaves reais no repositório.**
-
-## Streamlit Community Cloud
-
-1. Acesse [Streamlit Community Cloud](https://share.streamlit.io).
-2. Conecte sua conta do GitHub.
-3. Selecione o repositório do projeto: `https://github.com/BarujaFe1/Bol-o-CabineDoGl-ria`.
-4. Configure o arquivo principal como `app.py` e clique em **Deploy**.
-
-## Streamlit secrets
-
-Nas configurações da aplicação no painel da Streamlit Cloud (App > Settings > Secrets), adicione as variáveis em **Secrets**:
-
-```toml
-# Obrigatório para produção (Banco Supabase de São Carlos)
-SUPABASE_URL = "https://seu-projeto-sanca.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY = "sua-chave-service-role-sanca"
-
-# Senha da Área Administrativa para o grupo de Sanca
-ADMIN_PASSWORD = "sua-senha-admin-segura"
-```
-```
+- UX polish for participants
+- Stronger admin audit trail
+- Closer sync with Discord CopaBot
 
 ---
 
-# 📄 Licença / License
+## Author
 
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+**Felipe Alirio Baruja** — data / product / full-stack portfolio.
 
----
+- Portfolio: [https://barujafe.vercel.app/](https://barujafe.vercel.app/)
+- GitHub: [https://github.com/BarujaFe1](https://github.com/BarujaFe1)
+- LinkedIn: [https://www.linkedin.com/in/barujafe/](https://www.linkedin.com/in/barujafe/)
 
-# 👨‍💻 Autor / Author
 
-Desenvolvido por **BarujaFe**.
+## License
+
+MIT — see [`LICENSE`](./LICENSE).
